@@ -16,7 +16,7 @@ const ModelEditor: Component<Props> = (props) => {
 	let modelRef: HTMLInputElement;
 	let clientTypeRef: HTMLInputElement;
 
-	const preset = llmPresets.find((p) => p.name === props.model.endpoint);
+	const preset = llmPresets.find((p) => p.endpoint === props.model.endpoint);
 	const apiKeyURL = preset?.apiKeyURL;
 
 	const endpoints = llmPresets.map((p) => p.name);
@@ -26,7 +26,7 @@ const ModelEditor: Component<Props> = (props) => {
 
 		props.updateModel((m) => ({
 			...m,
-			endpoint: e,
+			endpoint: preset.endpoint,
 			apiKey: '',
 			model: preset.models[0],
 			clientType: preset.clientType,
@@ -57,7 +57,7 @@ const ModelEditor: Component<Props> = (props) => {
 			...m,
 			model: modelRef!.value,
 			endpoint: endpointRef!.value,
-			apiKey: apiKeyRef!.value,
+			apiKey: apiKeyRef!.value.trim(),
 			clientType: clientTypeRef!.value as LLMClientType,
 			name: nameRef!.value,
 		}));

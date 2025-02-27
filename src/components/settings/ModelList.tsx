@@ -21,7 +21,6 @@ const ModelList = () => {
 		(idx: number): Setter<ModelConfig> =>
 		(v) => {
 			setUserConfig((c) => {
-				console.log(c);
 				const models = [...c.models];
 				if (typeof v === 'function') models[idx] = v(models[idx]);
 				else models[idx] = v;
