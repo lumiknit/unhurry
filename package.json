@@ -1,0 +1,49 @@
+{
+	"name": "unhurry",
+	"description": "Neat any text tool with LLM",
+	"author": {
+		"name": "lumiknit",
+		"email": "aasr4r4@gmail.com",
+		"url": "https://github.com/lumiknit"
+	},
+	"license": "AGPL-3.0-only",
+	"private": true,
+	"version": "0.0.0",
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"devGHPage": "vite -m ghpage",
+		"build": "tsc -b && vite build",
+		"buildGHPage": "tsc -b && vite build -m ghpage",
+		"preview": "vite preview",
+		"format": "eslint --fix ./src && prettier --write ."
+	},
+	"dependencies": {
+		"@lezer/highlight": "^1.2.1",
+		"@solid-primitives/media": "^2.3.0",
+		"@solidjs/router": "^0.15.3",
+		"billboard.js": "^3.14.3",
+		"bulma": "^1.0.3",
+		"codemirror": "^6.0.1",
+		"dompurify": "^3.2.4",
+		"marked": "^15.0.7",
+		"solid-icons": "^1.1.0",
+		"solid-js": "^1.9.5",
+		"solid-toast": "^0.5.0",
+		"thememirror": "^2.0.1",
+		"typescript-eslint": "^8.25.0"
+	},
+	"devDependencies": {
+		"@eslint/js": "^9.21.0",
+		"@types/node": "^22.13.5",
+		"eslint": "^9.21.0",
+		"eslint-import-resolver-typescript": "^3.8.3",
+		"eslint-plugin-import": "^2.31.0",
+		"eslint-plugin-unused-imports": "^4.1.4",
+		"prettier": "^3.5.2",
+		"sass": "^1.85.1",
+		"typescript": "^5.7.3",
+		"vite": "^6.2.0",
+		"vite-plugin-solid": "^2.11.5"
+	}
+}

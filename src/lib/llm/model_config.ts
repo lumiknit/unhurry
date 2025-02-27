@@ -1,0 +1,116 @@
+export type LLMClientType = 'OpenAI' | 'Anthropic' | 'Gemini';
+
+export type LLMServiceInfo = {
+	/** Service Name */
+	name: string;
+
+	/** LLM Client Type */
+	clientType: LLMClientType;
+
+	/** Endpoint URL */
+	endpoint: string;
+
+	/** API Key Dashboard URL */
+	apiKeyURL: string;
+
+	/** Available models */
+	models: string[];
+};
+
+export type ModelConfig = {
+	name: string;
+
+	clientType: LLMClientType;
+
+	endpoint: string;
+
+	apiKey: string;
+
+	model: string;
+};
+
+export const emptyModelConfig = (): ModelConfig => ({
+	name: '',
+	clientType: 'OpenAI',
+	endpoint: '',
+	apiKey: '',
+	model: '',
+});
+
+export const llmPresets: LLMServiceInfo[] = [
+	{
+		name: 'OpenAI',
+		clientType: 'OpenAI',
+		apiKeyURL: 'https://platform.openai.com/api-keys',
+		endpoint: 'https://api.openai.com/v1',
+		models: ['gpt-4o-mini', 'gpt-4o', 'o3', 'o3-mini'],
+	},
+	{
+		name: 'Groq',
+		clientType: 'OpenAI',
+		apiKeyURL: 'https://console.groq.com/keys',
+		endpoint: 'https://api.groq.com/openai/v1',
+		models: [
+			'deepseek-r1-distill-llama-70b',
+			'deepseek-r1-distill-qwen-32b',
+			'qwen-2.5-32b',
+			'gemma2-9b-it',
+			'llama-3.3-70b-versatile',
+		],
+	},
+	{
+		name: 'Anthropic',
+		clientType: 'Anthropic',
+		apiKeyURL: 'https://console.anthropic.com/settings/keys',
+		endpoint: 'https://api.anthropic.com/v1',
+		models: [
+			'claude-3-7-sonnet-latest',
+			'claude-3-5-haiku-latest',
+			'claude-3-5-sonnet-latest',
+			'claude-3-5-opus-latest',
+		],
+	},
+	{
+		name: 'Gemini',
+		clientType: 'Gemini',
+		apiKeyURL: 'https://aistudio.google.com/apikey',
+		endpoint: 'https://generativelanguage.googleapis.com/v1beta',
+		models: [
+			'gemini-2.0-flash-lite',
+			'gemini-2.0-flash',
+			'gemini-1.5-flash',
+			'gemini-1.5-flash-8b',
+			'gemini-1.5-pro',
+		],
+	},
+	{
+		name: 'Local Ollama',
+		clientType: 'OpenAI',
+		apiKeyURL: '',
+		endpoint: 'http://localhost:11434/v1',
+		models: [
+			'llama3.3',
+			'deepseek-r1',
+			'phi4',
+			'llama3.1',
+			'llama3.2',
+			'mistral',
+			'qwen2.5',
+			'gemma',
+		],
+	},
+	{
+		name: 'OpenRouter',
+		clientType: 'OpenAI',
+		apiKeyURL: 'https://openrouter.ai/settings/keys',
+		endpoint: 'https://openrouter.ai/api/v1',
+		models: [
+			'deepseek/deepseek-r1:free',
+			'meta-llama/llama-3.3-70b-instruct:free',
+			'deepseek/deepseek-r1-distill-llama-70b:free',
+			'nvidia/llama-3.1-nemotron-70b-instruct:free',
+			'qwen/qwen2.5-vl-72b-instruct:free',
+			'google/gemma-2-9b-it:free',
+		],
+	},
+];
