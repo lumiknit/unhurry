@@ -44,17 +44,10 @@ const ModelList = () => {
 		<div>
 			<h2 class="subtitle is-4">Model List ({models().length})</h2>
 
-			<div class="columns">
-				<div class="column">
-					<button
-						class="button is-primary is-gap-2"
-						onClick={addModel}
-					>
-						<TbPlus />
-						Add model
-					</button>
-				</div>
-			</div>
+			<button class="button is-primary is-gap-2" onClick={addModel}>
+				<TbPlus />
+				Add model
+			</button>
 
 			<div class="columns is-multiline">
 				<For each={models()}>

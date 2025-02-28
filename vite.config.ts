@@ -17,6 +17,7 @@ export default ({ mode }: { mode: string }) => {
 					manualChunks: {
 						hljs: ['highlight.js'],
 						marked: ['marked', 'marked-katex-extension'],
+						mermaid: ['mermaid'],
 					},
 				},
 			},

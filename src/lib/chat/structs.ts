@@ -25,6 +25,11 @@ export const MSG_PART_TYPE_RUN_JS = 'run-js';
 export const MSG_PART_TYPE_SVG = 'svg';
 
 /**
+ * MSG_PART_TYPE_MERMAID is a Mermaid diagram, which will be rendered.
+ */
+export const MSG_PART_TYPE_MERMAID = 'mermaid';
+
+/**
  * Message part.
  */
 export type MsgPart = {

@@ -2,12 +2,14 @@ import DOMPurify from 'dompurify';
 import hljs from 'highlight.js';
 import { marked } from 'marked';
 import markedKatex from 'marked-katex-extension';
+import mermaid from 'mermaid';
 import { Component, createSignal, For, onMount, Show } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 import toast from 'solid-toast';
 
 import {
 	Msg,
+	MSG_PART_TYPE_MERMAID,
 	MSG_PART_TYPE_RUN_JS,
 	MSG_PART_TYPE_SVG,
 	MSG_PART_TYPE_TEXT,
@@ -41,7 +43,9 @@ const TextMessage: Component<ItemProps> = (props) => {
 
 const BlockMessage: Component<ItemProps> = (props) => {
 	const [html, setHtml] = createSignal('');
-	const [fold, setFold] = createSignal(props.type === MSG_PART_TYPE_THINK);
+	const [fold, setFold] = createSignal(
+		props.type === MSG_PART_TYPE_THINK || props.content.length > 1000
+	);
 	// Use highlight.js to highlight code
 
 	onMount(async () => {
@@ -94,10 +98,26 @@ const SvgMessage: Component<ItemProps> = (props) => {
 	);
 };
 
+const MermaidMessage: Component<ItemProps> = (props) => {
+	const [svg, setSvg] = createSignal('');
+
+	onMount(async () => {
+		try {
+			const { svg } = await mermaid.render('mermaid', props.content);
+			setSvg(DOMPurify.sanitize(svg));
+		} catch (error) {
+			console.error('Error rendering Mermaid diagram:', error);
+		}
+	});
+
+	return <div class="msg-mermaid" innerHTML={svg()} />;
+};
+
 const compMap = new Map([
 	[MSG_PART_TYPE_TEXT, TextMessage],
 	[MSG_PART_TYPE_RUN_JS, BlockMessage],
 	[MSG_PART_TYPE_SVG, SvgMessage],
+	[MSG_PART_TYPE_MERMAID, MermaidMessage],
 ]);
 
 type Props = {

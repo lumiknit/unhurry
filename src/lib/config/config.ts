@@ -1,9 +1,23 @@
 import { ModelConfig } from '../llm';
 
 export type UserConfig = {
+	/**
+	 * LLM Models
+	 */
 	models: ModelConfig[];
+	/**
+	 * Current LLM
+	 */
 	currentModelIdx: number;
 
+	/**
+	 * When send the typed text to the server automatically
+	 */
+	autoSendMillis?: number;
+
+	/**
+	 * Use Javascript for the code execution
+	 */
 	useJavascript: boolean;
 };
 
