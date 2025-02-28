@@ -1,7 +1,7 @@
 import { TbSend } from 'solid-icons/tb';
 import { Component, onMount, Show } from 'solid-js';
 
-import { getUserConfig } from '../../store';
+import { getUserConfig, setUserConfig } from '../../store';
 
 type Props = {
 	onInput?: (value: string) => void;
@@ -62,7 +62,7 @@ const BottomInput: Component<Props> = (props) => {
 
 	const setAutoSend = () => {
 		const as = autoSendTimeout();
-		if (!as) return;
+		if (!getUserConfig()?.enableAutoSend || !as) return;
 		if (autoSendTimeoutId) clearTimeout(autoSendTimeoutId);
 
 		autoSendAt = Date.now() + as;
@@ -120,6 +120,13 @@ const BottomInput: Component<Props> = (props) => {
 		}
 	};
 
+	const toggleAutoSend = () => {
+		setUserConfig((c) => ({
+			...c,
+			enableAutoSend: !c.enableAutoSend,
+		}));
+	};
+
 	// When mounted, focus
 	onMount(() => {
 		taRef!.focus();
@@ -129,9 +136,17 @@ const BottomInput: Component<Props> = (props) => {
 		<div>
 			<div>
 				<Show when={autoSendTimeout()}>
-					<span class="tag is-warning">
+					<button
+						class={
+							'tag' +
+							(getUserConfig()?.enableAutoSend
+								? ' is-warning'
+								: '')
+						}
+						onClick={toggleAutoSend}
+					>
 						Auto-send: {autoSendTimeout()} ms
-					</span>
+					</button>
 				</Show>
 			</div>
 			<div class="field is-grouped is-align-content-stretch">

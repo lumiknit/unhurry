@@ -11,6 +11,11 @@ export type UserConfig = {
 	currentModelIdx: number;
 
 	/**
+	 * Enable auto send
+	 */
+	enableAutoSend?: boolean;
+
+	/**
 	 * When send the typed text to the server automatically
 	 */
 	autoSendMillis?: number;
