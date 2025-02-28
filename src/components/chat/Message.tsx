@@ -3,7 +3,15 @@ import hljs from 'highlight.js';
 import { marked } from 'marked';
 import markedKatex from 'marked-katex-extension';
 import mermaid from 'mermaid';
-import { Component, createSignal, For, onMount, Show } from 'solid-js';
+import {
+	Component,
+	createSignal,
+	For,
+	Match,
+	onMount,
+	Show,
+	Switch,
+} from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 import toast from 'solid-toast';
 
@@ -21,6 +29,10 @@ marked.use(
 		throwOnError: false,
 	})
 );
+
+mermaid.initialize({
+	suppressErrorRendering: true,
+});
 
 type ItemProps = {
 	type: string;
@@ -100,17 +112,32 @@ const SvgMessage: Component<ItemProps> = (props) => {
 
 const MermaidMessage: Component<ItemProps> = (props) => {
 	const [svg, setSvg] = createSignal('');
+	const [err, setErr] = createSignal('');
 
 	onMount(async () => {
 		try {
 			const { svg } = await mermaid.render('mermaid', props.content);
 			setSvg(DOMPurify.sanitize(svg));
+			setErr('');
 		} catch (error) {
 			console.error('Error rendering Mermaid diagram:', error);
+			setErr(`${error}`);
 		}
 	});
 
-	return <div class="msg-mermaid" innerHTML={svg()} />;
+	return (
+		<Switch>
+			<Match when={err()}>
+				<div class="notification is-danger">
+					Mermaid Error: {err()}
+					<pre>{props.content}</pre>
+				</div>
+			</Match>
+			<Match when>
+				<div class="msg-mermaid" innerHTML={svg()} />
+			</Match>
+		</Switch>
+	);
 };
 
 const compMap = new Map([

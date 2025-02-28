@@ -1,4 +1,5 @@
 // Store-based actions
+import toast from 'solid-toast';
 
 import { getChatContext, getUserConfig, setChatContext } from './store';
 import {
@@ -7,7 +8,7 @@ import {
 	MsgPart,
 	parseMsgParts,
 } from '../lib/chat';
-import { newClientFromConfig, Role } from '../lib/llm';
+import { newClientFromConfig, Role, TextMessage } from '../lib/llm';
 
 export const newChat = () => {
 	setChatContext(emptyChatContext());
@@ -136,8 +137,21 @@ export const sendUserParts = async (parts: MsgPart[]): Promise<void> => {
 	// Generate response
 	const llmHistory = getLLMHistory();
 	console.log('LLM Input', systemPrompt, llmHistory);
-	const result = await llm.chat(systemPrompt, llmHistory);
-	console.log('LLM Result', result);
+	let result: TextMessage;
+	try {
+		result = await llm.chat(systemPrompt, llmHistory);
+		console.log('LLM Result', result);
+	} catch (e) {
+		toast.error('LLM Error: ' + e);
+		// Remove user last message
+		setChatContext((c) => ({
+			...c,
+			history: {
+				messages: c.history.messages.slice(0, -1),
+			},
+		}));
+		return;
+	}
 
 	// Parse the response to parts
 	const assistantParts = parseMsgParts(result.content);

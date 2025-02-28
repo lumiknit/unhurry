@@ -48,7 +48,9 @@ export class OpenAIClient implements ILLMService {
 			body: reqBody,
 		});
 		if (!resp.ok) {
-			throw new Error(`Failed to chat: ${resp.statusText}`);
+			throw new Error(
+				`Failed to chat: ${resp.status} ${resp.statusText}\n${await resp.text()}`
+			);
 		}
 		const respBody = (await resp.json()) as ChatCompletionResponse;
 		const lastMessage = respBody.choices[0].message;

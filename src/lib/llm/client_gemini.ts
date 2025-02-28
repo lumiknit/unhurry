@@ -96,7 +96,9 @@ export class GeminiClient implements ILLMService {
 			body: reqBody,
 		});
 		if (!resp.ok) {
-			throw new Error(`Failed to chat: ${resp.statusText}`);
+			throw new Error(
+				`Failed to chat: ${resp.status} ${resp.statusText}\n${await resp.text()}`
+			);
 		}
 		const respBody = (await resp.json()) as GeminiGeneateContentResponse;
 		const lastMessage = respBody.candidates[0].content;

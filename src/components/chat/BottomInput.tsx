@@ -13,13 +13,29 @@ const BottomInput: Component<Props> = (props) => {
 	let autoSendAt = 0;
 	let autoSendTimeoutId: number | undefined;
 
+	let composing: boolean = false;
+	let lastSent = 0;
+
 	const send = () => {
-		const v = taRef!.value.trim();
+		let v: string = taRef!.value;
+		if (lastSent > 0) {
+			v = v.slice(lastSent);
+		}
+		lastSent = taRef!.value.length;
+		v = v.trim();
 		if (v === '') {
 			// Do nothing for empty string
 			return;
 		}
-		taRef!.value = '';
+		// Dispatch right arrow event
+		if (!composing) {
+			taRef!.value = '';
+			lastSent = 0;
+		} else {
+			// Otherwise, some composing left.
+			// Just ignore the send
+		}
+		console.log(v, lastSent);
 		props.onInput?.(v);
 		autosizeTextarea();
 	};
@@ -53,12 +69,38 @@ const BottomInput: Component<Props> = (props) => {
 		autoSendTimeoutId = window.setTimeout(autoSend, as);
 	};
 
-	const handleInput = () => {
+	const cleanSent = () => {
+		if (lastSent > 0) {
+			// Last selection
+			const selStart = taRef!.selectionStart - lastSent;
+			const selEnd = taRef!.selectionEnd - lastSent;
+			// Remove last sent
+			taRef!.value = taRef!.value.slice(lastSent);
+			// Update selection
+			taRef!.setSelectionRange(selStart, selEnd);
+			lastSent = 0;
+		}
+	};
+
+	const handleCompositionEnd = () => {
+		cleanSent();
+		composing = false;
+	};
+
+	const handleBeforeInput = (e: InputEvent) => {
+		if (!e.isComposing) {
+			cleanSent();
+		}
+	};
+
+	const handleInput = (e: InputEvent) => {
+		composing = e.isComposing;
+		//console.log('composing', e, e.isComposing);
 		autosizeTextarea();
 		setAutoSend();
 	};
 
-	const handleKeyDown = (e: KeyboardEvent) => {
+	const handleKeyUp = (e: KeyboardEvent) => {
 		if (e.isComposing) return;
 		if (e.key === 'Enter' && (e.shiftKey || e.ctrlKey || e.metaKey)) {
 			e.preventDefault();
@@ -88,7 +130,6 @@ const BottomInput: Component<Props> = (props) => {
 			<div>
 				<Show when={autoSendTimeout()}>
 					<span class="tag is-warning">
-						{' '}
 						Auto-send: {autoSendTimeout()} ms
 					</span>
 				</Show>
@@ -98,9 +139,11 @@ const BottomInput: Component<Props> = (props) => {
 					<textarea
 						ref={taRef!}
 						class="textarea inline"
+						onBeforeInput={handleBeforeInput}
+						onCompositionEnd={handleCompositionEnd}
 						onInput={handleInput}
 						onChange={autosizeTextarea}
-						onKeyDown={handleKeyDown}
+						onKeyUp={handleKeyUp}
 						placeholder="Type your message here..."
 					/>
 				</p>
