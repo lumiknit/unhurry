@@ -4,7 +4,7 @@ import { render } from 'solid-js/web';
 import './index.scss';
 import App from './App.tsx';
 import About from './components/About.tsx';
-import MainView from './components/MainView.tsx';
+import MainView from './components/chat/MainView.tsx';
 import SettingsPage from './components/settings/SettingsPage.tsx';
 import { rootPath } from './env.ts';
 

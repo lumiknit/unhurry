@@ -1,5 +1,11 @@
+/**
+ * LLM Client Type
+ */
 export type LLMClientType = 'OpenAI' | 'Anthropic' | 'Gemini';
 
+/**
+ * LLM Service Info
+ */
 export type LLMServiceInfo = {
 	/** Service Name */
 	name: string;
@@ -17,26 +23,46 @@ export type LLMServiceInfo = {
 	models: string[];
 };
 
+/**
+ * Model configuration.
+ * This is used for user config.
+ */
 export type ModelConfig = {
+	/** Display name */
 	name: string;
 
+	/** Client type */
 	clientType: LLMClientType;
 
+	/** API endpoint */
 	endpoint: string;
 
+	/** API key */
 	apiKey: string;
 
+	/** Model name */
 	model: string;
+
+	/** Additional system prompt */
+	systemPrompt: string;
 };
 
+/**
+ * Create an empty model config.
+ */
 export const emptyModelConfig = (): ModelConfig => ({
-	name: '',
+	name: 'New Model',
 	clientType: 'OpenAI',
 	endpoint: '',
 	apiKey: '',
 	model: '',
+	systemPrompt: '',
 });
 
+/**
+ * Presets of LLM services.
+ * This will be show in model configuration UI.
+ */
 export const llmPresets: LLMServiceInfo[] = [
 	{
 		name: 'OpenAI',

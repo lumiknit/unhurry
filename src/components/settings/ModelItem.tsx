@@ -15,6 +15,7 @@ const ModelEditor: Component<Props> = (props) => {
 	let apiKeyRef: HTMLInputElement;
 	let modelRef: HTMLInputElement;
 	let clientTypeRef: HTMLInputElement;
+	let systemPromptRef: HTMLTextAreaElement;
 
 	const preset = llmPresets.find((p) => p.endpoint === props.model.endpoint);
 	const apiKeyURL = preset?.apiKeyURL;
@@ -52,7 +53,7 @@ const ModelEditor: Component<Props> = (props) => {
 	};
 
 	// Handle general inputs change
-	const handleInputChange = (e: Event) => {
+	const handleInputChange = () => {
 		props.updateModel((m) => ({
 			...m,
 			model: modelRef!.value,
@@ -60,6 +61,7 @@ const ModelEditor: Component<Props> = (props) => {
 			apiKey: apiKeyRef!.value.trim(),
 			clientType: clientTypeRef!.value as LLMClientType,
 			name: nameRef!.value,
+			systemPrompt: systemPromptRef!.value,
 		}));
 	};
 
@@ -174,6 +176,18 @@ const ModelEditor: Component<Props> = (props) => {
 						/>
 					</div>
 				</div>
+
+				<div class="field">
+					<label class="label">Additional System Prompt</label>
+					<div class="control">
+						<textarea
+							ref={systemPromptRef!}
+							class="textarea"
+							value={props.model.systemPrompt}
+							onChange={handleInputChange}
+						/>
+					</div>
+				</div>
 			</div>
 
 			<footer class="card-footer">
@@ -183,8 +197,7 @@ const ModelEditor: Component<Props> = (props) => {
 						class="card-footer-item"
 						onClick={props.onDelete}
 					>
-						{' '}
-						Delete{' '}
+						Delete
 					</a>
 				</div>
 			</footer>

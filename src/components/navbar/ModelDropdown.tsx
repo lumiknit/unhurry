@@ -6,7 +6,7 @@ const ModelDropdown: Component<any> = () => {
 	const models = () => getUserConfig()?.models || [];
 	const selected = () => getUserConfig()?.currentModelIdx || 0;
 
-	const handleSelect = (idx: number) => () => {
+	const handleSelect = (idx: number) => {
 		console.log('Selected', idx);
 		setUserConfig((c) => ({
 			...c,
@@ -16,13 +16,10 @@ const ModelDropdown: Component<any> = () => {
 
 	return (
 		<div class="select">
-			<select>
+			<select onChange={(e) => handleSelect(Number(e.target.value))}>
 				<For each={models()}>
 					{(m, i) => (
-						<option
-							selected={i() === selected()}
-							onSelect={handleSelect(i())}
-						>
+						<option selected={i() === selected()} value={i()}>
 							{m.name}
 						</option>
 					)}

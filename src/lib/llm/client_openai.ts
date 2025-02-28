@@ -24,7 +24,7 @@ export class OpenAIClient implements ILLMService {
 		this.config = config;
 	}
 
-	async chat(history: History): Promise<Message> {
+	async chat(systemPrompt: string, history: History): Promise<Message> {
 		const url = `${this.config.endpoint}/chat/completions`;
 
 		const headers = {
@@ -34,7 +34,13 @@ export class OpenAIClient implements ILLMService {
 
 		const reqBody = JSON.stringify({
 			model: this.config.model,
-			messages: history,
+			messages: [
+				{
+					role: 'system',
+					content: systemPrompt,
+				},
+				...history,
+			],
 		});
 		const resp = await fetch(url, {
 			method: 'POST',

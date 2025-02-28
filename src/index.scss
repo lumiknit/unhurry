@@ -1,2 +1,90 @@
 // bulma
 @use 'bulma/bulma.scss';
+
+.bottom-sticky {
+	position: sticky;
+	bottom: 0;
+	left: 0;
+	right: 0;
+
+	background-color: var(--bulma-body-background-color);
+}
+
+.top-pad {
+	width: 100%;
+	padding-top: 90dvh;
+}
+
+code {
+	background-color: var(--bulma-text-soft) !important;
+	color: var(--bulma-danger-bold) !important;
+}
+
+textarea.textarea.inline {
+	min-height: 0 !important;
+	padding: var(--bulma-control-padding-vertical)
+		var(--bulma-control-padding-horizontal);
+}
+
+div.message {
+	margin: 0.5rem 0 !important;
+}
+
+div.message-body {
+	padding: 0.5rem 1rem;
+}
+
+.msg-code-container {
+	font-family: monospace;
+	font-size: 14px;
+
+	white-space: pre-wrap;
+	word-break: break-all;
+
+	padding: 0.5rem 0;
+	border-radius: 0.5rem;
+
+	border: 1px solid var(--bulma-warning);
+
+	& > .msg-code {
+		padding-top: 0.5rem;
+		margin-top: 0.5rem;
+		border-top: 1px solid var(--bulma-warning);
+	}
+
+	& > * {
+		padding: 0 1rem;
+	}
+
+	& .hljs-keyword {
+		font-weight: bold;
+		color: var(--bulma-danger-bold);
+	}
+
+	& .hljs-title {
+		color: var(--bulma-info-bold);
+	}
+
+	& .hljs-params {
+		font-style: italic;
+	}
+
+	& .hljs-number,
+	& .hljs-string {
+		color: var(--bulma-warning-bold);
+	}
+
+	& .hljs-built_in {
+		font-weight: bold;
+		color: var(--bulma-primary-bold);
+	}
+
+	& .hljs-comment {
+		font-style: italic;
+		color: var(--bulma-success);
+	}
+}
+
+span[aria-hidden='true'] {
+	display: none;
+}

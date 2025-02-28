@@ -7,9 +7,6 @@ settings:
 importers:
     .:
         dependencies:
-            '@lezer/highlight':
-                specifier: ^1.2.1
-                version: 1.2.1
             '@solid-primitives/media':
                 specifier: ^2.3.0
                 version: 2.3.0(solid-js@1.9.5)
@@ -28,9 +25,15 @@ importers:
             dompurify:
                 specifier: ^3.2.4
                 version: 3.2.4
+            highlight.js:
+                specifier: ^11.11.1
+                version: 11.11.1
             marked:
                 specifier: ^15.0.7
                 version: 15.0.7
+            marked-katex-extension:
+                specifier: ^5.1.4
+                version: 5.1.4(katex@0.16.21)(marked@15.0.7)
             solid-icons:
                 specifier: ^1.1.0
                 version: 1.1.0(solid-js@1.9.5)
@@ -1358,6 +1361,13 @@ packages:
             }
         engines: { node: '>= 10' }
 
+    commander@8.3.0:
+        resolution:
+            {
+                integrity: sha512-OkTL9umf+He2DZkUq8f8J9of7yL6RJKI24dVITBmNfZBmri9zYZQrKkuXiKhyfPSu8tUhnVBB1iKXevvnlR4Ww==,
+            }
+        engines: { node: '>= 12' }
+
     concat-map@0.0.1:
         resolution:
             {
@@ -2101,6 +2111,13 @@ packages:
             }
         engines: { node: '>= 0.4' }
 
+    highlight.js@11.11.1:
+        resolution:
+            {
+                integrity: sha512-Xwwo44whKBVCYoliBQwaPvtd/2tYFkRQtXDWj1nackaV2JPXx3L0+Jvd8/qCJ2p+ML0/XVkJ2q+Mr+UVdpJK5w==,
+            }
+        engines: { node: '>=12.0.0' }
+
     html-entities@2.3.3:
         resolution:
             {
@@ -2402,6 +2419,13 @@ packages:
         engines: { node: '>=6' }
         hasBin: true
 
+    katex@0.16.21:
+        resolution:
+            {
+                integrity: sha512-XvqR7FgOHtWupfMiigNzmh+MgUVmDGU2kXZm899ZkPfcuoPuFxyHmXsgATDpFZDAXCI8tvinaVcDo8PIIJSo4A==,
+            }
+        hasBin: true
+
     keyv@4.5.4:
         resolution:
             {
@@ -2433,6 +2457,15 @@ packages:
             {
                 integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==,
             }
+
+    marked-katex-extension@5.1.4:
+        resolution:
+            {
+                integrity: sha512-GQOio4vCp0laxB1IY+2oNVo5nbn82yWMDP/jILRYHmyu2WXMVlXCB+krq2/U2fQn+V9j8aqDmnNdrsgqG2AkGQ==,
+            }
+        peerDependencies:
+            katex: '>=0.16 <0.17'
+            marked: '>=4 <16'
 
     marked@15.0.7:
         resolution:
@@ -4022,6 +4055,8 @@ snapshots:
 
     commander@7.2.0: {}
 
+    commander@8.3.0: {}
+
     concat-map@0.0.1: {}
 
     convert-source-map@2.0.0: {}
@@ -4567,6 +4602,8 @@ snapshots:
         dependencies:
             function-bind: 1.1.2
 
+    highlight.js@11.11.1: {}
+
     html-entities@2.3.3: {}
 
     iconv-lite@0.6.3:
@@ -4727,6 +4764,10 @@ snapshots:
 
     json5@2.2.3: {}
 
+    katex@0.16.21:
+        dependencies:
+            commander: 8.3.0
+
     keyv@4.5.4:
         dependencies:
             json-buffer: 3.0.1
@@ -4745,6 +4786,11 @@ snapshots:
     lru-cache@5.1.1:
         dependencies:
             yallist: 3.1.1
+
+    marked-katex-extension@5.1.4(katex@0.16.21)(marked@15.0.7):
+        dependencies:
+            katex: 0.16.21
+            marked: 15.0.7
 
     marked@15.0.7: {}
 

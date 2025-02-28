@@ -10,6 +10,7 @@ import toast from 'solid-toast';
 
 import ModelDropdown from './ModelDropdown';
 import { rootPath } from '../../env';
+import { newChat } from '../../store/actions';
 
 const NavBar: Component = () => {
 	let burgerRef: HTMLAnchorElement;
@@ -30,6 +31,7 @@ const NavBar: Component = () => {
 	const handleNew = () => {
 		toast.success('New notebook created');
 		navigate(`${rootPath}/`);
+		newChat();
 	};
 
 	onMount(() => {
@@ -41,7 +43,7 @@ const NavBar: Component = () => {
 
 	return (
 		<nav
-			class="navbar is-transparent"
+			class="navbar is-fixed-top"
 			role="navigation"
 			aria-label="main navigation"
 		>
@@ -99,7 +101,9 @@ const NavBar: Component = () => {
 				</div>
 
 				<div class="navbar-end">
-					<ModelDropdown />
+					<div class="navbar-item">
+						<ModelDropdown />
+					</div>
 				</div>
 			</div>
 		</nav>

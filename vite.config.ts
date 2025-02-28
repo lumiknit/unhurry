@@ -11,6 +11,16 @@ export default ({ mode }: { mode: string }) => {
 
 	return defineConfig({
 		base,
+		build: {
+			rollupOptions: {
+				output: {
+					manualChunks: {
+						hljs: ['highlight.js'],
+						marked: ['marked', 'marked-katex-extension'],
+					},
+				},
+			},
+		},
 		plugins: [solid()],
 		css: {
 			preprocessorOptions: {

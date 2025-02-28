@@ -49,7 +49,10 @@ export class GeminiClient implements ILLMService {
 		};
 	}
 
-	convertHistoryForGemini(history: History): GeminiContent[] {
+	convertHistoryForGemini(
+		systemPrompt: string,
+		history: History
+	): GeminiContent[] {
 		const roleMap: Record<Role, GeminiRole> = {
 			system: 'user',
 			user: 'user',
@@ -58,6 +61,7 @@ export class GeminiClient implements ILLMService {
 		const mapped = history.map((msg) => {
 			return this.textContent(roleMap[msg.role], msg.content);
 		});
+		mapped.unshift(this.textContent('user', systemPrompt));
 		for (let i = mapped.length - 2; i >= 0; i--) {
 			if (mapped[i].role === mapped[i + 1].role) {
 				const mergedMsg =
@@ -74,14 +78,14 @@ export class GeminiClient implements ILLMService {
 		return mapped;
 	}
 
-	async chat(history: History): Promise<Message> {
+	async chat(systemPrompt: string, history: History): Promise<Message> {
 		const url = `${this.config.endpoint}/models/${this.config.model}:generateContent?key=${this.config.apiKey}`;
 
 		const headers = {
 			'Content-Type': 'application/json',
 		};
 
-		const contents = this.convertHistoryForGemini(history);
+		const contents = this.convertHistoryForGemini(systemPrompt, history);
 
 		const reqBody = JSON.stringify({
 			contents,
