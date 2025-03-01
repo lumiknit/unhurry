@@ -139,4 +139,18 @@ export const llmPresets: LLMServiceInfo[] = [
 			'google/gemma-2-9b-it:free',
 		],
 	},
+	{
+		name: 'Mistral',
+		clientType: 'OpenAI',
+		apiKeyURL: 'https://console.mistral.ai/api-keys',
+		endpoint: 'https://api.mistral.ai/v1',
+		models: [
+			'mistral-large-latest',
+			'codestral-latest',
+			'pixtral-large-latest',
+			'mistral-saba-latest',
+			'ministral-8b-latest',
+			'ministral-3b-latest',
+		],
+	},
 ];
