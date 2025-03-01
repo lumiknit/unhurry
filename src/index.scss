@@ -1,6 +1,14 @@
 // bulma
 @use 'bulma/bulma.scss';
 
+svg {
+	vertical-align: bottom;
+}
+
+.navbar-item > .icon {
+	margin: 0 !important;
+}
+
 .bottom-sticky {
 	position: sticky;
 	bottom: 0;
