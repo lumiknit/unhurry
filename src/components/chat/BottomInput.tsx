@@ -1,5 +1,5 @@
 import { TbSend } from 'solid-icons/tb';
-import { Component, onMount, Show } from 'solid-js';
+import { Component, For, onMount, Show } from 'solid-js';
 
 import { getUserConfig, setUserConfig } from '../../store';
 
@@ -15,6 +15,17 @@ const BottomInput: Component<Props> = (props) => {
 
 	let composing: boolean = false;
 	let lastSent = 0;
+
+	const insertText = (text: string) => {
+		const ta = taRef!;
+		const selStart = ta.selectionStart;
+		const selEnd = ta.selectionEnd;
+		const v = ta.value;
+		const newV = v.slice(0, selStart) + text + v.slice(selEnd);
+		ta.value = newV;
+		ta.setSelectionRange(selStart + text.length, selStart + text.length);
+		ta.focus();
+	};
 
 	const send = () => {
 		let v: string = taRef!.value;
@@ -132,6 +143,28 @@ const BottomInput: Component<Props> = (props) => {
 		taRef!.focus();
 	});
 
+	const insertChips: {
+		label: string;
+		value: string;
+	}[] = [
+		{
+			label: 'Korean',
+			value: 'Translate to Korean: ',
+		},
+		{
+			label: 'Japanese',
+			value: 'Translate to Japanese: ',
+		},
+		{
+			label: 'English',
+			value: 'Translate to English: ',
+		},
+		{
+			label: 'Run JS',
+			value: '```run-js\n',
+		},
+	];
+
 	return (
 		<div>
 			<div>
@@ -148,6 +181,16 @@ const BottomInput: Component<Props> = (props) => {
 						Auto-send: {autoSendTimeout()} ms
 					</button>
 				</Show>
+				<For each={insertChips}>
+					{(chip) => (
+						<button
+							class="tag"
+							onClick={() => insertText(chip.value)}
+						>
+							{chip.label}
+						</button>
+					)}
+				</For>
 			</div>
 			<div class="field is-grouped is-align-content-stretch">
 				<p class="control is-expanded">

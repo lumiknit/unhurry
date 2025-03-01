@@ -90,10 +90,13 @@ const BlockMessage: Component<ItemProps> = (props) => {
 		<div class="msg-code-container">
 			<header class="msg-code-header">
 				<span>{props.type}</span>
-				<button class="tag is-info" onClick={handleCopy}>
+				<button class="tag is-info ml-1" onClick={handleCopy}>
 					Copy
 				</button>
-				<button class="tag is-warning" onClick={() => setFold(!fold())}>
+				<button
+					class="tag is-warning ml-1"
+					onClick={() => setFold(!fold())}
+				>
 					{fold() ? 'Expand' : 'Fold'}
 				</button>
 			</header>

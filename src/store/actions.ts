@@ -133,6 +133,22 @@ export const sendUserParts = async (parts: MsgPart[]): Promise<void> => {
 		defaultSystemPrompt +
 		(additionalSystemPrompt ? '\n\n' + additionalSystemPrompt : '');
 
+	for (const part of parts) {
+		const jctx = getChatContext().jsContext;
+		console.log('Part', part);
+
+		if (part.type === 'run-js') {
+			// Run js
+			const result = await jctx.run(part.content);
+			console.log('Run JS Result', result, part.content);
+			const resultPart: MsgPart = {
+				type: 'result-js',
+				content: result,
+			};
+			parts.push(resultPart);
+		}
+	}
+
 	// Append user message to history
 	insertMessage('user', parts);
 

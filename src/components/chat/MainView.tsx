@@ -18,10 +18,12 @@ const MainView: Component = () => {
 
 	onMount(() => {
 		// Scroll to bottom
-		window.scrollTo({
-			top: document.body.scrollHeight,
-			behavior: 'smooth',
-		});
+		setTimeout(() => {
+			window.scrollTo({
+				top: document.body.scrollHeight,
+				behavior: 'smooth',
+			});
+		}, 100);
 	});
 
 	return (

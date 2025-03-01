@@ -52,6 +52,12 @@ sleep(0);
 		error(...args: any[]) {
 			return this.logWithLevel('error', ...args);
 		}
+
+		assert(condition: any, ...args: any[]) {
+			if (!condition) {
+				this.error('Assertion failed:', ...args);
+			}
+		}
 	}
 
 	Console.toString = () => 'function Console() { [native code] }';
