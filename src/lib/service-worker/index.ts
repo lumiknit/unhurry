@@ -4,7 +4,9 @@ import { rootPath } from '../../env';
 if ('serviceWorker' in navigator) {
 	console.log('serviceWorker is supported, registering...');
 	navigator.serviceWorker
-		.register(rootPath + '/sw.js')
+		.register(rootPath + '/sw.js', {
+			scope: rootPath,
+		})
 		.then((registration) => {
 			console.log(
 				'ServiceWorker registration successful with scope: ',
