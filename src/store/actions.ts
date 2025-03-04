@@ -42,7 +42,8 @@ The system will execute the js in web-worker, and show the console outputs in th
   1. Precise calculations (math, string manipulation, etc.)
   2. Code demonstrations
   3. Generating intermediate data/results
-- For every async function call at top level, you must use 'await'.
+- **For EVERY async call, MUST use \`await\`**.
+- The code will be run in a web worker. You cannot use neither node API nor require/import.
 - Most JS standard library available: console, Math, Date, BigInt, fetch, String, RegExp, Array, Map, Set, JSON, Intl, etc.
 - The user will give the result in 'result-js' block.
   - **DO NOT USE 'result-js' block in yourself.**
@@ -81,6 +82,10 @@ When you give 'run-js' block, the user will put the outputs in the 'result-js' b
 #### mermaid
 
 - Use this block to visually represent images, plots, formulas, etc.
+
+### run-pseudo
+
+When user gave 'run-pseudo' block, you should rewrite them in 'run-js' block.
 
 # Additional System Prompts
 `.trim();

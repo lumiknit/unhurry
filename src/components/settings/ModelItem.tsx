@@ -1,11 +1,4 @@
-import {
-	Component,
-	createEffect,
-	createSignal,
-	For,
-	Setter,
-	Show,
-} from 'solid-js';
+import { Component, createSignal, For, Setter, Show } from 'solid-js';
 import toast from 'solid-toast';
 
 import {
@@ -31,7 +24,7 @@ const ModelEditor: Component<Props> = (props) => {
 	let clientTypeRef: HTMLInputElement;
 	let systemPromptRef: HTMLTextAreaElement;
 
-	const [models, setModels] = createSignal<Model[]>([]);
+	const [models, setModels] = createSignal<Model[] | undefined>();
 	const [showAllModels, setShowAllModels] = createSignal(false);
 
 	const updateModelList = async () => {
@@ -57,7 +50,6 @@ const ModelEditor: Component<Props> = (props) => {
 			}
 		);
 	};
-	createEffect(() => updateModelList());
 
 	const preset = llmPresets.find((p) => p.endpoint === props.model.endpoint);
 	const apiKeyURL = preset?.apiKeyURL;
@@ -104,6 +96,16 @@ const ModelEditor: Component<Props> = (props) => {
 			name: nameRef!.value,
 			systemPrompt: systemPromptRef!.value,
 		}));
+	};
+
+	const loadModels = () => {
+		// If models is not loaded (undefined), fetch
+		if (!models()) {
+			updateModelList();
+		} else {
+			// If models is loaded, show all
+			setShowAllModels(true);
+		}
 	};
 
 	return (
@@ -159,7 +161,7 @@ const ModelEditor: Component<Props> = (props) => {
 					<label class="label">Model</label>
 					<div>
 						<For
-							each={models().slice(
+							each={(models() || []).slice(
 								0,
 								showAllModels() ? undefined : 5
 							)}
@@ -173,11 +175,13 @@ const ModelEditor: Component<Props> = (props) => {
 								</button>
 							)}
 						</For>
-						<Show when={!showAllModels() && models().length > 5}>
-							<button
-								class="tag"
-								onClick={() => setShowAllModels(true)}
-							>
+						<Show
+							when={
+								!models() ||
+								(!showAllModels() && models()!.length > 5)
+							}
+						>
+							<button class="tag" onClick={loadModels}>
 								...
 							</button>
 						</Show>

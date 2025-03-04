@@ -25,6 +25,7 @@ const BottomInput: Component<Props> = (props) => {
 		ta.value = newV;
 		ta.setSelectionRange(selStart + text.length, selStart + text.length);
 		ta.focus();
+		autosizeTextarea();
 	};
 
 	const send = () => {
@@ -149,19 +150,23 @@ const BottomInput: Component<Props> = (props) => {
 	}[] = [
 		{
 			label: 'Korean',
-			value: 'Translate to Korean: ',
+			value: 'Translate to Korean:\n',
 		},
 		{
 			label: 'Japanese',
-			value: 'Translate to Japanese: ',
+			value: 'Translate to Japanese:\n',
 		},
 		{
 			label: 'English',
-			value: 'Translate to English: ',
+			value: 'Translate to English:\n',
 		},
 		{
 			label: 'Run JS',
 			value: '```run-js\n',
+		},
+		{
+			label: 'Run Pseudo',
+			value: '```run-pseudo\n',
 		},
 	];
 
