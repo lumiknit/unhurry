@@ -1,4 +1,4 @@
-import { ILLMService } from './client_interface';
+import { ILLMService, Model } from './client_interface';
 import { History, Message } from './message';
 import { ModelConfig } from './model_config';
 
@@ -58,5 +58,35 @@ export class OpenAIClient implements ILLMService {
 			role: 'assistant',
 			content: lastMessage.content,
 		};
+	}
+
+	async listModels(): Promise<Model[]> {
+		type ModelRespItem = {
+			id: string;
+			object: string;
+			owned_by: string;
+			created: number;
+		};
+		const url = `${this.config.endpoint}/models`;
+		const headers = {
+			'Content-Type': 'application/json',
+			Authorization: `Bearer ${this.config.apiKey}`,
+		};
+		const resp = await fetch(url, {
+			method: 'GET',
+			headers,
+		});
+		if (!resp.ok) {
+			throw new Error(
+				`Failed to list models: ${resp.status} ${resp.statusText}\n${await resp.text()}`
+			);
+		}
+		const respBody = (await resp.json()) as { data: ModelRespItem[] };
+		return respBody.data.map((item) => ({
+			id: item.id,
+			object: item.object,
+			ownedBy: item.owned_by,
+			created: item.created,
+		}));
 	}
 }

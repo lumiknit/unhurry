@@ -10,7 +10,13 @@ type Props = {
 const App: Component<Props> = (props) => {
 	return (
 		<>
-			<Toaster containerClassName="toaster" position="bottom-center" />
+			<Toaster
+				toastOptions={{
+					className: 'toast-item',
+				}}
+				containerClassName="toaster"
+				position="bottom-center"
+			/>
 
 			<NavBar />
 

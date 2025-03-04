@@ -167,11 +167,11 @@ const BottomInput: Component<Props> = (props) => {
 
 	return (
 		<div>
-			<div>
+			<div class="mb-1">
 				<Show when={autoSendTimeout()}>
 					<button
 						class={
-							'tag' +
+							'tag mr-1' +
 							(getUserConfig()?.enableAutoSend
 								? ' is-warning'
 								: '')
@@ -184,7 +184,7 @@ const BottomInput: Component<Props> = (props) => {
 				<For each={insertChips}>
 					{(chip) => (
 						<button
-							class="tag"
+							class="tag mr-1"
 							onClick={() => insertText(chip.value)}
 						>
 							{chip.label}

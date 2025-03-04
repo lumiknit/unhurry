@@ -23,7 +23,7 @@ const MainView: Component = () => {
 				top: document.body.scrollHeight,
 				behavior: 'smooth',
 			});
-		}, 100);
+		}, 400);
 	});
 
 	return (

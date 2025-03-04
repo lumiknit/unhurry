@@ -1,6 +1,20 @@
-import { Component, For, Setter, Show } from 'solid-js';
+import {
+	Component,
+	createEffect,
+	createSignal,
+	For,
+	Setter,
+	Show,
+} from 'solid-js';
+import toast from 'solid-toast';
 
-import { LLMClientType, llmPresets, ModelConfig } from '../../lib/llm';
+import {
+	LLMClientType,
+	llmPresets,
+	Model,
+	ModelConfig,
+	newClientFromConfig,
+} from '../../lib/llm';
 
 type Props = {
 	model: ModelConfig;
@@ -16,6 +30,34 @@ const ModelEditor: Component<Props> = (props) => {
 	let modelRef: HTMLInputElement;
 	let clientTypeRef: HTMLInputElement;
 	let systemPromptRef: HTMLTextAreaElement;
+
+	const [models, setModels] = createSignal<Model[]>([]);
+	const [showAllModels, setShowAllModels] = createSignal(false);
+
+	const updateModelList = async () => {
+		const task = async () => {
+			// Create a new client
+			const cli = newClientFromConfig(props.model);
+			// Fetch the list of models
+			const ms = await cli.listModels();
+			setModels(ms);
+		};
+		await toast.promise(
+			task(),
+			{
+				loading: `Loading models of ${props.model.endpoint}...`,
+				success: `Models of ${props.model.endpoint} loaded`,
+				error: (e) => {
+					console.error(e);
+					return 'Failed to load models';
+				},
+			},
+			{
+				duration: 1000,
+			}
+		);
+	};
+	createEffect(() => updateModelList());
 
 	const preset = llmPresets.find((p) => p.endpoint === props.model.endpoint);
 	const apiKeyURL = preset?.apiKeyURL;
@@ -35,12 +77,11 @@ const ModelEditor: Component<Props> = (props) => {
 		}));
 	};
 
-	const models = preset?.models || [];
-	const handleModelClick = (model: string) => {
+	const handleModelClick = (model: Model) => {
 		props.updateModel((m) => ({
 			...m,
-			model,
-			name: `${preset?.name}/${model}`,
+			model: model.id,
+			name: `${preset?.name}/${model.id}`,
 		}));
 	};
 
@@ -74,7 +115,7 @@ const ModelEditor: Component<Props> = (props) => {
 						<For each={endpoints}>
 							{(e) => (
 								<button
-									class="tag"
+									class="tag mr-1"
 									onClick={() => handleEndpointClick(e)}
 								>
 									{e}
@@ -117,16 +158,29 @@ const ModelEditor: Component<Props> = (props) => {
 				<div class="field">
 					<label class="label">Model</label>
 					<div>
-						<For each={models}>
+						<For
+							each={models().slice(
+								0,
+								showAllModels() ? undefined : 5
+							)}
+						>
 							{(m) => (
 								<button
-									class="tag"
+									class="tag mr-1"
 									onClick={() => handleModelClick(m)}
 								>
-									{m}
+									{m.id}
 								</button>
 							)}
 						</For>
+						<Show when={!showAllModels() && models().length > 5}>
+							<button
+								class="tag"
+								onClick={() => setShowAllModels(true)}
+							>
+								...
+							</button>
+						</Show>
 					</div>
 					<div class="control">
 						<input
@@ -145,7 +199,7 @@ const ModelEditor: Component<Props> = (props) => {
 						<For each={clientTypes}>
 							{(t) => (
 								<button
-									class="tag"
+									class="tag mr-1"
 									onClick={() => handleClientTypeClick(t)}
 								>
 									{t}

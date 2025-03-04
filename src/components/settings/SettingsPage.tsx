@@ -52,6 +52,8 @@ const SettingsPage: Component = () => {
 		<div class="container">
 			<h1 class="title is-3">Settings</h1>
 
+			<h2 class="title is-4"> </h2>
+
 			<h2 class="title is-4">General</h2>
 
 			<NumConfig

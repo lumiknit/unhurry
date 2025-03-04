@@ -1,5 +1,16 @@
 import { ModelConfig } from '../llm';
 
+/**
+ * Prompt preset tags.
+ */
+export type PromptTag = {
+	tag: string;
+	prompt: string;
+};
+
+/**
+ * Configuration for the user
+ */
 export type UserConfig = {
 	/**
 	 * LLM Models
@@ -24,14 +35,27 @@ export type UserConfig = {
 	 * Use Javascript for the code execution
 	 */
 	useJavascript: boolean;
+
+	/**
+	 * Prompt tags
+	 */
+	promptTags: PromptTag[];
 };
 
+/**
+ * Create a default configuration.
+ */
 export const defaultConfig = (): UserConfig => ({
 	models: [],
 	currentModelIdx: 0,
 	useJavascript: true,
+	promptTags: [],
 });
 
+/**
+ * Sanitize the configuration.
+ * If some fields are wrong (e.g. wrong type), it will be replaced with the default value.
+ */
 export const sanitizeConfig = (config: UserConfig): UserConfig => {
 	try {
 		const j = JSON.parse(JSON.stringify(config));

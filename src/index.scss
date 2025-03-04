@@ -1,6 +1,12 @@
 // bulma
 @use 'bulma/bulma.scss';
 
+.toast-item {
+	color: var(--bulma-body-color) !important;
+	background-color: var(--bulma-background) !important;
+	overflow-wrap: break-word;
+}
+
 svg {
 	vertical-align: bottom;
 }
@@ -20,7 +26,7 @@ svg {
 
 .top-pad {
 	width: 100%;
-	padding-top: 90dvh;
+	padding-top: 100dvh;
 }
 
 code {

@@ -1,4 +1,4 @@
-import { ILLMService } from './client_interface';
+import { ILLMService, Model } from './client_interface';
 import { History, Message, Role } from './message';
 import { ModelConfig } from './model_config';
 
@@ -109,5 +109,44 @@ export class GeminiClient implements ILLMService {
 				''
 			),
 		};
+	}
+
+	async listModels(): Promise<Model[]> {
+		type ModelRespItem = {
+			name: string;
+			version: string;
+			displayName: string;
+			description: string;
+			inputTokenLimit: number;
+			outputTokenLimit: number;
+			supportedGenerationMethods: string[];
+		};
+
+		const url = `${this.config.endpoint}/models?key=${this.config.apiKey}`;
+		const headers = {
+			'Content-Type': 'application/json',
+		};
+		const resp = await fetch(url, {
+			method: 'GET',
+			headers,
+		});
+		if (!resp.ok) {
+			throw new Error(
+				`Failed to list models: ${resp.status} ${resp.statusText}\n${await resp.text()}`
+			);
+		}
+		const respBody = (await resp.json()) as { models: ModelRespItem[] };
+		return respBody.models.map((item) => {
+			let id = item.name;
+			if (id.startsWith('models/')) {
+				id = id.slice('models/'.length);
+			}
+			return {
+				id,
+				object: item.displayName,
+				ownedBy: '',
+				created: 0,
+			};
+		});
 	}
 }

@@ -26,6 +26,7 @@ import {
 
 marked.use(
 	markedKatex({
+		nonStandard: true,
 		throwOnError: false,
 	})
 );

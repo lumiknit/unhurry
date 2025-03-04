@@ -42,12 +42,16 @@ const ModelList = () => {
 
 	return (
 		<div>
-			<h2 class="subtitle is-4">Model List ({models().length})</h2>
-
-			<button class="button is-primary is-gap-2" onClick={addModel}>
-				<TbPlus />
-				Add model
-			</button>
+			<h2 class="title is-4">
+				Model List ({models().length})
+				<button
+					class="button is-small is-primary is-gap-1"
+					onClick={addModel}
+				>
+					<TbPlus />
+					Add model
+				</button>
+			</h2>
 
 			<div class="columns is-multiline">
 				<For each={models()}>

@@ -8,6 +8,8 @@ import MainView from './components/chat/MainView.tsx';
 import SettingsPage from './components/settings/SettingsPage.tsx';
 import { rootPath } from './env.ts';
 
+import './lib/service-worker';
+
 const root = document.getElementById('root');
 
 render(

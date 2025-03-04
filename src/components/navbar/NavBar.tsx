@@ -32,6 +32,7 @@ const NavBar: Component = () => {
 		toast.success('New notebook created');
 		navigate(`${rootPath}/`);
 		newChat();
+		close();
 	};
 
 	onMount(() => {
@@ -49,7 +50,13 @@ const NavBar: Component = () => {
 		>
 			<div class="navbar-brand">
 				<A class="navbar-item" href={`${rootPath}/`}>
-					<img src={`${rootPath}/favicon-96x96.png`} />
+					<svg
+						width="512"
+						height="512"
+						viewBox="0 0 135.46666 135.46667"
+					>
+						<use href={`${rootPath}/icon_mono.svg#icon`} />
+					</svg>
 				</A>
 
 				<a

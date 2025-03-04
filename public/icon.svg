@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="512"
+   height="512"
+   viewBox="0 0 135.46666 135.46667"
+   version="1.1"
+   id="svg5"
+   inkscape:export-filename="icon.png"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"
+   inkscape:version="1.2.2 (b0a84865, 2022-12-01)"
+   sodipodi:docname="icon.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#505050"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="0.93143545"
+     inkscape:cx="258.74042"
+     inkscape:cy="265.18209"
+     inkscape:window-width="1282"
+     inkscape:window-height="830"
+     inkscape:window-x="284"
+     inkscape:window-y="158"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2">
+    <filter
+       style="color-interpolation-filters:sRGB;"
+       inkscape:label="Drop Shadow"
+       id="filter2678"
+       x="-0.049188311"
+       y="-0.042319927"
+       width="1.0983766"
+       height="1.1199065">
+      <feFlood
+         flood-opacity="0.101961"
+         flood-color="rgb(0,0,0)"
+         result="flood"
+         id="feFlood2668" />
+      <feComposite
+         in="flood"
+         in2="SourceGraphic"
+         operator="in"
+         result="composite1"
+         id="feComposite2670" />
+      <feGaussianBlur
+         in="composite1"
+         stdDeviation="2"
+         result="blur"
+         id="feGaussianBlur2672" />
+      <feOffset
+         dx="0"
+         dy="4"
+         result="offset"
+         id="feOffset2674" />
+      <feComposite
+         in="SourceGraphic"
+         in2="offset"
+         operator="over"
+         result="composite2"
+         id="feComposite2676" />
+    </filter>
+  </defs>
+  <g
+     inkscape:label="레이어 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <rect
+       style="fill:#0b7f4e;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;fill-opacity:1"
+       id="rect579"
+       width="135.46666"
+       height="135.46666"
+       x="0"
+       y="0" />
+    <g
+       id="g2642"
+       transform="matrix(0.85976164,0,0,0.98903125,8.6639715,-1.21031)"
+       style="filter:url(#filter2678)">
+      <path
+         style="fill:#ffffff;fill-opacity:1;stroke-width:0;stroke-linecap:round;stroke-linejoin:round"
+         d="M 113.60713,14.067453 47.037417,23.56681 21.859531,35.944558 27.979166,65.329615 Z"
+         id="path522"
+         sodipodi:nodetypes="ccccc" />
+      <path
+         style="fill:#ffffff;fill-opacity:0.79535866;stroke-width:0.86755278;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"
+         d="m 21.859531,35.944558 6.119635,29.385057 73.640684,7.060429 17.82384,-28.103724 z"
+         id="path524"
+         sodipodi:nodetypes="ccccc" />
+      <path
+         style="fill:#ffffff;fill-opacity:1;stroke-width:0;stroke-linecap:round;stroke-linejoin:round"
+         d="M 119.44369,44.28632 101.61985,72.390044 38.35989,106.02036 26.038272,83.176014 Z"
+         id="path526"
+         sodipodi:nodetypes="ccccc" />
+      <path
+         style="fill:#ffffff;fill-opacity:0.70042193;stroke-width:0.86755278;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"
+         d="M 26.038272,83.176014 38.35989,106.02036 72.082213,114.70456 88.00122,95.063885 Z"
+         id="path528"
+         sodipodi:nodetypes="ccccc" />
+      <path
+         style="fill:#ffffff;fill-opacity:1;stroke-width:0;stroke-linecap:round;stroke-linejoin:round"
+         d="M 88.00122,95.063885 39.687507,127.4892 72.082213,114.70456 Z"
+         id="path530"
+         sodipodi:nodetypes="cccc" />
+    </g>
+  </g>
+</svg>
