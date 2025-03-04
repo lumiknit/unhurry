@@ -1,4 +1,5 @@
 import { Component, createEffect } from 'solid-js';
+import toast from 'solid-toast';
 
 import ModelList from './ModelList';
 import { UserConfig } from '../../lib/config';
@@ -48,11 +49,28 @@ const NumConfig: Component<NumConfigProps> = (props) => {
 };
 
 const SettingsPage: Component = () => {
+	const forceRemoveServiceWorker = () => {
+		if ('serviceWorker' in navigator) {
+			navigator.serviceWorker.getRegistrations().then((registrations) => {
+				registrations.forEach((r) => r.unregister());
+			});
+			toast.success('ServiceWorker removed');
+		} else {
+			toast.error('ServiceWorker not supported');
+		}
+	};
 	return (
 		<div class="container">
 			<h1 class="title is-3">Settings</h1>
 
-			<h2 class="title is-4"> </h2>
+			<h2 class="title is-4">Remove service workers</h2>
+			<p>
+				{' '}
+				If your webpage does not work properly, clear service workers
+			</p>
+			<button class="button is-danger" onClick={forceRemoveServiceWorker}>
+				Remove Service Workers
+			</button>
 
 			<h2 class="title is-4">General</h2>
 

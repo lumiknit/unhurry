@@ -5,6 +5,11 @@
 	color: var(--bulma-body-color) !important;
 	background-color: var(--bulma-background) !important;
 	overflow-wrap: break-word;
+
+	& > div > svg {
+		width: 1.25em;
+		height: 1.25em;
+	}
 }
 
 svg {
