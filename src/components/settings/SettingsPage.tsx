@@ -10,6 +10,7 @@ import { toast } from 'solid-toast';
 
 import ModelList from './ModelList';
 import TagList from './TagList';
+import Xxport from './Xxport';
 import { UserConfig } from '../../lib/config';
 import { getUserConfig, setUserConfig } from '../../store';
 
@@ -56,8 +57,8 @@ const NumConfig: Component<NumConfigProps> = (props) => {
 	);
 };
 
-type Tab = 'General' | 'Models' | 'Prompt Tags';
-const tabs: Tab[] = ['General', 'Models', 'Prompt Tags'];
+type Tab = 'General' | 'Models' | 'Prompt Tags' | 'Im/Export';
+const tabs: Tab[] = ['General', 'Models', 'Prompt Tags', 'Im/Export'];
 
 const SettingsPage: Component = () => {
 	const [activeTab, setActiveTab] = createSignal<Tab>('General');
@@ -120,6 +121,10 @@ const SettingsPage: Component = () => {
 
 				<Match when={activeTab() === 'Prompt Tags'}>
 					<TagList />
+				</Match>
+
+				<Match when={activeTab() === 'Im/Export'}>
+					<Xxport />
 				</Match>
 			</Switch>
 		</div>
