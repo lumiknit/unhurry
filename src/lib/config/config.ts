@@ -99,6 +99,11 @@ export const sanitizeConfig = (config: UserConfig): UserConfig => {
 				merged[key] = val;
 			}
 		});
+		Object.entries(merged).forEach(([key]) => {
+			if (typeof (d as any)[key] === 'undefined') {
+				delete merged[key];
+			}
+		});
 		return merged as unknown as UserConfig;
 	} catch {
 		return defaultConfig();
