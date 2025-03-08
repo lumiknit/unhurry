@@ -3,11 +3,19 @@ import { Component, createSignal, Match, Switch } from 'solid-js';
 import { getChatContext, setChatContext } from '../../store';
 
 type EditProps = {
+	originalTitle: string;
 	onSave: (title: string) => void;
 };
 
 const TitleEdit: Component<EditProps> = (props) => {
 	let titleInputRef: HTMLInputElement;
+
+	const handleKeyUp = (e: KeyboardEvent) => {
+		if (e.key === 'Enter') {
+			e.preventDefault();
+			props.onSave(titleInputRef!.value);
+		}
+	};
 
 	return (
 		<div class="field has-addons">
@@ -16,7 +24,8 @@ const TitleEdit: Component<EditProps> = (props) => {
 					ref={titleInputRef!}
 					class="input"
 					type="text"
-					placeholder="untitled"
+					placeholder={props.originalTitle || '<untitled>'}
+					onKeyUp={handleKeyUp}
 				/>
 			</div>
 			<div class="control">
@@ -40,6 +49,7 @@ const Title = () => {
 		<Switch>
 			<Match when={editing()}>
 				<TitleEdit
+					originalTitle={getChatContext().title}
 					onSave={(title) => {
 						setChatContext((c) => ({ ...c, title }));
 						toggleEditing();
@@ -58,8 +68,7 @@ const Title = () => {
 					</Switch>
 
 					<button class="tag" onClick={toggleEditing}>
-						{' '}
-						Edit{' '}
+						Edit
 					</button>
 				</h1>
 			</Match>

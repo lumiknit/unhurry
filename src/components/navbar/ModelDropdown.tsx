@@ -2,7 +2,7 @@ import { Component, For } from 'solid-js';
 
 import { getUserConfig, setUserConfig } from '../../store';
 
-const ModelDropdown: Component<any> = () => {
+const ModelDropdown: Component = () => {
 	const models = () => getUserConfig()?.models || [];
 	const selected = () => getUserConfig()?.currentModelIdx || 0;
 

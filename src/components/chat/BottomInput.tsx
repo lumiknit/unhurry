@@ -1,7 +1,8 @@
 import { TbSend } from 'solid-icons/tb';
-import { Component, For, onMount, Show } from 'solid-js';
+import { Component, onMount } from 'solid-js';
 
-import { getUserConfig, setUserConfig } from '../../store';
+import InputTags from './PromptTags';
+import { getUserConfig } from '../../store';
 
 type Props = {
 	onInput?: (value: string) => void;
@@ -25,6 +26,13 @@ const BottomInput: Component<Props> = (props) => {
 		ta.value = newV;
 		ta.setSelectionRange(selStart + text.length, selStart + text.length);
 		ta.focus();
+		autosizeTextarea();
+	};
+
+	const replaceText = (text: string) => {
+		taRef!.value = text;
+		taRef!.setSelectionRange(text.length, text.length);
+		taRef!.focus();
 		autosizeTextarea();
 	};
 
@@ -132,71 +140,14 @@ const BottomInput: Component<Props> = (props) => {
 		}
 	};
 
-	const toggleAutoSend = () => {
-		setUserConfig((c) => ({
-			...c,
-			enableAutoSend: !c.enableAutoSend,
-		}));
-	};
-
 	// When mounted, focus
 	onMount(() => {
 		taRef!.focus();
 	});
 
-	const insertChips: {
-		label: string;
-		value: string;
-	}[] = [
-		{
-			label: 'Korean',
-			value: 'Translate to Korean:\n',
-		},
-		{
-			label: 'Japanese',
-			value: 'Translate to Japanese:\n',
-		},
-		{
-			label: 'English',
-			value: 'Translate to English:\n',
-		},
-		{
-			label: 'Run JS',
-			value: '```run-js\n',
-		},
-		{
-			label: 'Run Pseudo',
-			value: '```run-pseudo\n',
-		},
-	];
-
 	return (
 		<div>
-			<div class="mb-1">
-				<Show when={autoSendTimeout()}>
-					<button
-						class={
-							'tag mr-1' +
-							(getUserConfig()?.enableAutoSend
-								? ' is-warning'
-								: '')
-						}
-						onClick={toggleAutoSend}
-					>
-						Auto-send: {autoSendTimeout()} ms
-					</button>
-				</Show>
-				<For each={insertChips}>
-					{(chip) => (
-						<button
-							class="tag mr-1"
-							onClick={() => insertText(chip.value)}
-						>
-							{chip.label}
-						</button>
-					)}
-				</For>
-			</div>
+			<InputTags onInsertText={insertText} onReplaceText={replaceText} />
 			<div class="field is-grouped is-align-content-stretch">
 				<p class="control is-expanded">
 					<textarea

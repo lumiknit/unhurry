@@ -1,6 +1,6 @@
 /// Global store
 
-import { createStore, StoreSetter } from 'solid-js/store';
+import { createStore, StoreSetter, unwrap } from 'solid-js/store';
 
 import { ChatContext, emptyChatContext } from '../lib/chat';
 import { sanitizeConfig, UserConfig } from '../lib/config';
@@ -31,7 +31,7 @@ export const setUserConfig = (setter: StoreSetter<UserConfig>) => {
 		setter as StoreSetter<UserConfig | undefined, ['userConfig']>
 	);
 	// Save to IDB
-	saveUserConfig({ ...getUserConfig() });
+	saveUserConfig(unwrap(getUserConfig()));
 };
 
 export const getChatContext = () => store.chatContext;

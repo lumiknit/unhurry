@@ -13,8 +13,10 @@ import {
 	Switch,
 } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
-import toast from 'solid-toast';
+import { toast } from 'solid-toast';
 
+import JSONLikeMessage from './JSONLikeMessage';
+import { ItemProps } from './message_types';
 import {
 	Msg,
 	MSG_PART_TYPE_MERMAID,
@@ -34,11 +36,6 @@ marked.use(
 mermaid.initialize({
 	suppressErrorRendering: true,
 });
-
-type ItemProps = {
-	type: string;
-	content: string;
-};
 
 /**
  * Rendering text as markdown
@@ -149,6 +146,7 @@ const compMap = new Map([
 	[MSG_PART_TYPE_RUN_JS, BlockMessage],
 	[MSG_PART_TYPE_SVG, SvgMessage],
 	[MSG_PART_TYPE_MERMAID, MermaidMessage],
+	['json', JSONLikeMessage],
 ]);
 
 type Props = {

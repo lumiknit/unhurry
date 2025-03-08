@@ -1,5 +1,5 @@
 import { Component, createSignal, For, Setter, Show } from 'solid-js';
-import toast from 'solid-toast';
+import { toast } from 'solid-toast';
 
 import {
 	LLMClientType,
