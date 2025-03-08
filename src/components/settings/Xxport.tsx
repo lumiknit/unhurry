@@ -1,6 +1,7 @@
 import { Component, createEffect } from 'solid-js';
 import { toast } from 'solid-toast';
 
+import { copyToClipboard } from '../../lib/clipboard';
 import { getUserConfig, setUserConfig } from '../../store';
 
 const Xxport: Component = () => {
@@ -33,6 +34,10 @@ const Xxport: Component = () => {
 
 	const importFromTextarea = () => {
 		importText(taRef!.value);
+	};
+
+	const handleCopy = () => {
+		copyToClipboard(taRef!.value);
 	};
 
 	createEffect(() => {
@@ -71,7 +76,9 @@ const Xxport: Component = () => {
 				<button class="button is-danger" onClick={importFromTextarea}>
 					Import
 				</button>
-				<button class="button is-primary">Copy</button>
+				<button class="button is-primary" onClick={handleCopy}>
+					Copy
+				</button>
 			</div>
 
 			<textarea ref={taRef!} class="textarea" />
