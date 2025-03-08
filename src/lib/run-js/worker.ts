@@ -1,3 +1,5 @@
+/* eslint @typescript-eslint/no-explicit-any: off */
+
 // Loop for wait for the worker to finish
 
 import { Message } from './messages';

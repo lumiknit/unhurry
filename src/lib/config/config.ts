@@ -1,10 +1,39 @@
 import { ModelConfig } from '../llm';
 
+export type Color =
+	| 'none'
+	| 'primary'
+	| 'info'
+	| 'success'
+	| 'warning'
+	| 'danger';
+export const colors = [
+	'none',
+	'primary',
+	'info',
+	'success',
+	'warning',
+	'danger',
+] as const;
+export const colorSet = new Set(colors);
+
+export type PromptTagAction = 'insert' | 'replace';
+export const promptTagActions = ['insert', 'replace'] as const;
+
 /**
  * Prompt preset tags.
  */
 export type PromptTag = {
+	/** Label of tag */
 	tag: string;
+
+	/** Color of tag */
+	color: Color;
+
+	/** How the tag works */
+	action: PromptTagAction;
+
+	/** Values */
 	prompt: string;
 };
 

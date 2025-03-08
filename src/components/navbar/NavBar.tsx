@@ -6,7 +6,7 @@ import {
 	TbSettings,
 } from 'solid-icons/tb';
 import { Component, onMount } from 'solid-js';
-import toast from 'solid-toast';
+import { toast } from 'solid-toast';
 
 import ModelDropdown from './ModelDropdown';
 import { rootPath } from '../../env';

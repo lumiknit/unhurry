@@ -1,7 +1,15 @@
-import { Component, createEffect } from 'solid-js';
-import toast from 'solid-toast';
+import {
+	Component,
+	createEffect,
+	createSignal,
+	For,
+	Match,
+	Switch,
+} from 'solid-js';
+import { toast } from 'solid-toast';
 
 import ModelList from './ModelList';
+import TagList from './TagList';
 import { UserConfig } from '../../lib/config';
 import { getUserConfig, setUserConfig } from '../../store';
 
@@ -48,7 +56,12 @@ const NumConfig: Component<NumConfigProps> = (props) => {
 	);
 };
 
+type Tab = 'General' | 'Models' | 'Prompt Tags';
+const tabs: Tab[] = ['General', 'Models', 'Prompt Tags'];
+
 const SettingsPage: Component = () => {
+	const [activeTab, setActiveTab] = createSignal<Tab>('General');
+
 	const forceRemoveServiceWorker = () => {
 		if ('serviceWorker' in navigator) {
 			navigator.serviceWorker.getRegistrations().then((registrations) => {
@@ -59,28 +72,56 @@ const SettingsPage: Component = () => {
 			toast.error('ServiceWorker not supported');
 		}
 	};
+
 	return (
 		<div class="container">
 			<h1 class="title is-3">Settings</h1>
 
-			<h2 class="title is-4">Remove service workers</h2>
-			<p>
-				{' '}
-				If your webpage does not work properly, clear service workers
-			</p>
-			<button class="button is-danger" onClick={forceRemoveServiceWorker}>
-				Remove Service Workers
-			</button>
+			<div class="tabs">
+				<ul>
+					<For each={tabs}>
+						{(tab) => (
+							<li
+								classList={{
+									'is-active': tab === activeTab(),
+								}}
+							>
+								<a onClick={() => setActiveTab(tab)}>{tab}</a>
+							</li>
+						)}
+					</For>
+				</ul>
+			</div>
 
-			<h2 class="title is-4">General</h2>
+			<Switch>
+				<Match when={activeTab() === 'General'}>
+					<NumConfig
+						key="autoSendMillis"
+						label="Auto Send After (ms)"
+						desc="When send the typed text to the server automatically"
+					/>
 
-			<NumConfig
-				key="autoSendMillis"
-				label="Auto Send After (ms)"
-				desc="When send the typed text to the server automatically"
-			/>
+					<h2 class="title is-4">Remove service workers</h2>
+					<p>
+						If your webpage does not work properly, clear service
+						workers
+					</p>
+					<button
+						class="button is-danger"
+						onClick={forceRemoveServiceWorker}
+					>
+						Remove Service Workers
+					</button>
+				</Match>
 
-			<ModelList />
+				<Match when={activeTab() === 'Models'}>
+					<ModelList />
+				</Match>
+
+				<Match when={activeTab() === 'Prompt Tags'}>
+					<TagList />
+				</Match>
+			</Switch>
 		</div>
 	);
 };

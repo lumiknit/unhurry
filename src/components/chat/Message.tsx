@@ -13,7 +13,7 @@ import {
 	Switch,
 } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
-import toast from 'solid-toast';
+import { toast } from 'solid-toast';
 
 import {
 	Msg,

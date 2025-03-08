@@ -117,3 +117,8 @@ span[aria-hidden='true'] {
 	//word-wrap: break-word;
 	overflow-wrap: break-word;
 }
+
+.input-tags {
+	white-space: nowrap;
+	overflow-x: scroll;
+}

@@ -1,5 +1,5 @@
 // Store-based actions
-import toast from 'solid-toast';
+import { toast } from 'solid-toast';
 
 import { getChatContext, getUserConfig, setChatContext } from './store';
 import {
@@ -45,8 +45,9 @@ The system will execute the js in web-worker, and show the console outputs in th
 - **For EVERY async call, MUST use \`await\`**.
 - The code will be run in a web worker. You cannot use neither node API nor require/import.
 - Most JS standard library available: console, Math, Date, BigInt, fetch, String, RegExp, Array, Map, Set, JSON, Intl, etc.
-- The user will give the result in 'result-js' block.
-  - **DO NOT USE 'result-js' block in yourself.**
+- The user will give the result in 'result:run-js' block.
+  - **DO NOT USE 'result:run-js' block in yourself.**
+- The global variables are shared between different 'run-js' blocks. You can reuse them.
 
 #### run-js Example
 
@@ -64,15 +65,11 @@ console.log(sum);
 \`\`\`
 
 **User**:
-\`\`\`result-js
+\`\`\`result:run-js
 55
 \`\`\`
 
 **Assistant**: The sum of 1 to 10 is **55**.
-
-### result-js
-
-When you give 'run-js' block, the user will put the outputs in the 'result-js' block automatically.
 
 ### svg
 
@@ -114,6 +111,16 @@ export const sendUserRequest = async (request: string) => {
 	return await sendUserParts(parseMsgParts(request));
 };
 
+const runJS = async (code: string): Promise<MsgPart> => {
+	const jctx = getChatContext().jsContext;
+	const result = await jctx.run(code);
+	console.log('Run JS Result', result, code);
+	return {
+		type: 'result:run-js',
+		content: result,
+	};
+};
+
 export const sendUserParts = async (parts: MsgPart[]): Promise<void> => {
 	// Get LLM
 	const config = getUserConfig();
@@ -134,18 +141,8 @@ export const sendUserParts = async (parts: MsgPart[]): Promise<void> => {
 		(additionalSystemPrompt ? '\n\n' + additionalSystemPrompt : '');
 
 	for (const part of parts) {
-		const jctx = getChatContext().jsContext;
-		console.log('Part', part);
-
 		if (part.type === 'run-js') {
-			// Run js
-			const result = await jctx.run(part.content);
-			console.log('Run JS Result', result, part.content);
-			const resultPart: MsgPart = {
-				type: 'result-js',
-				content: result,
-			};
-			parts.push(resultPart);
+			parts.push(await runJS(part.content));
 		}
 	}
 
@@ -180,20 +177,11 @@ export const sendUserParts = async (parts: MsgPart[]): Promise<void> => {
 	// Check run-js parts
 	const userParts = [];
 	for (const part of assistantParts) {
-		const jctx = getChatContext().jsContext;
-		console.log('Part', part);
-
 		if (part.type === 'run-js') {
-			// Run js
-			const result = await jctx.run(part.content);
-			console.log('Run JS Result', result, part.content);
-			const resultPart: MsgPart = {
-				type: 'result-js',
-				content: result,
-			};
-			userParts.push(resultPart);
+			userParts.push(await runJS(part.content));
 		}
 	}
+
 	if (userParts.length > 0) {
 		// Resend
 		return await sendUserParts(userParts);
