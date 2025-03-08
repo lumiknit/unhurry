@@ -32,8 +32,16 @@ sleep(0);
 					texts.push(
 						`Error (${arg.name}): ${arg.message}: ${arg.stack}`
 					);
+				} else if (typeof arg === 'string') {
+					texts.push(arg);
 				} else {
-					texts.push(String(arg));
+					let s = '';
+					try {
+						s = JSON.stringify(arg);
+					} catch {
+						s = String(arg);
+					}
+					texts.push(s);
 				}
 			}
 			this.flushText(level, texts.join(' ') + '\n');

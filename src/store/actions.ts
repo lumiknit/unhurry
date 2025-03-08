@@ -6,6 +6,7 @@ import {
 	chatHistoryToLLMHistory,
 	emptyChatContext,
 	MsgPart,
+	parseMessagePartType,
 	parseMsgParts,
 } from '../lib/chat';
 import { newClientFromConfig, Role, TextMessage } from '../lib/llm';
@@ -48,6 +49,9 @@ The system will execute the js in web-worker, and show the console outputs in th
 - The user will give the result in 'result:run-js' block.
   - **DO NOT USE 'result:run-js' block in yourself.**
 - The global variables are shared between different 'run-js' blocks. You can reuse them.
+- If you want denote your code output is diffent language, you can use pipe.
+  - e.g. For json output, 'run-js|json', for svg output, 'run-js|svg', etc.
+  - You don't need to repeat the result, since user will obtain the result immediately.
 
 #### run-js Example
 
@@ -111,12 +115,19 @@ export const sendUserRequest = async (request: string) => {
 	return await sendUserParts(parseMsgParts(request));
 };
 
-const runJS = async (code: string): Promise<MsgPart> => {
+const runJS = async (t: string, code: string): Promise<MsgPart> => {
+	// Check if type has pipe
+	const pp = parseMessagePartType(t);
+	let outputType = 'result:run-js';
+	if (pp.length > 1) {
+		outputType = pp[1];
+	}
+
 	const jctx = getChatContext().jsContext;
 	const result = await jctx.run(code);
 	console.log('Run JS Result', result, code);
 	return {
-		type: 'result:run-js',
+		type: outputType,
 		content: result,
 	};
 };
@@ -141,8 +152,9 @@ export const sendUserParts = async (parts: MsgPart[]): Promise<void> => {
 		(additionalSystemPrompt ? '\n\n' + additionalSystemPrompt : '');
 
 	for (const part of parts) {
-		if (part.type === 'run-js') {
-			parts.push(await runJS(part.content));
+		const pp = parseMessagePartType(part.type);
+		if (pp[0] === 'run-js') {
+			parts.push(await runJS(part.type, part.content));
 		}
 	}
 
@@ -177,8 +189,9 @@ export const sendUserParts = async (parts: MsgPart[]): Promise<void> => {
 	// Check run-js parts
 	const userParts = [];
 	for (const part of assistantParts) {
-		if (part.type === 'run-js') {
-			userParts.push(await runJS(part.content));
+		const pp = parseMessagePartType(part.type);
+		if (pp[0] === 'run-js') {
+			userParts.push(await runJS(part.type, part.content));
 		}
 	}
 

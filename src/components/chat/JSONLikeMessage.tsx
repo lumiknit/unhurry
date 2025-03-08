@@ -68,6 +68,9 @@ const analyzeJSON = (json: JSON): JSONAnalysis => {
 				}
 			});
 		}
+	} else {
+		analysis.isArrayOfNumbers = false;
+		analysis.isArrayOfObjects = false;
 	}
 
 	// Display types

@@ -37,6 +37,10 @@ export type MsgPart = {
 	content: string;
 };
 
+export const parseMessagePartType = (type: string): string[] => {
+	return type.split('|').map((x) => x.trim());
+};
+
 /**
  * Chat message.
  */
