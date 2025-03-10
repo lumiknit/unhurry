@@ -30,9 +30,9 @@ type WindowWithSpeechRecognition = Window & {
 const w = () => window as unknown as WindowWithSpeechRecognition;
 
 const SpeechRecognition = w().SpeechRecognition || w().webkitSpeechRecognition;
-const SpeechGrammarList = w().SpeechGrammarList || w().webkitSpeechGrammarList;
+/* const SpeechGrammarList = w().SpeechGrammarList || w().webkitSpeechGrammarList;
 const SpeechRecognitionEvent =
-	w().SpeechRecognitionEvent || w().webkitSpeechRecognitionEvent;
+	w().SpeechRecognitionEvent || w().webkitSpeechRecognitionEvent;*/
 
 type SpeechRecognitionResult = SpeechRecognitionAlternative[] & {
 	isFinal: boolean;
@@ -60,7 +60,6 @@ const SpeechButton: Component<Props> = (props_) => {
 		sr.continuous = true;
 		sr.interimResults = true;
 		sr.maxAlternatives = 3;
-		window.sr = sr;
 	};
 
 	const startSpeechRecognition = () => {
@@ -75,7 +74,6 @@ const SpeechButton: Component<Props> = (props_) => {
 			] as SpeechRecognitionResult;
 			const transcript = result[0].transcript;
 			const isFinal = result.isFinal as boolean;
-			console.log('SpeechRecognition', event);
 			props.onSpeech?.(transcript, isFinal, lastResult);
 			lastResult = isFinal ? '' : transcript;
 		};

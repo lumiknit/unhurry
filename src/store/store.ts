@@ -1,7 +1,7 @@
 /// Global store
 
 import { createStore, StoreSetter, unwrap } from 'solid-js/store';
-import toast from 'solid-toast';
+import { toast } from 'solid-toast';
 
 import { ChatContext, emptyChatContext } from '../lib/chat';
 import { sanitizeConfig, UserConfig } from '../lib/config';
