@@ -117,7 +117,7 @@ export class OpenAIClient implements ILLMService {
 		}
 		let acc = '';
 		await readSSEJSONStream<ChatStreamChunk>(reader, (chunk) => {
-			const m = chunk.choices[0].delta.content;
+			const m = chunk.choices[0].delta.content || '';
 			acc += m;
 			messageCallback(m, acc);
 		});

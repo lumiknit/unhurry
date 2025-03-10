@@ -2,6 +2,7 @@ import { TbSend } from 'solid-icons/tb';
 import { Component, onMount } from 'solid-js';
 
 import InputTags from './PromptTags';
+import SpeechButton from './SpeechButton';
 import { getUserConfig } from '../../store';
 
 type Props = {
@@ -83,10 +84,18 @@ const BottomInput: Component<Props> = (props) => {
 	const setAutoSend = () => {
 		const as = autoSendTimeout();
 		if (!getUserConfig()?.enableAutoSend || !as) return;
-		if (autoSendTimeoutId) clearTimeout(autoSendTimeoutId);
 
 		autoSendAt = Date.now() + as;
-		autoSendTimeoutId = window.setTimeout(autoSend, as);
+		if (autoSendTimeoutId === undefined) {
+			autoSendTimeoutId = window.setTimeout(autoSend, as);
+		}
+	};
+
+	const unsetAutoSend = () => {
+		if (autoSendTimeoutId) {
+			clearTimeout(autoSendTimeoutId);
+			autoSendTimeoutId = undefined;
+		}
 	};
 
 	const cleanSent = () => {
@@ -133,6 +142,31 @@ const BottomInput: Component<Props> = (props) => {
 		send();
 	};
 
+	const handleSpeech = (
+		transcript: string,
+		isFinal: boolean,
+		lastTranscript: string
+	) => {
+		// Remove if the last transcript is exists
+		if (lastTranscript) {
+			const v = taRef!.value;
+			const selStart = taRef!.selectionStart;
+			const part = v.slice(0, selStart);
+			if (v.endsWith(lastTranscript)) {
+				taRef!.value =
+					part.slice(0, -lastTranscript.length) + v.slice(selStart);
+				taRef!.setSelectionRange(selStart, selStart);
+			}
+		}
+		// Insert the transcript
+		insertText(transcript);
+		if (isFinal) {
+			setAutoSend();
+		} else {
+			unsetAutoSend();
+		}
+	};
+
 	const autosizeTextarea = () => {
 		if (taRef!) {
 			taRef.style.height = '1px';
@@ -149,6 +183,10 @@ const BottomInput: Component<Props> = (props) => {
 		<div>
 			<InputTags onInsertText={insertText} onReplaceText={replaceText} />
 			<div class="field is-grouped is-align-content-stretch">
+				<SpeechButton
+					class="control button is-danger"
+					onSpeech={handleSpeech}
+				/>
 				<p class="control is-expanded">
 					<textarea
 						ref={taRef!}
