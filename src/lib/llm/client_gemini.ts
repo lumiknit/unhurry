@@ -1,4 +1,5 @@
 import { ILLMService, Model } from './client_interface';
+import { readSSEJSONStream } from './json_stream_reader';
 import { History, Message, Role } from './message';
 import { ModelConfig } from './model_config';
 
@@ -25,6 +26,15 @@ type GeminiGeneateContentResponse = {
 		promptTokenCount: number;
 		totalTokenCount: number;
 	};
+};
+
+type GeminiStreamChunk = {
+	candidates: GenerateContentCandidate[];
+	usageMetadata: {
+		promptTokenCount: number;
+		totalTokenCount: number;
+	};
+	modelVersion: string;
 };
 
 export class GeminiClient implements ILLMService {
@@ -108,6 +118,54 @@ export class GeminiClient implements ILLMService {
 				(acc, part) => acc + part.text,
 				''
 			),
+		};
+	}
+
+	async chatStream(
+		systemPrompt: string,
+		history: History,
+		messageCallback: (s: string, acc: string) => void
+	): Promise<Message> {
+		const url = `${this.config.endpoint}/models/${this.config.model}:streamGenerateContent?alt=sse&key=${this.config.apiKey}`;
+
+		const headers = {
+			'Content-Type': 'application/json',
+		};
+
+		const contents = this.convertHistoryForGemini(systemPrompt, history);
+
+		const reqBody = JSON.stringify({
+			contents,
+		});
+		const resp = await fetch(url, {
+			method: 'POST',
+			headers,
+			body: reqBody,
+		});
+		if (!resp.ok) {
+			throw new Error(
+				`Failed to chat: ${resp.status} ${resp.statusText}\n${await resp.text()}`
+			);
+		}
+
+		// SSE
+		const reader = resp.body?.getReader();
+		if (!reader) {
+			throw new Error('Failed to get reader');
+		}
+		let acc = '';
+		await readSSEJSONStream<GeminiStreamChunk>(reader, (chunk) => {
+			const lastMessage = chunk.candidates[0].content;
+			acc += lastMessage.parts.reduce((acc, part) => acc + part.text, '');
+			messageCallback(
+				lastMessage.parts.reduce((acc, part) => acc + part.text, ''),
+				acc
+			);
+		});
+
+		return {
+			role: 'assistant',
+			content: acc,
 		};
 	}
 

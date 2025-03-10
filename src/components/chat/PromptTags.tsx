@@ -48,6 +48,27 @@ const AutoSendTag: Component = () => {
 	);
 };
 
+const RunCodeTag: Component = () => {
+	const toggleRunCode = () => {
+		setUserConfig((c) => ({
+			...c,
+			enableRunCode: !c.enableRunCode,
+		}));
+	};
+
+	return (
+		<Tag
+			class={getUserConfig()?.enableRunCode ? 'is-warning' : ''}
+			onClick={toggleRunCode}
+		>
+			<Switch>
+				<Match when={getUserConfig()?.enableRunCode}>Run</Match>
+				<Match when>No Run</Match>
+			</Switch>
+		</Tag>
+	);
+};
+
 type Props = {
 	onInsertText: (text: string) => void;
 	onReplaceText: (text: string) => void;
@@ -71,6 +92,7 @@ const PromptTags: Component<Props> = (props) => {
 
 	return (
 		<div class="mb-1 input-tags">
+			<RunCodeTag />
 			<AutoSendTag />
 			<For each={promptTags()}>
 				{(tag) => (

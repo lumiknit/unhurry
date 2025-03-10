@@ -1,4 +1,5 @@
 import { ILLMService, Model } from './client_interface';
+import { readSSEJSONStream } from './json_stream_reader';
 import { History, Message } from './message';
 import { ModelConfig } from './model_config';
 
@@ -11,6 +12,23 @@ type ChatChoice = {
 
 type ChatCompletionResponse = {
 	choices: ChatChoice[];
+};
+
+type ChatStreamChoice = {
+	index: number;
+	delta: {
+		content: string;
+	};
+	logprobs: null | number[];
+	finish_reason: null | string;
+};
+
+type ChatStreamChunk = {
+	id: string;
+	object: string;
+	created: number;
+	model: string;
+	choices: ChatStreamChoice[];
 };
 
 export class OpenAIClient implements ILLMService {
@@ -30,6 +48,7 @@ export class OpenAIClient implements ILLMService {
 		const headers = {
 			'Content-Type': 'application/json',
 			Authorization: `Bearer ${this.config.apiKey}`,
+			Accept: 'application/json',
 		};
 
 		const reqBody = JSON.stringify({
@@ -57,6 +76,54 @@ export class OpenAIClient implements ILLMService {
 		return {
 			role: 'assistant',
 			content: lastMessage.content,
+		};
+	}
+
+	async chatStream(
+		systemPrompt: string,
+		history: History,
+		messageCallback: (s: string, acc: string) => void
+	): Promise<Message> {
+		const url = `${this.config.endpoint}/chat/completions`;
+		const headers = {
+			'Content-Type': 'application/json',
+			Authorization: `Bearer ${this.config.apiKey}`,
+		};
+		const body = {
+			model: this.config.model,
+			messages: [
+				{
+					role: 'system',
+					content: systemPrompt,
+				},
+				...history,
+			],
+			stream: true,
+		};
+		// Use SSE
+		const resp = await fetch(url, {
+			method: 'POST',
+			headers,
+			body: JSON.stringify(body),
+		});
+		if (!resp.ok) {
+			throw new Error(
+				`Failed to chat stream: ${resp.status} ${resp.statusText}\n${await resp.text()}`
+			);
+		}
+		const reader = resp.body?.getReader();
+		if (!reader) {
+			throw new Error('Failed to get response reader');
+		}
+		let acc = '';
+		await readSSEJSONStream<ChatStreamChunk>(reader, (chunk) => {
+			const m = chunk.choices[0].delta.content;
+			acc += m;
+			messageCallback(m, acc);
+		});
+		return {
+			role: 'assistant',
+			content: acc,
 		};
 	}
 

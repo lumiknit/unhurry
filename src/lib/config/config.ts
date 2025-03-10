@@ -51,14 +51,19 @@ export type UserConfig = {
 	currentModelIdx: number;
 
 	/**
+	 * Enable run code
+	 */
+	enableRunCode: boolean;
+
+	/**
 	 * Enable auto send
 	 */
-	enableAutoSend?: boolean;
+	enableAutoSend: boolean;
 
 	/**
 	 * When send the typed text to the server automatically
 	 */
-	autoSendMillis?: number;
+	autoSendMillis: number;
 
 	/**
 	 * Use Javascript for the code execution
@@ -77,6 +82,9 @@ export type UserConfig = {
 export const defaultConfig = (): UserConfig => ({
 	models: [],
 	currentModelIdx: 0,
+	enableRunCode: true,
+	enableAutoSend: false,
+	autoSendMillis: 2000,
 	useJavascript: true,
 	promptTags: [],
 });

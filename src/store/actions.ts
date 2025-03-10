@@ -1,7 +1,12 @@
 // Store-based actions
 import { toast } from 'solid-toast';
 
-import { getChatContext, getUserConfig, setChatContext } from './store';
+import {
+	getChatContext,
+	getUserConfig,
+	setChatContext,
+	setStreamingMessage,
+} from './store';
 import {
 	chatHistoryToLLMHistory,
 	emptyChatContext,
@@ -166,7 +171,9 @@ export const sendUserParts = async (parts: MsgPart[]): Promise<void> => {
 	console.log('LLM Input', systemPrompt, llmHistory);
 	let result: TextMessage;
 	try {
-		result = await llm.chat(systemPrompt, llmHistory);
+		result = await llm.chatStream(systemPrompt, llmHistory, (_, acc) => {
+			setStreamingMessage(acc);
+		});
 		console.log('LLM Result', result);
 	} catch (e) {
 		toast.error('LLM Error: ' + e);
@@ -186,12 +193,16 @@ export const sendUserParts = async (parts: MsgPart[]): Promise<void> => {
 	// Insert the response to history
 	insertMessage('assistant', assistantParts);
 
+	setStreamingMessage(undefined);
+
 	// Check run-js parts
 	const userParts = [];
-	for (const part of assistantParts) {
-		const pp = parseMessagePartType(part.type);
-		if (pp[0] === 'run-js') {
-			userParts.push(await runJS(part.type, part.content));
+	if (getUserConfig()?.enableRunCode) {
+		for (const part of assistantParts) {
+			const pp = parseMessagePartType(part.type);
+			if (pp[0] === 'run-js') {
+				userParts.push(await runJS(part.type, part.content));
+			}
 		}
 	}
 
