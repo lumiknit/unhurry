@@ -1,4 +1,4 @@
-import { Component } from 'solid-js';
+import { Component, Match, Switch } from 'solid-js';
 
 import './About.scss';
 
@@ -27,6 +27,19 @@ const About: Component = () => {
 						<b>Version</b>: 0.1.0
 					</li>
 				</ul>
+
+				<Switch>
+					<Match when={(window as any).__TAURI_INTERNALS__}>
+						<p>
+							<b>Platform</b>: Desktop (with Tauri)
+						</p>
+					</Match>
+					<Match when>
+						<p>
+							<b>Platform</b>: Web Browser
+						</p>
+					</Match>
+				</Switch>
 			</div>
 		</div>
 	);

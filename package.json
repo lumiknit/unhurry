@@ -16,11 +16,16 @@
 		"build": "tsc -b && vite build",
 		"buildGHPage": "tsc -b && vite build -m ghpage",
 		"preview": "vite preview",
-		"format": "eslint --fix ./src && prettier --write ."
+		"format": "eslint --fix ./src && prettier --write .",
+		"tauri": "tauri"
 	},
 	"dependencies": {
 		"@solid-primitives/media": "^2.3.0",
 		"@solidjs/router": "^0.15.3",
+		"@tauri-apps/api": "^2",
+		"@tauri-apps/plugin-http": "~2",
+		"@tauri-apps/plugin-opener": "^2",
+		"@types/turndown": "^5.0.5",
 		"billboard.js": "^3.14.3",
 		"bulma": "^1.0.3",
 		"codemirror": "^6.0.1",
@@ -33,10 +38,12 @@
 		"solid-js": "^1.9.5",
 		"solid-toast": "^0.5.0",
 		"thememirror": "^2.0.1",
+		"turndown": "^7.2.0",
 		"typescript-eslint": "^8.26.0"
 	},
 	"devDependencies": {
 		"@eslint/js": "^9.21.0",
+		"@tauri-apps/cli": "^2",
 		"@types/node": "^22.13.9",
 		"eslint": "^9.21.0",
 		"eslint-import-resolver-typescript": "^3.8.3",

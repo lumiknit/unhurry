@@ -29,7 +29,7 @@ const MainView: Component = () => {
 	return (
 		<>
 			<div class="top-pad" />
-			<div class="container">
+			<div class="container p-1">
 				<ChatHistoryView />
 			</div>
 			<div class="bottom-sticky container">
