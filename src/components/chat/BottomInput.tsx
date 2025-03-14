@@ -56,7 +56,6 @@ const BottomInput: Component<Props> = (props) => {
 			// Otherwise, some composing left.
 			// Just ignore the send
 		}
-		console.log(v, lastSent);
 		props.onInput?.(v);
 		autosizeTextarea();
 	};
@@ -124,7 +123,6 @@ const BottomInput: Component<Props> = (props) => {
 
 	const handleInput = (e: InputEvent) => {
 		composing = e.isComposing;
-		//console.log('composing', e, e.isComposing);
 		autosizeTextarea();
 		setAutoSend();
 	};

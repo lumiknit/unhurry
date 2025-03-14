@@ -24,7 +24,6 @@ const NumConfig: Component<NumConfigProps> = (props) => {
 	let inputRef: HTMLInputElement;
 	const handleChange = () => {
 		const value = Number(inputRef!.value);
-		console.log(value);
 		setUserConfig((c) => ({
 			...c,
 			[props.key]: value,

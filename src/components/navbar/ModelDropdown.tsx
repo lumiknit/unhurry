@@ -7,7 +7,6 @@ const ModelDropdown: Component = () => {
 	const selected = () => getUserConfig()?.currentModelIdx || 0;
 
 	const handleSelect = (idx: number) => {
-		console.log('Selected', idx);
 		setUserConfig((c) => ({
 			...c,
 			currentModelIdx: idx,
