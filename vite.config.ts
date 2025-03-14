@@ -1,6 +1,8 @@
 import { defineConfig, loadEnv } from 'vite';
 import solid from 'vite-plugin-solid';
 
+const host = process.env.TAURI_DEV_HOST;
+
 export default ({ mode }: { mode: string }) => {
 	console.log('Mode', mode);
 	const env = loadEnv(mode, process.cwd());
@@ -22,6 +24,7 @@ export default ({ mode }: { mode: string }) => {
 				},
 			},
 		},
+		clearScreen: false,
 		plugins: [solid()],
 		css: {
 			preprocessorOptions: {
@@ -31,12 +34,19 @@ export default ({ mode }: { mode: string }) => {
 			},
 		},
 		server: {
-			port: 10101,
-			proxy: {
-				'/api': {
-					target: 'http://localhost:10102',
-					changeOrigin: true,
-				},
+			port: 1420,
+			strictPort: true,
+			host: host || false,
+			hmr: host
+				? {
+						protocol: 'ws',
+						host,
+						port: 1421,
+					}
+				: undefined,
+			watch: {
+				// 3. tell vite to ignore watching `src-tauri`
+				ignored: ['**/src-tauri/**'],
 			},
 		},
 	});

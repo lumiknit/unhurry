@@ -67,7 +67,7 @@ const Title = () => {
 						</Match>
 					</Switch>
 
-					<button class="tag" onClick={toggleEditing}>
+					<button class="ml-1 tag" onClick={toggleEditing}>
 						Edit
 					</button>
 				</h1>

@@ -1,7 +1,7 @@
 import { rootPath } from '../../env';
 
 // src.App.js
-if ('serviceWorker' in navigator) {
+if ('serviceWorker' in navigator && !(window as any).__TAURI_INTERNALS__) {
 	console.log('serviceWorker is supported, registering...');
 	navigator.serviceWorker
 		.register(rootPath + '/sw.js', {

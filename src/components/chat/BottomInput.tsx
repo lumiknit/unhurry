@@ -178,7 +178,7 @@ const BottomInput: Component<Props> = (props) => {
 	});
 
 	return (
-		<div>
+		<div class="p-1">
 			<InputTags onInsertText={insertText} onReplaceText={replaceText} />
 			<div class="field is-grouped is-align-content-stretch">
 				<SpeechButton

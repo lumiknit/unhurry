@@ -45,7 +45,8 @@ const TextMessage: Component<ItemProps> = (props) => {
 
 	onMount(async () => {
 		const html = await marked(props.content, { async: true });
-		setHtml(DOMPurify.sanitize(html));
+		const sanitized = DOMPurify.sanitize(html);
+		setHtml(sanitized.replace(/<a href/g, '<a target="_blank" href'));
 	});
 
 	return <div class="content" innerHTML={html()} />;

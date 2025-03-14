@@ -38,7 +38,7 @@ export type MsgPart = {
 };
 
 export const parseMessagePartType = (type: string): string[] => {
-	return type.split('|').map((x) => x.trim());
+	return type.split('|').map((x) => x.trim().toLowerCase());
 };
 
 /**
