@@ -9,5 +9,10 @@ export type Model = {
 
 export interface ILLMService {
 	chat(systemPrompt: string, history: History): Promise<Message>;
+	chatStream(
+		systemPrompt: string,
+		history: History,
+		messageCallback: (s: string, acc: string) => void
+	): Promise<Message>;
 	listModels(): Promise<Model[]>;
 }
