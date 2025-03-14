@@ -189,7 +189,7 @@ const runSearchDDG = async (query: string): Promise<MsgPart> => {
 		// Remove unusuful whitespaces
 		let md = turndownService.turndown(resultHTML);
 		md = md.replace(/---+\s*/gm, '');
-		md = md.replace(/\(\/\/duckduckgo\.com\/l\/\?uddg=([^&)]+)[^)]*\)/g, (m, p1) => {
+		md = md.replace(/\(\/\/duckduckgo\.com\/l\/\?uddg=([^&)]+)[^)]*\)/g, (_m, p1) => {
 			return `(${decodeURIComponent(p1)})`;
 		});
 

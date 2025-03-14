@@ -1,3 +1,5 @@
+use tauri_plugin_http::reqwest;
+
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -36,14 +38,25 @@ async fn fetch_http(
         request = request.body(body);
     }
 
-    let response = request.send().await.map_err(|e| format!("Request failed: {}", e))?;
+    let response = request
+        .send()
+        .await
+        .map_err(|e| format!("Request failed: {}", e))?;
     let status = response.status();
     let headers = response
         .headers()
         .iter()
-        .map(|(key, value)| (key.as_str().to_string(), value.to_str().unwrap().to_string()))
+        .map(|(key, value)| {
+            (
+                key.as_str().to_string(),
+                value.to_str().unwrap().to_string(),
+            )
+        })
         .collect::<Vec<(String, String)>>();
-    let text = response.text().await.map_err(|e| format!("Failed to read response: {}", e))?;
+    let text = response
+        .text()
+        .await
+        .map_err(|e| format!("Failed to read response: {}", e))?;
     Ok(FetchResult {
         status: status.as_u16(),
         headers: headers,
@@ -54,6 +67,7 @@ async fn fetch_http(
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![greet, fetch_http])
         .run(tauri::generate_context!())
