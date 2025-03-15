@@ -21,6 +21,12 @@
 	}
 }
 
+.flex-split {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+}
+
 svg {
 	vertical-align: bottom;
 }
@@ -75,6 +81,12 @@ div.message-body {
 	border: 1px solid var(--bulma-warning-soft);
 
 	& > .msg-code {
+		padding-top: 0.5rem;
+		margin-top: 0.5rem;
+		border-top: 1px solid var(--bulma-warning-soft);
+	}
+
+	& > .msg-code-footer {
 		padding-top: 0.5rem;
 		margin-top: 0.5rem;
 		border-top: 1px solid var(--bulma-warning-soft);

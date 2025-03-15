@@ -124,7 +124,7 @@ export class GeminiClient implements ILLMService {
 	async chatStream(
 		systemPrompt: string,
 		history: History,
-		messageCallback: (s: string, acc: string) => void
+		messageCallback: (s: string, acc: string) => boolean
 	): Promise<Message> {
 		const url = `${this.config.endpoint}/models/${this.config.model}:streamGenerateContent?alt=sse&key=${this.config.apiKey}`;
 
@@ -157,10 +157,14 @@ export class GeminiClient implements ILLMService {
 		await readSSEJSONStream<GeminiStreamChunk>(reader, (chunk) => {
 			const lastMessage = chunk.candidates[0].content;
 			acc += lastMessage.parts.reduce((acc, part) => acc + part.text, '');
-			messageCallback(
+			const cont = messageCallback(
 				lastMessage.parts.reduce((acc, part) => acc + part.text, ''),
 				acc
 			);
+			if (!cont) {
+				reader.cancel();
+				console.log('Cancelled');
+			}
 		});
 
 		return {

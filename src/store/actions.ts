@@ -8,6 +8,7 @@ import {
 	setChatContext,
 	setStreamingMessage,
 } from './store';
+import { systemPrompt } from './system_prompts';
 import {
 	chatHistoryToLLMHistory,
 	emptyChatContext,
@@ -23,101 +24,6 @@ const turndownService = new TurndownService();
 export const newChat = () => {
 	setChatContext(emptyChatContext());
 };
-
-const defaultSystemPrompt = `
-You are a helpful assistant 'Unhurry'.
-
-# Important Guidelines
-
-- The description should match the user's request language.
-- Ensure your answer is in correct Markdown format.
-  - Show math formulas in LaTeX format with Dollor signs (e.g. $\\frac{x}{y}$ or $$y=x$$). (Not \`\\(...\\)\` or \`\\[...\\]\`)
-- **Simple Tasks** (e.g., summary, translation, format conversion. What LLM can do): Provide short, straightforward answers without extra explanations.
-- **Complex Questions** (e.g. precise computation, code running, draw image or diagram): Follow this strategy:
-  1. **Enumerate Steps**: List the solution steps briefly.
-  2. **Describe Known Answers**: If you know the answer to any step, explain it.
-  3. **Use Tools for Difficult Questions**: Utilize tools for calculations or demonstrations.
-- Use tools actively to solve complex questions.
-- If you know reference link, use markdown link format (e.g. [link text](url)).
-- If you know image link, use markdown image format (e.g. ![alt text](url)) to show the image in the chat.
-
-## Tools
-
-- You can invoke special tools to help you solve the problem.
-- Tools are invoked by using code blocks with special language identifiers. (e.g., \`\`\`run-js, \`\`\`search, \`\`\`visit)
-- Tools block **SHOULD NOT be indented**.
-- You SHOULD NOT write the result block (starts with result:). The system will automatically make the result block in the user message.
-  - You should answer the question based on the tool's result.
-- If you put pipe (|) after the tool name, you can change the output format of result block
-  - e.g. For json output, 'run-js|json', for svg output, 'run-js|svg', etc.
-  - You don't need to repeat the result, since user will obtain the result immediately.
-- When tool result is given, describe the result and use tools (either same one or different one) if it's useful.
-- You can use multiple tools in a single message.
-
-#### search
-
-Search the query in duckduckgo.
-
-- Put search query in '\`\`\`search' ... '\`\`\`' block.
-- The result block contains the search result in markdown format.
-- Whenever you lack information, use the search tool to find the answer.
-
-#### search:startpage, search:brave
-
-- Use other web search service. If search is not availabe use it.
-- Put search query in '\`\`\`search:SERVICE' ... '\`\`\`' block.
-
-#### visit
-
-Visit the URL and get the HTML content.
-When user say 'show', 'go to' or 'enter', you can also use this tool.
-When user need information, and you know link, use it.
-
-- Put the URL in '\`\`\`visit' ... '\`\`\`' block.
-- The result block may contain the body HTML of the page.
-
-You may use link ([text](url)) or image (![alt](url)) to show result effectively.
-
-### run-js
-
-The system will execute the js in web-worker, and show the console outputs in the user message.
-
-- **Purpose**: Execute JavaScript in a web worker for:
-  1. Precise calculations (math, string manipulation, etc.)
-  2. Code demonstrations
-  3. Generating intermediate data/results
-- **For EVERY async call, MUST use \`await\`**.
-- The code will be run in a web worker. You cannot use neither node API nor require/import.
-- Most JS standard library available: console, Math, Date, BigInt, fetch, String, RegExp, Array, Map, Set, JSON, Intl, etc.
-- The global variables are shared between different 'run-js' blocks. You can reuse them.
-
-#### run-js Example
-
-\`\`\`run-js
-sum = 0;
-for (let i = 1; i <= 10; i++) {
-  sum += i;
-}
-console.log(sum);
-\`\`\`
-
-### svg
-
-- Content should start with \`<svg ...>\` and end with \`</svg>\`. Use this block for images or graphs.
-- Ensure to use \`viewBox\` instead of \`width\` and \`height\`.
-
-#### mermaid
-
-- Use this block to visually represent images, plots, formulas, etc.
-
-## Additional Guidelines
-
-### run-pseudo
-
-When user gave 'run-pseudo' block, you should rewrite them in 'run-js' block, with correct JavaScript syntax.
-
-# Additional info
-`.trim();
 
 const insertMessage = (role: Role, parts: MsgPart[]) => {
 	setChatContext((c) => ({
@@ -139,8 +45,15 @@ const getLLMHistory = () => {
 	return chatHistoryToLLMHistory(context.history);
 };
 
+let cancelled = false;
+
 export const sendUserRequest = async (request: string) => {
+	cancelled = false;
 	return await sendUserParts(parseMsgParts(request));
+};
+
+export const cancelRequest = () => {
+	cancelled = true;
 };
 
 const runJS = async (t: string, code: string): Promise<MsgPart> => {
@@ -160,6 +73,27 @@ const runJS = async (t: string, code: string): Promise<MsgPart> => {
 	};
 };
 
+const uaChromeVersions = [
+	'134.0.0.0',
+	'133.0.0.0',
+	'132.0.0.0',
+	'131.0.0.0',
+	'130.0.0.0',
+	'129.0.0.0',
+	'128.0.0.0',
+];
+const uaSafariVersions = ['605.1.15', '537.36', '537.35', '536'];
+const macVersions = ['10_15_7', '10_15_6', '10_14_3', '10_14_6'];
+
+const userAgent = () => {
+	const randomElement = (arr: string[]) =>
+		arr[Math.floor(Math.random() * arr.length)];
+	const chrome = randomElement(uaChromeVersions);
+	const safari = randomElement(uaSafariVersions);
+	const mac = randomElement(macVersions);
+	return `Mozilla/5.0 (Macintosh; Intel Mac OS X ${mac}) AppleWebKit/${safari} (KHTML, like Gecko) Chrome/${chrome} Safari/${safari}`;
+};
+
 const runSearchDDG = async (query: string): Promise<MsgPart> => {
 	const tauriService = await getTauriService();
 	if (!tauriService) {
@@ -169,14 +103,11 @@ const runSearchDDG = async (query: string): Promise<MsgPart> => {
 		};
 	}
 
-	const htmlDDG = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
+	const htmlDDG = `https://lite.duckduckgo.com/lite/?q=${encodeURIComponent(query)}`;
 	try {
 		const result = await tauriService.fetch('GET', htmlDDG, [
 			['Accept', 'text/html'],
-			[
-				'User-Agent',
-				'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36',
-			],
+			['User-Agent', userAgent()],
 		]);
 		if (result.status !== 200) {
 			throw new Error(`Status ${result.status}, ${result.body}`);
@@ -185,13 +116,17 @@ const runSearchDDG = async (query: string): Promise<MsgPart> => {
 		// Parse as html
 		const parser = new DOMParser();
 		const doc = parser.parseFromString(body, 'text/html');
+		doc.querySelectorAll('style, input, select, script').forEach((el) =>
+			el.remove()
+		);
 		console.log('DOC', doc);
-		const results = doc.querySelectorAll('.serp__results');
+		const results = doc.querySelectorAll('.filters');
 		const resultHTML =
 			results.length > 0 ? results[0].innerHTML : 'No results';
 		// Remove unusuful whitespaces
 		let md = turndownService.turndown(resultHTML);
 		md = md.replace(/---+\s*/gm, '');
+		md = md.replace(/\n\s+\n/g, '\n\n');
 		md = md.replace(
 			/\(\/\/duckduckgo\.com\/l\/\?uddg=([^&)]+)[^)]*\)/g,
 			(_m, p1) => {
@@ -212,6 +147,46 @@ const runSearchDDG = async (query: string): Promise<MsgPart> => {
 	}
 };
 
+const runSearchStartpage = async (query: string): Promise<MsgPart> => {
+	const tauriService = await getTauriService();
+	if (!tauriService) {
+		return {
+			type: 'result:search',
+			content: 'Search is not available',
+		};
+	}
+
+	const url = `https://www.startpage.com/sp/search?q=${encodeURIComponent(query)}`;
+	try {
+		const result = await tauriService.fetch('GET', url, [
+			['Accept', 'text/html'],
+			['User-Agent', userAgent()],
+		]);
+		if (result.status !== 200) {
+			throw new Error(`Status ${result.status}, ${result.body}`);
+		}
+		const body = result.body;
+		// Parse as html
+		const parser = new DOMParser();
+		const doc = parser.parseFromString(body, 'text/html');
+		doc.querySelectorAll(
+			'noscript, style, script, link, meta, noscript, iframe, embed, object, svg'
+		).forEach((el) => el.remove());
+		console.log('DOC', doc);
+		// Remove unusuful whitespaces
+		return {
+			type: 'result:search',
+			content: doc.body.innerHTML.replace(/>\s+</g, '><'),
+		};
+	} catch (e) {
+		console.error(e);
+		return {
+			type: 'result:search:startpage',
+			content: 'Search failed: ' + e,
+		};
+	}
+};
+
 const runVisit = async (url: string): Promise<MsgPart> => {
 	const tauriService = await getTauriService();
 	if (!tauriService) {
@@ -226,7 +201,9 @@ const runVisit = async (url: string): Promise<MsgPart> => {
 		if (!url.startsWith('http://') && !url.startsWith('https://')) {
 			url = 'http://' + url;
 		}
-		const result = await tauriService.fetch('GET', url);
+		const result = await tauriService.fetch('GET', url, [
+			['User-Agent', userAgent()],
+		]);
 		if (result.status !== 200) {
 			throw new Error(`Status ${result.status}, ${result.body}`);
 		}
@@ -236,9 +213,28 @@ const runVisit = async (url: string): Promise<MsgPart> => {
 		const doc = parser.parseFromString(body, 'text/html');
 		// Remove styles, script tags
 		const elementsToRemove = doc.querySelectorAll(
-			'style, script, link, meta, noscript, iframe, embed, object'
+			'style, script, link, meta, noscript, iframe, embed, object, svg'
 		);
 		elementsToRemove.forEach((el) => el.remove());
+		// Remove unusuful attributes
+		doc.querySelectorAll('*').forEach((el) => {
+			for (let i = 0; i < el.childNodes.length; i++) {
+				const node = el.childNodes[i];
+				if (node.nodeType === Node.COMMENT_NODE) {
+					el.removeChild(node);
+					i--;
+				}
+			}
+			for (const attr of el.attributes) {
+				if (
+					attr.name.startsWith('on') ||
+					attr.name.startsWith('data-')
+				) {
+					el.removeAttribute(attr.name);
+				}
+				el.removeAttribute('style');
+			}
+		});
 		return {
 			type: 'result:visit',
 			content: doc.body.innerHTML.replace(/>\s+</g, '><'),
@@ -250,6 +246,36 @@ const runVisit = async (url: string): Promise<MsgPart> => {
 			content: 'Visit failed: ' + e,
 		};
 	}
+};
+
+const handleSpecialParts = async (parts: MsgPart[]): Promise<MsgPart[]> => {
+	const newParts = [];
+	for (const part of parts) {
+		if (cancelled) continue;
+		const pp = parseMessagePartType(part.type);
+		switch (pp[0]) {
+			case 'run-js':
+				newParts.push(await runJS(part.type, part.content));
+				break;
+			case 'search':
+				newParts.push(await runSearchDDG(part.content));
+				break;
+			case 'search:brave':
+				newParts.push(
+					await runVisit(
+						`https://search.brave.com/search?q=${encodeURI(part.content)}`
+					)
+				);
+				break;
+			case 'search:startpage':
+				newParts.push(await runSearchStartpage(part.content));
+				break;
+			case 'visit':
+				newParts.push(await runVisit(part.content));
+				break;
+		}
+	}
+	return newParts;
 };
 
 export const sendUserParts = async (parts: MsgPart[]): Promise<void> => {
@@ -267,51 +293,23 @@ export const sendUserParts = async (parts: MsgPart[]): Promise<void> => {
 	const llm = newClientFromConfig(modelConfig);
 	const additionalSystemPrompt = modelConfig.systemPrompt;
 
-	const systemPrompt =
-		defaultSystemPrompt +
-		(additionalSystemPrompt ? '\n\n' + additionalSystemPrompt : '') +
-		'\n- Current time: ' +
-		new Date().toLocaleString();
+	const sys = await systemPrompt(additionalSystemPrompt);
 
-	for (const part of parts) {
-		const pp = parseMessagePartType(part.type);
-		switch (pp[0]) {
-			case 'run-js':
-				parts.push(await runJS(part.type, part.content));
-				break;
-			case 'search':
-				parts.push(await runSearchDDG(part.content));
-				break;
-			case 'search:brave':
-				parts.push(
-					await runVisit(
-						`https://search.brave.com/search?source=web&q=${encodeURI(part.content)}`
-					)
-				);
-				break;
-			case 'search:startpage':
-				parts.push(
-					await runVisit(
-						`https://www.startpage.com/sp/search?q=${encodeURI(part.content)}`
-					)
-				);
-				break;
-			case 'visit':
-				parts.push(await runVisit(part.content));
-				break;
-		}
-	}
+	const userSpecialParts = await handleSpecialParts(parts);
+	parts.push(...userSpecialParts);
 
 	// Append user message to history
 	insertMessage('user', parts);
 
 	// Generate response
 	const llmHistory = getLLMHistory();
-	console.log('LLM Input', systemPrompt, llmHistory);
+	console.log('LLM Input', sys, llmHistory);
 	let result: TextMessage;
 	try {
-		result = await llm.chatStream(systemPrompt, llmHistory, (_, acc) => {
+		result = await llm.chatStream(sys, llmHistory, (_, acc) => {
 			setStreamingMessage(acc);
+			console.log(cancelled);
+			return !cancelled;
 		});
 		console.log('LLM Result', result);
 	} catch (e) {
@@ -331,40 +329,16 @@ export const sendUserParts = async (parts: MsgPart[]): Promise<void> => {
 
 	// Insert the response to history
 	insertMessage('assistant', assistantParts);
-
 	setStreamingMessage(undefined);
 
+	if (cancelled) {
+		return;
+	}
+
 	// Check run-js parts
-	const userParts = [];
+	let userParts: MsgPart[] = [];
 	if (getUserConfig()?.enableRunCode) {
-		for (const part of assistantParts) {
-			const pp = parseMessagePartType(part.type);
-			switch (pp[0]) {
-				case 'run-js':
-					userParts.push(await runJS(part.type, part.content));
-					break;
-				case 'search':
-					userParts.push(await runSearchDDG(part.content));
-					break;
-				case 'search:brave':
-					userParts.push(
-						await runVisit(
-							`https://search.brave.com/search?source=web&q=${encodeURI(part.content)}`
-						)
-					);
-					break;
-				case 'search:startpage':
-					userParts.push(
-						await runVisit(
-							`https://www.startpage.com/sp/search?q=${encodeURI(part.content)}`
-						)
-					);
-					break;
-				case 'visit':
-					userParts.push(await runVisit(part.content));
-					break;
-			}
-		}
+		userParts = await handleSpecialParts(assistantParts);
 	}
 
 	if (userParts.length > 0) {
