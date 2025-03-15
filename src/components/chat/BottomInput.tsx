@@ -1,12 +1,15 @@
 import { TbSend } from 'solid-icons/tb';
 import { Component, onMount } from 'solid-js';
+import toast from 'solid-toast';
 
 import InputTags from './PromptTags';
 import SpeechButton from './SpeechButton';
 import { getUserConfig } from '../../store';
 
 type Props = {
-	onInput?: (value: string) => void;
+	progressing?: boolean;
+	send?: (value: string) => void;
+	cancel?: () => void;
 };
 
 const BottomInput: Component<Props> = (props) => {
@@ -56,7 +59,7 @@ const BottomInput: Component<Props> = (props) => {
 			// Otherwise, some composing left.
 			// Just ignore the send
 		}
-		props.onInput?.(v);
+		props.send?.(v);
 		autosizeTextarea();
 	};
 
@@ -137,7 +140,12 @@ const BottomInput: Component<Props> = (props) => {
 	};
 
 	const handleButtonClick = () => {
-		send();
+		if (props.progressing) {
+			toast('Canceling the current operation...');
+			props.cancel?.();
+		} else {
+			send();
+		}
 	};
 
 	const handleSpeech = (
@@ -197,12 +205,18 @@ const BottomInput: Component<Props> = (props) => {
 						placeholder="Type your message here..."
 					/>
 				</p>
-				<button
-					class="control button is-primary"
-					onClick={handleButtonClick}
-				>
-					<TbSend />
-				</button>
+				<p class="control" onClick={handleButtonClick}>
+					<button
+						class={
+							'button ' +
+							(props.progressing
+								? ' is-loading is-warning'
+								: 'is-primary')
+						}
+					>
+						<TbSend />
+					</button>
+				</p>
 			</div>
 		</div>
 	);

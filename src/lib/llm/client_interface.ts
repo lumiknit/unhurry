@@ -12,7 +12,7 @@ export interface ILLMService {
 	chatStream(
 		systemPrompt: string,
 		history: History,
-		messageCallback: (s: string, acc: string) => void
+		messageCallback: (s: string, acc: string) => boolean
 	): Promise<Message>;
 	listModels(): Promise<Model[]>;
 }

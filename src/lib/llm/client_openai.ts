@@ -82,7 +82,7 @@ export class OpenAIClient implements ILLMService {
 	async chatStream(
 		systemPrompt: string,
 		history: History,
-		messageCallback: (s: string, acc: string) => void
+		messageCallback: (s: string, acc: string) => boolean
 	): Promise<Message> {
 		const url = `${this.config.endpoint}/chat/completions`;
 		const headers = {
@@ -119,7 +119,10 @@ export class OpenAIClient implements ILLMService {
 		await readSSEJSONStream<ChatStreamChunk>(reader, (chunk) => {
 			const m = chunk.choices[0].delta.content || '';
 			acc += m;
-			messageCallback(m, acc);
+			const cont = messageCallback(m, acc);
+			if (!cont) {
+				reader.cancel();
+			}
 		});
 		return {
 			role: 'assistant',

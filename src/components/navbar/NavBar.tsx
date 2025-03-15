@@ -1,7 +1,7 @@
 import { A, useNavigate } from '@solidjs/router';
 import {
-	TbFilePlus,
 	TbFolderSearch,
+	TbMessage2Plus,
 	TbQuestionMark,
 	TbSettings,
 } from 'solid-icons/tb';
@@ -59,6 +59,10 @@ const NavBar: Component = () => {
 					</svg>
 				</A>
 
+				<a class="navbar-item" onClick={handleNew}>
+					<TbMessage2Plus />
+				</a>
+
 				<a
 					ref={burgerRef!}
 					role="button"
@@ -80,10 +84,7 @@ const NavBar: Component = () => {
 				class="navbar-menu no-user-select"
 			>
 				<div class="navbar-start">
-					<a class="navbar-item" onClick={handleNew}>
-						<TbFilePlus />
-						New
-					</a>
+
 					<div class="navbar-item has-dropdown is-hoverable">
 						<a class="navbar-link">Menu</a>
 						<div class="navbar-dropdown">

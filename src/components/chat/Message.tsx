@@ -45,7 +45,7 @@ const TextMessage: Component<ItemProps> = (props) => {
 
 	onMount(async () => {
 		const html = await marked(props.content, { async: true });
-		const sanitized = DOMPurify.sanitize(html);
+		const sanitized = html; //DOMPurify.sanitize(html);
 		setHtml(sanitized.replace(/<a href/g, '<a target="_blank" href'));
 	});
 
@@ -87,20 +87,34 @@ const BlockMessage: Component<ItemProps> = (props) => {
 
 	return (
 		<div class="msg-code-container">
-			<header class="msg-code-header">
+			<header class="msg-code-header flex-split">
 				<span>{props.type}</span>
-				<button class="tag is-info ml-1" onClick={handleCopy}>
-					Copy
-				</button>
-				<button
-					class="tag is-warning ml-1"
-					onClick={() => setFold(!fold())}
-				>
-					{fold() ? 'Expand' : 'Fold'}
-				</button>
+				<span>
+					<button class="tag is-info ml-1" onClick={handleCopy}>
+						Copy
+					</button>
+					<button
+						class="tag is-warning ml-1"
+						onClick={() => setFold(!fold())}
+					>
+						{fold() ? 'Expand' : 'Fold'}
+					</button>
+				</span>
 			</header>
 			<Show when={!fold()}>
 				<div class="msg-code" innerHTML={html()} />
+				<footer class="msg-code-footer flex-split">
+					<span class="mr-2">
+						Lines {props.content.split('\n').length} | Chars{' '}
+						{props.content.length}
+					</span>
+					<button
+						class="tag is-warning"
+						onClick={() => setFold(true)}
+					>
+						Fold
+					</button>
+				</footer>
 			</Show>
 		</div>
 	);

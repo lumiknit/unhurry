@@ -2,10 +2,11 @@ import { Component, createSignal, onMount, Show } from 'solid-js';
 
 import BottomInput from './BottomInput';
 import ChatHistoryView from './ChatHistoryView';
-import { sendUserRequest } from '../../store/actions';
+import { cancelRequest, sendUserRequest } from '../../store/actions';
 
 const MainView: Component = () => {
 	const [progressing, setProgressing] = createSignal(false);
+
 	const handleSend = async (text: string) => {
 		console.log('LLM Input: ', text);
 		setProgressing(true);
@@ -14,6 +15,10 @@ const MainView: Component = () => {
 		} finally {
 			setProgressing(false);
 		}
+	};
+
+	const handleCancel = () => {
+		cancelRequest();
 	};
 
 	onMount(() => {
@@ -39,7 +44,11 @@ const MainView: Component = () => {
 						max="100"
 					/>
 				</Show>
-				<BottomInput onInput={handleSend} />
+				<BottomInput
+					progressing={progressing()}
+					send={handleSend}
+					cancel={handleCancel}
+				/>
 			</div>
 		</>
 	);
