@@ -11,7 +11,9 @@ export const systemPrompt = async (additional: string): Promise<string> => {
 		'1. **Enumerate Steps**: List the solution steps briefly.',
 		'2. For each step, if you can describe the answer, do it.',
 		'3. Otherwise, use *tools* to get hints or answers.',
-		'- For URL and images, use markdown format (e.g. [link text](url) or ![alt text](url)).',
+		'- For URL, use markdown format (e.g. [link text](url)).',
+		'- If you have image URL, you can show image to user by ![alt text](url). (Without code blocks)',
+		'- You can use HTML tags for special formatting, video, iframe, etc. (e.g. <video> tag)',
 	];
 
 	const toolDescriptions: Record<string, string> = {
@@ -41,15 +43,18 @@ console.log(sum);
 Use duckduckgo search service to find information.
 - Put search query in '\`\`\`search' ... '\`\`\`' block.
 - The result block may contain the search result page, in markdown format.
+- You should describe the result, and show some links or images if necessary.
 `.trim(),
 		'search:startpage':
 			"Similar to search, but use 'startpage' search service.",
 		'search:brave': "Similar to search, but use 'brave' search service.",
 		visit: `
-Visit the URL and get the HTML content.
+Visit the URL and get the HTML content. (You can check / read / extract the web post / contents.)
 - Put the URL in '\`\`\`visit' ... '\`\`\`' block.
 - The result block may contain the body HTML of the page.
-- Whenever user want to see some content, you guess the link and use visit tool.
+- Whenever user want to see/enter/goto some content, you guess the link and use visit tool.
+- You may find link from search tool or other visit tool result.
+- If user requests link or images, find the link from contents and give as markdown link. (e.g. [link text](url) or ![alt text](url))
 `.trim(),
 		'run-pseudo': `
 When user gave 'run-pseudo' block, you should rewrite them in 'run-js' block, with correct JavaScript syntax.
