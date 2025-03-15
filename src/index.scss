@@ -1,6 +1,15 @@
 // bulma
 @use 'bulma/bulma.scss';
 
+@media (prefers-color-scheme: dark) {
+	:root {
+		--bulma-body-background-color: #000000 !important;
+	}
+	nav.navbar {
+		--bulma-navbar-background-color: #000000 !important;
+	}
+}
+
 .toast-item {
 	color: var(--bulma-body-color) !important;
 	background-color: var(--bulma-background) !important;
@@ -63,12 +72,12 @@ div.message-body {
 	padding: 0.5rem 0;
 	border-radius: 0.5rem;
 
-	border: 1px solid var(--bulma-warning);
+	border: 1px solid var(--bulma-warning-soft);
 
 	& > .msg-code {
 		padding-top: 0.5rem;
 		margin-top: 0.5rem;
-		border-top: 1px solid var(--bulma-warning);
+		border-top: 1px solid var(--bulma-warning-soft);
 	}
 
 	& > * {

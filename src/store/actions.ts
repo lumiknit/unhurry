@@ -173,7 +173,10 @@ const runSearchDDG = async (query: string): Promise<MsgPart> => {
 	try {
 		const result = await tauriService.fetch('GET', htmlDDG, [
 			['Accept', 'text/html'],
-			['User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36'],
+			[
+				'User-Agent',
+				'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36',
+			],
 		]);
 		if (result.status !== 200) {
 			throw new Error(`Status ${result.status}, ${result.body}`);
@@ -189,9 +192,12 @@ const runSearchDDG = async (query: string): Promise<MsgPart> => {
 		// Remove unusuful whitespaces
 		let md = turndownService.turndown(resultHTML);
 		md = md.replace(/---+\s*/gm, '');
-		md = md.replace(/\(\/\/duckduckgo\.com\/l\/\?uddg=([^&)]+)[^)]*\)/g, (_m, p1) => {
-			return `(${decodeURIComponent(p1)})`;
-		});
+		md = md.replace(
+			/\(\/\/duckduckgo\.com\/l\/\?uddg=([^&)]+)[^)]*\)/g,
+			(_m, p1) => {
+				return `(${decodeURIComponent(p1)})`;
+			}
+		);
 
 		return {
 			type: 'result:search',
@@ -229,7 +235,9 @@ const runVisit = async (url: string): Promise<MsgPart> => {
 		const parser = new DOMParser();
 		const doc = parser.parseFromString(body, 'text/html');
 		// Remove styles, script tags
-		const elementsToRemove = doc.querySelectorAll('style, script, link, meta, noscript, iframe, embed, object');
+		const elementsToRemove = doc.querySelectorAll(
+			'style, script, link, meta, noscript, iframe, embed, object'
+		);
 		elementsToRemove.forEach((el) => el.remove());
 		return {
 			type: 'result:visit',
@@ -262,8 +270,8 @@ export const sendUserParts = async (parts: MsgPart[]): Promise<void> => {
 	const systemPrompt =
 		defaultSystemPrompt +
 		(additionalSystemPrompt ? '\n\n' + additionalSystemPrompt : '') +
-		'\n- Current time: ' + (new Date()).toLocaleString();
-
+		'\n- Current time: ' +
+		new Date().toLocaleString();
 
 	for (const part of parts) {
 		const pp = parseMessagePartType(part.type);
@@ -275,10 +283,18 @@ export const sendUserParts = async (parts: MsgPart[]): Promise<void> => {
 				parts.push(await runSearchDDG(part.content));
 				break;
 			case 'search:brave':
-				parts.push(await runVisit(`https://search.brave.com/search?source=web&q=${encodeURI(part.content)}`));
+				parts.push(
+					await runVisit(
+						`https://search.brave.com/search?source=web&q=${encodeURI(part.content)}`
+					)
+				);
 				break;
 			case 'search:startpage':
-				parts.push(await runVisit(`https://www.startpage.com/sp/search?q=${encodeURI(part.content)}`));
+				parts.push(
+					await runVisit(
+						`https://www.startpage.com/sp/search?q=${encodeURI(part.content)}`
+					)
+				);
 				break;
 			case 'visit':
 				parts.push(await runVisit(part.content));
@@ -331,10 +347,18 @@ export const sendUserParts = async (parts: MsgPart[]): Promise<void> => {
 					userParts.push(await runSearchDDG(part.content));
 					break;
 				case 'search:brave':
-					userParts.push(await runVisit(`https://search.brave.com/search?source=web&q=${encodeURI(part.content)}`));
+					userParts.push(
+						await runVisit(
+							`https://search.brave.com/search?source=web&q=${encodeURI(part.content)}`
+						)
+					);
 					break;
 				case 'search:startpage':
-					userParts.push(await runVisit(`https://www.startpage.com/sp/search?q=${encodeURI(part.content)}`));
+					userParts.push(
+						await runVisit(
+							`https://www.startpage.com/sp/search?q=${encodeURI(part.content)}`
+						)
+					);
 					break;
 				case 'visit':
 					userParts.push(await runVisit(part.content));

@@ -15,7 +15,7 @@ const App: Component<Props> = (props) => {
 					className: 'toast-item',
 				}}
 				containerClassName="toaster"
-				position="bottom-center"
+				position="top-center"
 			/>
 
 			<NavBar />

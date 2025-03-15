@@ -74,7 +74,7 @@ const SettingsPage: Component = () => {
 	};
 
 	return (
-		<div class="container">
+		<div class="container p-2">
 			<h1 class="title is-3">Settings</h1>
 
 			<div class="tabs">
