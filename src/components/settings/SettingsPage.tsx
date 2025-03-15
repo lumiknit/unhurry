@@ -74,7 +74,8 @@ const SettingsPage: Component = () => {
 	};
 
 	return (
-		<div class="container p-2">
+		<div class="container">
+			<div class="m-2">
 			<h1 class="title is-3">Settings</h1>
 
 			<div class="tabs">
@@ -126,6 +127,7 @@ const SettingsPage: Component = () => {
 					<Xxport />
 				</Match>
 			</Switch>
+			</div>
 		</div>
 	);
 };

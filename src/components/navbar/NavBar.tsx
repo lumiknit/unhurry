@@ -1,7 +1,7 @@
 import { A, useNavigate } from '@solidjs/router';
 import {
-	TbFilePlus,
 	TbFolderSearch,
+	TbMessage2Plus,
 	TbQuestionMark,
 	TbSettings,
 } from 'solid-icons/tb';
@@ -60,8 +60,7 @@ const NavBar: Component = () => {
 				</A>
 
 				<a class="navbar-item" onClick={handleNew}>
-					<TbFilePlus />
-					New
+					<TbMessage2Plus />
 				</a>
 
 				<a
