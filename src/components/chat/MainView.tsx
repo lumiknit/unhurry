@@ -3,12 +3,23 @@ import { Component, createSignal } from 'solid-js';
 import BottomInput from './BottomInput';
 import ChatHistoryView from './ChatHistoryView';
 import { RateLimitError } from '../../lib/llm';
-import { cancelRequest, sendUserRequest } from '../../store/actions';
+import {
+	getChatContext,
+	saveChatContextMeta,
+	setChatContext,
+} from '../../store';
+import {
+	cancelRequest,
+	generateChatTitle,
+	sendUserRequest,
+} from '../../store/actions';
 
 const MainView: Component = () => {
 	const [progressing, setProgressing] = createSignal(false);
 
 	const handleSend = async (text: string) => {
+		const isFirst = getChatContext().history.msgPairs.length === 0;
+
 		console.log('LLM Input: ', text);
 		setProgressing(true);
 		try {
@@ -35,6 +46,14 @@ const MainView: Component = () => {
 			}
 		} finally {
 			setProgressing(false);
+		}
+
+		if (isFirst) {
+			// Generate a title
+			const title = await generateChatTitle();
+			console.log('Generated title: ', title);
+			setChatContext((c) => ({ ...c, title }));
+			saveChatContextMeta();
 		}
 	};
 

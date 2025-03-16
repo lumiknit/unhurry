@@ -55,6 +55,7 @@ Visit the URL and get the HTML content. (You can check / read / extract the web 
 - Whenever user want to see/enter/goto some content, you guess the link and use visit tool.
 - You may find link from search tool or other visit tool result.
 - If user requests link or images, find the link from contents and give as markdown link. (e.g. [link text](url) or ![alt text](url))
+  - You can show image to user by ![alt text](url) without code blocks.
 `.trim(),
 		'run-pseudo': `
 When user gave 'run-pseudo' block, you should rewrite them in 'run-js' block, with correct JavaScript syntax.
@@ -84,7 +85,7 @@ ${importantGuidelines.join('\n')}
 	- e.g. For json output, 'run-js|json', for svg output, 'run-js|svg', etc.
 	- You don't need to repeat the result, since user will obtain the result immediately.
 - When tool result is given, describe the result and use tools (either same one or different one) if it's useful.
-- You can use multiple tools in a single message.
+- You can run multiple tools simulateosly, by using multiple code blocks. It may be faster.
 
 ## Tool List
 

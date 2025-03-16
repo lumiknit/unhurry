@@ -1,4 +1,5 @@
 // Store-based actions
+import { unwrap } from 'solid-js/store';
 import { toast } from 'solid-toast';
 import TurndownService from 'turndown';
 
@@ -12,15 +13,60 @@ import { systemPrompt } from './system_prompts';
 import { getBEService } from '../lib/be';
 import {
 	chatHistoryToLLMHistory,
+	ChatMeta,
 	emptyChatContext,
+	getChatMeta,
 	Msg,
+	MsgPair,
 	MsgPart,
 	parseMessagePartType,
 	parseMsgParts,
 } from '../lib/chat';
+import { chatListTx, chatTx } from '../lib/idb';
 import { newClientFromConfig, RateLimitError, TextMessage } from '../lib/llm';
 
 const turndownService = new TurndownService();
+
+/**
+ * Generate title from the chat context
+ */
+export const generateChatTitle = async (): Promise<string> => {
+	// Get LLM
+	const config = getUserConfig();
+	if (!config) {
+		throw new Error('No user config');
+	}
+
+	const modelConfig = config.models[config.currentModelIdx];
+	if (!modelConfig) {
+		throw new Error('No model config');
+	}
+
+	const llm = newClientFromConfig(modelConfig);
+	const systemPrompt = `
+You are a title generator.
+Based on the following conversation, please generate a title for this chat.
+- Language should be short and clear (At least 2 words, at most 10 words. Single sentence)
+- Should be relevant to the conversation
+- Use the most used language in the conversation
+- DO NOT answer except the title. You ONLY give a title in plain text.
+`.trim();
+
+	// Generate response
+	const llmHistory = getLLMHistory();
+	llmHistory.push({
+		role: 'user',
+		content: '[Give me a title for the above conversation]',
+	});
+	const result = await llm.chat(systemPrompt, llmHistory);
+	console.log('Generated Title', result);
+	const list = result.content
+		.split('\n')
+		.map((l) => l.trim())
+		.filter((l) => l);
+	// Return only last line
+	return list[list.length - 1];
+};
 
 /**
  * Reset the chat context
@@ -159,7 +205,6 @@ const fetchDocFromURL = async (
 		// Parse as html
 		const parser = new DOMParser();
 		const doc = parser.parseFromString(result.body, 'text/html');
-		console.log(doc);
 		return await onHTML(doc);
 	} catch (e) {
 		console.error(e);
@@ -304,7 +349,6 @@ export const sendUserParts = async (parts: MsgPart[]): Promise<void> => {
 	try {
 		result = await llm.chatStream(sys, llmHistory, (_, acc) => {
 			setStreamingMessage(acc);
-			console.log(chatCancelled);
 			return !chatCancelled;
 		});
 		console.log('LLM Result', result);
@@ -329,6 +373,30 @@ export const sendUserParts = async (parts: MsgPart[]): Promise<void> => {
 	// Insert the response to history
 	pushAssistantMessage(assistantParts);
 	setStreamingMessage(undefined);
+
+	// Using DB, save the chat history
+	try {
+		const ctx = getChatContext();
+		await Promise.all([
+			(async () => {
+				const chatList = await chatListTx<ChatMeta>();
+				const m = await chatList.get(ctx._id);
+				if (!m) {
+					await chatList.put(getChatMeta(unwrap(ctx)));
+				}
+			})(),
+			(async () => {
+				const chatDB = await chatTx<MsgPair>(ctx._id);
+				const lastPair = unwrap(
+					ctx.history.msgPairs[ctx.history.msgPairs.length - 1]
+				);
+				chatDB.put(lastPair);
+			})(),
+		]);
+	} catch (e) {
+		toast.error('Failed to push history into IDB');
+		console.error(e);
+	}
 
 	if (chatCancelled) {
 		return;

@@ -16,7 +16,7 @@ const About: Component = () => {
 		<div class="container">
 			<div class="text-center">
 				<h1 class="title"> About Unhurry </h1>
-				<img class="unhurry-icon" src="/icon.svg" />
+				<img class="unhurry-icon" src="/unhurry.svg" />
 				<p>
 					<b>Unhurry</b> is a front-end only LLM Web UI for quick and
 					ease uses.

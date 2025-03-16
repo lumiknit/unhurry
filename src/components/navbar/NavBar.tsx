@@ -83,7 +83,7 @@ const NavBar: Component = () => {
 					<div class="navbar-item has-dropdown is-hoverable">
 						<a class="navbar-link">Menu</a>
 						<div class="navbar-dropdown">
-							<A class="navbar-item" href="/notebooks">
+							<A class="navbar-item" href="/chat-list">
 								<TbFolderSearch />
 								Open
 							</A>
