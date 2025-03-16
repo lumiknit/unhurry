@@ -189,6 +189,7 @@ const BottomInput: Component<Props> = (props) => {
 	// When mounted, focus
 	onMount(() => {
 		taRef!.focus();
+		autosizeTextarea();
 	});
 
 	return (

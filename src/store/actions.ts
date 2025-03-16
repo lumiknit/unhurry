@@ -159,6 +159,7 @@ const fetchDocFromURL = async (
 		// Parse as html
 		const parser = new DOMParser();
 		const doc = parser.parseFromString(result.body, 'text/html');
+		console.log(doc);
 		return await onHTML(doc);
 	} catch (e) {
 		console.error(e);
@@ -171,7 +172,7 @@ const runSearchDDG = async (query: string): Promise<MsgPart> => {
 		doc.querySelectorAll('style, input, select, script').forEach((el) =>
 			el.remove()
 		);
-		const results = doc.querySelectorAll('.results');
+		const results = doc.querySelectorAll('div.filters');
 		const resultHTML =
 			results.length > 0 ? results[0].innerHTML : 'No results';
 		// Remove unusuful whitespaces
