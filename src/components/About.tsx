@@ -12,6 +12,8 @@ const About: Component = () => {
 		setBE(be);
 	});
 
+	console.log('About', import.meta.env);
+
 	return (
 		<div class="container">
 			<div class="text-center">
@@ -32,7 +34,7 @@ const About: Component = () => {
 						<b>Repository</b>: <a href={link}>{link}</a>
 					</li>
 					<li>
-						<b>Version</b>: 0.1.0
+						<b>Version</b>: {PACKAGE_VERSION}
 					</li>
 				</ul>
 
