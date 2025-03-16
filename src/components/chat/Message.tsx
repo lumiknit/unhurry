@@ -3,15 +3,8 @@ import hljs from 'highlight.js';
 import { marked } from 'marked';
 import markedKatex from 'marked-katex-extension';
 import mermaid from 'mermaid';
-import {
-	Component,
-	createSignal,
-	For,
-	Match,
-	onMount,
-	Show,
-	Switch,
-} from 'solid-js';
+import { VsChevronDown, VsChevronUp, VsCopy } from 'solid-icons/vs';
+import { Component, createSignal, For, Match, onMount, Switch } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 import { toast } from 'solid-toast';
 
@@ -57,6 +50,7 @@ const BlockMessage: Component<ItemProps> = (props) => {
 	const [fold, setFold] = createSignal(
 		props.type === MSG_PART_TYPE_THINK || props.content.length > 1000
 	);
+	const [lines, setLines] = createSignal(0);
 	// Use highlight.js to highlight code
 
 	onMount(async () => {
@@ -68,6 +62,7 @@ const BlockMessage: Component<ItemProps> = (props) => {
 
 		const result = hljs.highlight(props.content, { language });
 		setHtml(DOMPurify.sanitize(result.value));
+		setLines(props.content.split('\n').length);
 	});
 
 	const handleCopy = () => {
@@ -86,43 +81,77 @@ const BlockMessage: Component<ItemProps> = (props) => {
 	};
 
 	return (
-		<div class="msg-code-container">
-			<header class="msg-code-header flex-split">
-				<span>{props.type}</span>
-				<span>
-					<button class="tag is-info ml-1" onClick={handleCopy}>
-						Copy
-					</button>
-					<button
-						class="tag is-warning ml-1"
-						onClick={() => setFold(!fold())}
-					>
-						{fold() ? 'Expand' : 'Fold'}
-					</button>
-				</span>
-			</header>
-			<Show when={!fold()}>
-				<div class="msg-code" innerHTML={html()} />
-				<footer class="msg-code-footer flex-split">
-					<span class="mr-2">
-						Lines {props.content.split('\n').length} | Chars{' '}
-						{props.content.length}
+		<Switch>
+			<Match when={fold()}>
+				<div
+					class="msg-code msg-code-fold flex-split"
+					onClick={() => setFold(false)}
+				>
+					<span>
+						{props.type} ({lines()} lines)
 					</span>
-					<button
-						class="tag is-warning"
-						onClick={() => setFold(true)}
-					>
-						Fold
+					<button>
+						<VsChevronDown />
 					</button>
-				</footer>
-			</Show>
-		</div>
+				</div>
+			</Match>
+			<Match when>
+				<div class="msg-code">
+					<header class="flex-split" onClick={() => setFold(true)}>
+						<span>{props.type}</span>
+						<span>
+							<button
+								class="px-2"
+								onClick={(e) => {
+									handleCopy();
+									e.stopPropagation();
+								}}
+							>
+								<VsCopy /> copy
+							</button>
+							<button>
+								<VsChevronUp />
+							</button>
+						</span>
+					</header>
+					<div class="msg-code-body" innerHTML={html()} />
+					<footer>
+						<button onClick={() => setFold(true)}>
+							<VsChevronUp />
+							fold
+						</button>
+					</footer>
+				</div>
+			</Match>
+		</Switch>
 	);
 };
 
 const SvgMessage: Component<ItemProps> = (props) => {
+	const content = DOMPurify.sanitize(props.content);
+	const [raw, setRaw] = createSignal(false);
 	return (
-		<div class="msg-svg" innerHTML={DOMPurify.sanitize(props.content)} />
+		<div class="msg-code">
+			<header class="flex-split" onClick={() => setRaw((r) => !r)}>
+				SVG
+				<Switch>
+					<Match when={raw()}>
+						<span>[raw]</span>
+					</Match>
+					<Match when>
+						<span>[img]</span>
+					</Match>
+				</Switch>
+			</header>
+			<div class="msg-svg-body">
+				<Switch>
+					<Match when={raw()}>{content}</Match>
+					<Match when>
+						<div class="msg-svg" innerHTML={content} />
+					</Match>
+				</Switch>
+			</div>
+		</div>
 	);
 };
 
@@ -170,7 +199,7 @@ type Props = {
 };
 
 const Message: Component<Props> = (props) => {
-	const cls = props.msg.role === 'user' ? 'message' : '';
+	const cls = props.msg.role === 'user' ? 'msg-user' : 'msg-assistant';
 	return (
 		<div class={cls}>
 			<div class="message-body">

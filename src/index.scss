@@ -73,8 +73,11 @@ textarea.textarea.inline {
 		var(--bulma-control-padding-horizontal);
 }
 
-div.message {
-	margin: 0.5rem 0 !important;
+div.msg-user {
+	margin-left: 2rem;
+	color: var(--bulma-success-soft-invert);
+	background-color: var(--bulma-success-soft);
+	border-radius: 1rem 0.125rem 1rem 1rem;
 }
 
 div.message-body {
@@ -82,33 +85,45 @@ div.message-body {
 	overflow-x: scroll;
 }
 
-.msg-code-container {
+.msg-code {
+	border-radius: 0.5rem;
+	background-color: #cccccc30;
+	padding: 0.75rem;
 	font-family: monospace;
-	font-size: 14px;
 
+	position: relative;
+
+	& > header {
+		margin-bottom: 0.5rem;
+		padding-bottom: 0.5rem;
+		border-bottom: 1px solid var(--bulma-text-soft);
+
+		cursor: pointer;
+		user-select: none;
+		-webkit-user-drag: none;
+		-webkit-user-select: none;
+	}
+
+	& > footer {
+		display: inline-block;
+		height: 1rem;
+		position: absolute;
+		bottom: 0;
+		right: 0;
+		margin: 0.5rem;
+	}
+}
+
+.msg-code-fold {
+	cursor: pointer;
+	user-select: none;
+	-webkit-user-drag: none;
+	-webkit-user-select: none;
+}
+
+.msg-code-body {
 	white-space: pre-wrap;
 	word-break: break-all;
-
-	padding: 0.5rem 0;
-	border-radius: 0.5rem;
-
-	border: 1px solid var(--bulma-warning-soft);
-
-	& > .msg-code {
-		padding-top: 0.5rem;
-		margin-top: 0.5rem;
-		border-top: 1px solid var(--bulma-warning-soft);
-	}
-
-	& > .msg-code-footer {
-		padding-top: 0.5rem;
-		margin-top: 0.5rem;
-		border-top: 1px solid var(--bulma-warning-soft);
-	}
-
-	& > * {
-		padding: 0 1rem;
-	}
 
 	& .hljs-keyword {
 		font-weight: bold;
