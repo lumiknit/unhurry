@@ -35,7 +35,7 @@ const AutoSendTag: Component = () => {
 
 	return (
 		<Tag
-			class={getUserConfig()?.enableAutoSend ? 'is-warning' : ''}
+			class={getUserConfig()?.enableAutoSend ? 'is-primary' : ''}
 			onClick={toggleAutoSend}
 		>
 			<Switch>
@@ -58,7 +58,7 @@ const RunCodeTag: Component = () => {
 
 	return (
 		<Tag
-			class={getUserConfig()?.enableRunCode ? 'is-warning' : ''}
+			class={getUserConfig()?.enableRunCode ? 'is-primary' : ''}
 			onClick={toggleRunCode}
 		>
 			<Switch>
@@ -91,7 +91,7 @@ const PromptTags: Component<Props> = (props) => {
 	};
 
 	return (
-		<div class="mb-1 input-tags">
+		<div class="input-tags">
 			<RunCodeTag />
 			<AutoSendTag />
 			<For each={promptTags()}>

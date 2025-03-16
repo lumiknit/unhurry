@@ -186,37 +186,35 @@ const BottomInput: Component<Props> = (props) => {
 	});
 
 	return (
-		<div class="p-1">
-			<InputTags onInsertText={insertText} onReplaceText={replaceText} />
-			<div class="field is-grouped is-align-content-stretch">
+		<div class="bottom-fixed bottom-input">
+			<textarea
+				ref={taRef!}
+				onBeforeInput={handleBeforeInput}
+				onCompositionEnd={handleCompositionEnd}
+				onInput={handleInput}
+				onChange={autosizeTextarea}
+				onKeyUp={handleKeyUp}
+				placeholder="Type your message here..."
+			/>
+			<div class="buttons">
 				<SpeechButton
-					class="control button is-danger"
+					class="control is-size-7 button-mic "
 					onSpeech={handleSpeech}
 				/>
-				<p class="control is-expanded">
-					<textarea
-						ref={taRef!}
-						class="textarea inline"
-						onBeforeInput={handleBeforeInput}
-						onCompositionEnd={handleCompositionEnd}
-						onInput={handleInput}
-						onChange={autosizeTextarea}
-						onKeyUp={handleKeyUp}
-						placeholder="Type your message here..."
-					/>
-				</p>
-				<p class="control" onClick={handleButtonClick}>
-					<button
-						class={
-							'button ' +
-							(props.progressing
-								? ' is-loading is-warning'
-								: 'is-primary')
-						}
-					>
-						<TbSend />
-					</button>
-				</p>
+				<InputTags
+					onInsertText={insertText}
+					onReplaceText={replaceText}
+				/>
+				<button
+					class={
+						'button button-send ' +
+						(props.progressing
+							? ' is-loading is-warning'
+							: 'is-primary')
+					}
+				>
+					<TbSend />
+				</button>
 			</div>
 		</div>
 	);

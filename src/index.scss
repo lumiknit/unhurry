@@ -9,26 +9,43 @@
 }
 
 :root {
+	--uh-theme-color-hex: #0b7f4e;
+	--uh-theme-color-hsl: hsl(155, 84%, 27%);
+
+	--bulma-primary-h: 155;
+
 	--bulma-family-primary:
 		Pretendard, Inter, SF Pro, Segoe UI, Roboto, Oxygen, Ubuntu,
 		Helvetica Neue, Helvetica, Arial, sans-serif !important;
+	--uh-blur: blur(3px);
+	--uh-blur-opacity: 0.8;
+
+	--uh-bottom-input-border: 1px solid hsl(0, 0%, 85%);
+	--uh-navbar-l: 100%;
 }
 
 @media (prefers-color-scheme: dark) {
 	:root {
-		--bulma-body-background-color: hsl(0, 0%, 0%) !important;
-		--bulma-navbar-l: 0% !important;
-	}
-	nav.navbar {
-		--bulma-navbar-l: 0% !important;
+		--uh-navbar-l: 0%;
+		--uh-blur-opacity: 0.65;
+
+		--uh-bottom-input-border: 1px solid hsl(0, 0%, 35%);
+
+		--bulma-body-background-color: hsl(0, 0%, 0%);
 	}
 }
 
 nav.navbar {
-	background-color: hsla(
-		var(--bulma-navbar-h) var(--bulma-navbar-s) var(--bulma-navbar-l) / 0.5
-	) !important;
-	backdrop-filter: blur(4px);
+	--bulma-navbar-l: var(--uh-navbar-l);
+}
+
+nav.navbar {
+	background-color: hsla(0, 0%, var(--uh-navbar-l), var(--uh-blur-opacity));
+	backdrop-filter: var(--uh-blur);
+}
+
+.navbar-burger {
+	color: var(--uh-theme-color-hex) !important;
 }
 
 .toast-item {
@@ -56,20 +73,6 @@ svg {
 	margin: 0 !important;
 }
 
-.bottom-sticky {
-	position: sticky;
-	bottom: 0;
-	left: 0;
-	right: 0;
-
-	background-color: var(--bulma-body-background-color);
-}
-
-.top-pad {
-	width: 100%;
-	padding-top: 100dvh;
-}
-
 code {
 	background-color: var(--bulma-text-soft) !important;
 	color: var(--bulma-danger-bold) !important;
@@ -83,9 +86,9 @@ textarea.textarea.inline {
 
 div.msg-user {
 	margin-left: 2rem;
-	color: var(--bulma-success-soft-invert);
-	background-color: var(--bulma-success-soft);
-	border-radius: 1rem 0.125rem 1rem 1rem;
+	color: var(--bulma-info-soft-invert);
+	background-color: var(--bulma-info-soft);
+	border-radius: 1.25rem 0.125rem 1.25rem 1.25rem;
 }
 
 div.message-body {
@@ -98,6 +101,7 @@ div.message-body {
 	background-color: #cccccc30;
 	padding: 0.75rem;
 	font-family: monospace;
+	margin-bottom: 0.5rem;
 
 	position: relative;
 
@@ -185,4 +189,57 @@ span[aria-hidden='true'] {
 	white-space: pre-wrap;
 	word-break: break-all;
 	padding: 0.5rem;
+}
+
+// Bottom input
+.bottom-input {
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	right: 0;
+
+	border: var(--uh-bottom-input-border);
+	border-radius: 1rem;
+	margin: 0.5rem;
+	padding: 0.5rem;
+
+	background-color: hsla(0, 0%, var(--uh-navbar-l), var(--uh-blur-opacity));
+	backdrop-filter: var(--uh-blur);
+
+	&:has(textarea:focus) {
+		outline: 1px solid var(--bulma-primary);
+	}
+
+	& textarea {
+		margin: 0.25rem 0;
+		border: none;
+		background-color: transparent;
+		width: 100%;
+		resize: none;
+		overflow: hidden;
+		font-size: 1rem;
+		font-family: var(--bulma-family-primary);
+		color: var(--bulma-text-bold);
+	}
+
+	& textarea:focus {
+		outline: none;
+	}
+
+	& .buttons {
+		display: flex;
+		align-items: end;
+	}
+
+	& .input-tags {
+		flex: 1;
+	}
+
+	.button-mic {
+		border-radius: 999rem;
+	}
+
+	.button-send {
+		border-radius: 999rem;
+	}
 }

@@ -1,4 +1,4 @@
-import { Component, createSignal, onMount, Show } from 'solid-js';
+import { Component, createSignal, onMount } from 'solid-js';
 
 import BottomInput from './BottomInput';
 import ChatHistoryView from './ChatHistoryView';
@@ -37,19 +37,11 @@ const MainView: Component = () => {
 			<div class="container p-1">
 				<ChatHistoryView />
 			</div>
-			<div class="bottom-sticky container">
-				<Show when={progressing()}>
-					<progress
-						class="progress is-small is-primary p-0"
-						max="100"
-					/>
-				</Show>
-				<BottomInput
-					progressing={progressing()}
-					send={handleSend}
-					cancel={handleCancel}
-				/>
-			</div>
+			<BottomInput
+				progressing={progressing()}
+				send={handleSend}
+				cancel={handleCancel}
+			/>
 		</>
 	);
 };
