@@ -159,7 +159,7 @@ export class OpenAIClient implements ILLMService {
 		let lst: ModelRespItem[] = [];
 		if (Array.isArray(respBody.data)) {
 			lst = respBody.data;
-		} else if(Array.isArray(respBody)) {
+		} else if (Array.isArray(respBody)) {
 			lst = respBody;
 		}
 		return lst.map((item) => {
@@ -168,10 +168,11 @@ export class OpenAIClient implements ILLMService {
 				id = id.split('/')[5];
 			}
 			return {
-			id,
-			object: item.object,
-			ownedBy: item.owned_by,
-			created: item.created,
-		}});
+				id,
+				object: item.object,
+				ownedBy: item.owned_by,
+				created: item.created,
+			};
+		});
 	}
 }

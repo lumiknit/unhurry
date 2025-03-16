@@ -27,7 +27,9 @@ const ChatHistoryView: Component = () => {
 						>
 							<div class="streaming-msg">
 								{getStreamingMessage()}
-								<span class="spinner" />
+								<div class="text-center">
+									<span class="spinner" />
+								</div>
 							</div>
 						</Show>
 					</div>
