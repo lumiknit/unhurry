@@ -30,8 +30,34 @@ export const loadUserConfig = async <T>() => {
 	}
 };
 
-const chatIDB = new SimpleIDB('local-chat', 'chats', 1);
+const chatListIDB = new SimpleIDB('chat-list', 'chats', 1);
 
-export const chatTx = async <T>() => {
-	return await chatIDB.transaction<T>('readwrite');
+export const chatListTx = async <T>() => {
+	return await chatListIDB.transaction<T>('readwrite');
+};
+
+const chatIDB = (id: string) => new SimpleIDB('chat:' + id, 'messages', 1);
+
+export const chatTx = async <T>(id: string) => {
+	return await chatIDB(id).transaction<T>('readwrite');
+};
+
+export const clearAllChats = async () => {
+	const tx = await chatListTx();
+	tx.clear();
+
+	const dbList = await indexedDB.databases();
+	for (const db of dbList) {
+		if (!db.name) continue;
+		if (db.name.startsWith('chat:')) {
+			indexedDB.deleteDatabase(db.name);
+		}
+	}
+};
+
+export const deleteChatByID = async (id: string) => {
+	const tx = await chatListTx();
+	await tx.delete(id);
+
+	indexedDB.deleteDatabase('chat:' + id);
 };

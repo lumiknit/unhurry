@@ -1,9 +1,16 @@
 import { invoke } from '@tauri-apps/api/core';
 
-import { FetchResult, ITauriService } from './interface';
+import { FetchResult, IBEService } from './interface';
 
-export class TauriService implements ITauriService {
+/**
+ * Use Tauri (Rust code) as backend service.
+ */
+export class TauriService implements IBEService {
 	constructor() {}
+
+	name(): string {
+		return 'Tauri';
+	}
 
 	async greet(name: string): Promise<string> {
 		return invoke('greet', {

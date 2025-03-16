@@ -1,16 +1,12 @@
 import { A, useNavigate } from '@solidjs/router';
-import {
-	TbFolderSearch,
-	TbMessage2Plus,
-	TbQuestionMark,
-	TbSettings,
-} from 'solid-icons/tb';
+import { BiSolidFilePlus } from 'solid-icons/bi';
+import { TbFolderSearch, TbQuestionMark, TbSettings } from 'solid-icons/tb';
 import { Component, onMount } from 'solid-js';
 import { toast } from 'solid-toast';
 
 import ModelDropdown from './ModelDropdown';
 import { rootPath } from '../../env';
-import { newChat } from '../../store/actions';
+import { resetChatMessages } from '../../store/actions';
 
 const NavBar: Component = () => {
 	let burgerRef: HTMLAnchorElement;
@@ -31,7 +27,7 @@ const NavBar: Component = () => {
 	const handleNew = () => {
 		toast.success('New notebook created');
 		navigate(`${rootPath}/`);
-		newChat();
+		resetChatMessages();
 		close();
 	};
 
@@ -60,7 +56,7 @@ const NavBar: Component = () => {
 				</A>
 
 				<a class="navbar-item" onClick={handleNew}>
-					<TbMessage2Plus />
+					<BiSolidFilePlus />
 				</a>
 
 				<a
@@ -84,11 +80,10 @@ const NavBar: Component = () => {
 				class="navbar-menu no-user-select"
 			>
 				<div class="navbar-start">
-
 					<div class="navbar-item has-dropdown is-hoverable">
 						<a class="navbar-link">Menu</a>
 						<div class="navbar-dropdown">
-							<A class="navbar-item" href="/notebooks">
+							<A class="navbar-item" href="/chat-list">
 								<TbFolderSearch />
 								Open
 							</A>

@@ -153,4 +153,23 @@ export const llmPresets: LLMServiceInfo[] = [
 			'ministral-3b-latest',
 		],
 	},
+	{
+		name: 'Github',
+		clientType: 'OpenAI',
+		apiKeyURL: 'https://github.com/settings/tokens',
+		endpoint: 'https://models.inference.ai.azure.com',
+		models: [
+			'gpt-4o-mini',
+			'gpt-4o',
+			'Phi-3.5-MoE-instruct',
+			'Phi-3.5-mini-instruct',
+			'Phi-4',
+			'Phi-4-mini-instruct',
+			'DeepSeek-R1',
+			'DeepSeek-V3',
+			'Mistral-Nemo',
+			'Mistral-large',
+			'Mistral-small',
+		],
+	},
 ];

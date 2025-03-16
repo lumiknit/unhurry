@@ -1,5 +1,6 @@
 import { defineConfig, loadEnv } from 'vite';
 import solid from 'vite-plugin-solid';
+import packageJson from './package.json';
 
 const host = process.env.TAURI_DEV_HOST;
 
@@ -12,6 +13,9 @@ export default ({ mode }: { mode: string }) => {
 	}
 
 	return defineConfig({
+		define: {
+			PACKAGE_VERSION: JSON.stringify(packageJson.version),
+		},
 		base,
 		build: {
 			rollupOptions: {

@@ -4,3 +4,4 @@ export * from './client_openai';
 export * from './client_gemini';
 export * from './model_config';
 export * from './utils';
+export * from './errors';

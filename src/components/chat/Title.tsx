@@ -1,6 +1,13 @@
+import { TbSparkles } from 'solid-icons/tb';
 import { Component, createSignal, Match, Switch } from 'solid-js';
+import { toast } from 'solid-toast';
 
-import { getChatContext, setChatContext } from '../../store';
+import {
+	getChatContext,
+	saveChatContextMeta,
+	setChatContext,
+} from '../../store';
+import { generateChatTitle } from '../../store/actions';
 
 type EditProps = {
 	originalTitle: string;
@@ -17,8 +24,26 @@ const TitleEdit: Component<EditProps> = (props) => {
 		}
 	};
 
+	const handleAIGenerate = async () => {
+		const title = await toast.promise(generateChatTitle(), {
+			loading: 'Generating...',
+			success: 'Generated',
+			error: (e) => {
+				console.error(e);
+				return 'Failed to generate';
+			},
+		});
+		props.onSave(title);
+	};
+
 	return (
 		<div class="field has-addons">
+			<div class="control">
+				<button class="button is-primary" onClick={handleAIGenerate}>
+					<TbSparkles />
+				</button>
+			</div>
+
 			<div class="control is-expanded">
 				<input
 					ref={titleInputRef!}
@@ -45,15 +70,18 @@ const Title = () => {
 
 	const toggleEditing = () => setEditing(!editing());
 
+	const handleTitleUpdate = (title: string) => {
+		setChatContext((c) => ({ ...c, title }));
+		toggleEditing();
+		saveChatContextMeta();
+	};
+
 	return (
 		<Switch>
 			<Match when={editing()}>
 				<TitleEdit
 					originalTitle={getChatContext().title}
-					onSave={(title) => {
-						setChatContext((c) => ({ ...c, title }));
-						toggleEditing();
-					}}
+					onSave={handleTitleUpdate}
 				/>
 			</Match>
 			<Match when>

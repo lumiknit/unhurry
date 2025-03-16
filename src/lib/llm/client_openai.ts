@@ -1,4 +1,5 @@
 import { ILLMService, Model } from './client_interface';
+import { RateLimitError } from './errors';
 import { readSSEJSONStream } from './json_stream_reader';
 import { History, Message } from './message';
 import { ModelConfig } from './model_config';
@@ -107,6 +108,9 @@ export class OpenAIClient implements ILLMService {
 			body: JSON.stringify(body),
 		});
 		if (!resp.ok) {
+			if (resp.status === 429) {
+				throw new RateLimitError(await resp.text());
+			}
 			throw new Error(
 				`Failed to chat stream: ${resp.status} ${resp.statusText}\n${await resp.text()}`
 			);
@@ -151,12 +155,24 @@ export class OpenAIClient implements ILLMService {
 				`Failed to list models: ${resp.status} ${resp.statusText}\n${await resp.text()}`
 			);
 		}
-		const respBody = (await resp.json()) as { data: ModelRespItem[] };
-		return respBody.data.map((item) => ({
-			id: item.id,
-			object: item.object,
-			ownedBy: item.owned_by,
-			created: item.created,
-		}));
+		const respBody = await resp.json();
+		let lst: ModelRespItem[] = [];
+		if (Array.isArray(respBody.data)) {
+			lst = respBody.data;
+		} else if (Array.isArray(respBody)) {
+			lst = respBody;
+		}
+		return lst.map((item) => {
+			let id = item.id;
+			if (item.id.startsWith('azureml://')) {
+				id = id.split('/')[5];
+			}
+			return {
+				id,
+				object: item.object,
+				ownedBy: item.owned_by,
+				created: item.created,
+			};
+		});
 	}
 }

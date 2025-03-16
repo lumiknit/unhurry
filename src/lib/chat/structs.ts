@@ -44,13 +44,19 @@ export const parseMessagePartType = (type: string): string[] => {
 /**
  * Chat message.
  */
-export type Msg = {
-	role: Role;
+export type Msg<R = Role> = {
+	role: R;
 	parts: MsgPart[];
+	timestamp: number;
+};
+
+export type MsgPair = {
+	user?: Msg<'user'>;
+	assistant?: Msg<'assistant'>;
 };
 
 export type ChatHistory = {
-	messages: Msg[];
+	msgPairs: MsgPair[];
 };
 
 export const textMsg = (role: Role, text: string): Msg => ({
@@ -61,6 +67,7 @@ export const textMsg = (role: Role, text: string): Msg => ({
 			content: text,
 		},
 	],
+	timestamp: Date.now(),
 });
 
 /**
@@ -140,5 +147,13 @@ export const parseMsgParts = (text: string): MsgPart[] => {
 };
 
 export const chatHistoryToLLMHistory = (history: ChatHistory): History => {
-	return history.messages.map(msgToText);
+	return history.msgPairs.reduce<History>((acc, pair) => {
+		if (pair.user) {
+			acc.push(msgToText(pair.user));
+		}
+		if (pair.assistant) {
+			acc.push(msgToText(pair.assistant));
+		}
+		return acc;
+	}, []);
 };

@@ -3,9 +3,16 @@
 import { createStore, StoreSetter, unwrap } from 'solid-js/store';
 import { toast } from 'solid-toast';
 
-import { ChatContext, emptyChatContext } from '../lib/chat';
+import {
+	ChatContext,
+	ChatMeta,
+	emptyChatContext,
+	getChatMeta,
+	MsgPair,
+} from '../lib/chat';
 import { sanitizeConfig, UserConfig } from '../lib/config';
-import { loadUserConfig, saveUserConfig } from '../lib/idb';
+import { chatListTx, chatTx, loadUserConfig, saveUserConfig } from '../lib/idb';
+import { JSContext } from '../lib/run-js';
 
 type GlobalStore = {
 	chatContext: ChatContext;
@@ -45,6 +52,29 @@ export const setChatContext = (setter: StoreSetter<ChatContext>) => {
 		'chatContext',
 		setter as StoreSetter<ChatContext, ['chatContext']>
 	);
+};
+
+export const saveChatContextMeta = async () => {
+	const ctx = getChatContext();
+	const chatList = await chatListTx<ChatMeta>();
+	await chatList.put(getChatMeta(unwrap(ctx)));
+};
+
+export const loadChatContext = async (id: string) => {
+	const chatList = await chatListTx<ChatMeta>();
+	const m = await chatList.get(id);
+	if (!m) {
+		throw new Error(`Chat not found: ${id}`);
+	}
+	const msgDB = await chatTx<MsgPair>(id);
+	const msgs = await msgDB.getAll();
+	setChatContext(() => ({
+		...m,
+		history: {
+			msgPairs: msgs,
+		},
+		jsContext: new JSContext(),
+	}));
 };
 
 export const getStreamingMessage = () => store.streamingMessage;

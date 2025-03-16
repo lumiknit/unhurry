@@ -1,4 +1,4 @@
-import bb, { area } from 'billboard.js';
+import { area, bb } from 'billboard.js';
 import DOMPurify from 'dompurify';
 import hljs from 'highlight.js';
 import { Component, createSignal, For, Match, onMount, Switch } from 'solid-js';
@@ -222,7 +222,7 @@ const Plot: Component<PlotProps> = (props) => {
 
 const JSONLikeMessage: Component<ItemProps> = (props) => {
 	/** parsed is parsed json object/array. */
-	const [parsed, setParsed] = createSignal<any>(null);
+	const [parsed, setParsed] = createSignal<JSON>(null);
 	const [analysis, setAnalysis] = createSignal<JSONAnalysis | undefined>();
 	const [displayType, setDisplayType] = createSignal<DisplayType>('fold');
 
@@ -237,8 +237,8 @@ const JSONLikeMessage: Component<ItemProps> = (props) => {
 				try {
 					j = JSON.parse(props.content);
 					setParsed(j);
-				} catch (e) {
-					// ignore
+				} catch {
+					/* Ignore */
 				}
 				break;
 		}

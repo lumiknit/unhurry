@@ -1,6 +1,6 @@
 import { TbSend } from 'solid-icons/tb';
 import { Component, onMount } from 'solid-js';
-import toast from 'solid-toast';
+import { toast } from 'solid-toast';
 
 import InputTags from './PromptTags';
 import SpeechButton from './SpeechButton';
@@ -40,7 +40,7 @@ const BottomInput: Component<Props> = (props) => {
 		autosizeTextarea();
 	};
 
-	const send = () => {
+	const send = async () => {
 		let v: string = taRef!.value;
 		if (lastSent > 0) {
 			v = v.slice(lastSent);
@@ -59,7 +59,13 @@ const BottomInput: Component<Props> = (props) => {
 			// Otherwise, some composing left.
 			// Just ignore the send
 		}
-		props.send?.(v);
+		try {
+			await props.send?.(v);
+		} catch (e) {
+			toast.error('Failed to send: ' + e);
+			taRef!.value = v;
+			lastSent = 0;
+		}
 		autosizeTextarea();
 	};
 
@@ -183,32 +189,33 @@ const BottomInput: Component<Props> = (props) => {
 	// When mounted, focus
 	onMount(() => {
 		taRef!.focus();
+		autosizeTextarea();
 	});
 
 	return (
-		<div class="p-1">
-			<InputTags onInsertText={insertText} onReplaceText={replaceText} />
-			<div class="field is-grouped is-align-content-stretch">
+		<div class="bottom-fixed bottom-input">
+			<textarea
+				ref={taRef!}
+				onBeforeInput={handleBeforeInput}
+				onCompositionEnd={handleCompositionEnd}
+				onInput={handleInput}
+				onChange={autosizeTextarea}
+				onKeyUp={handleKeyUp}
+				placeholder="Type your message here..."
+			/>
+			<div class="buttons">
 				<SpeechButton
-					class="control button is-danger"
+					class="control is-size-7 button-mic "
 					onSpeech={handleSpeech}
 				/>
-				<p class="control is-expanded">
-					<textarea
-						ref={taRef!}
-						class="textarea inline"
-						onBeforeInput={handleBeforeInput}
-						onCompositionEnd={handleCompositionEnd}
-						onInput={handleInput}
-						onChange={autosizeTextarea}
-						onKeyUp={handleKeyUp}
-						placeholder="Type your message here..."
-					/>
-				</p>
-				<p class="control" onClick={handleButtonClick}>
+				<InputTags
+					onInsertText={insertText}
+					onReplaceText={replaceText}
+				/>
+				<div onClick={handleButtonClick} class="control">
 					<button
 						class={
-							'button ' +
+							'button button-send ' +
 							(props.progressing
 								? ' is-loading is-warning'
 								: 'is-primary')
@@ -216,7 +223,7 @@ const BottomInput: Component<Props> = (props) => {
 					>
 						<TbSend />
 					</button>
-				</p>
+				</div>
 			</div>
 		</div>
 	);

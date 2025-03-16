@@ -1,56 +1,40 @@
-import { Component, createEffect, For, onCleanup, Show } from 'solid-js';
+import { Component, createMemo, For, Show } from 'solid-js';
 
 import Message from './Message';
 import Title from './Title';
 import { getChatContext, getStreamingMessage } from '../../store';
 
 const ChatHistoryView: Component = () => {
-	let lastStreamingMessage: string | undefined;
-	let last_history_length = 0;
-
-	const scrollToBottom = () => {
-		window.scrollTo({
-			top: document.body.scrollHeight,
-			behavior: 'smooth',
-		});
-	};
-
-	let delayedScroll: number | undefined;
-	const addDelayedScroll = () => {
-		if (delayedScroll) return;
-		delayedScroll = window.setTimeout(() => {
-			scrollToBottom();
-			delayedScroll = undefined;
-		}, 30);
-	};
-
-	createEffect(() => {
-		// When messages change, scroll to bottom
-		const lm = getStreamingMessage();
-		const l = getChatContext().history.messages.length;
-		if (l <= last_history_length && lastStreamingMessage === lm) return;
-		lastStreamingMessage = lm;
-		last_history_length = l;
-
-		addDelayedScroll();
-		scrollToBottom();
-	});
-
-	onCleanup(() => {
-		if (delayedScroll) {
-			clearTimeout(delayedScroll);
-		}
-	});
+	const pairs = createMemo(() => getChatContext().history.msgPairs);
 
 	return (
 		<div>
 			<Title />
-			<For each={getChatContext().history.messages}>
-				{(msg, idx) => <Message msg={msg} idx={idx()} />}
+			<For each={pairs()}>
+				{(item, idx) => (
+					<div class="msg-group">
+						<Show when={item.user}>
+							<Message msg={item.user!} idx={idx()} />
+						</Show>
+						<Show when={item.assistant}>
+							<Message msg={item.assistant!} idx={idx()} />
+						</Show>
+						<Show
+							when={
+								pairs().length - 1 === idx() &&
+								getStreamingMessage()
+							}
+						>
+							<div class="streaming-msg">
+								{getStreamingMessage()}
+								<div class="text-center">
+									<span class="spinner" />
+								</div>
+							</div>
+						</Show>
+					</div>
+				)}
 			</For>
-			<Show when={getStreamingMessage()}>
-				<pre class="streaming-msg">{getStreamingMessage()}</pre>
-			</Show>
 		</div>
 	);
 };
