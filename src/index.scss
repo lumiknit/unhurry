@@ -13,6 +13,9 @@
 	--uh-theme-color-hsl: hsl(155, 84%, 27%);
 
 	--bulma-primary-h: 155;
+	--bulma-primary-s: 84%;
+	--bulma-primary-l: 27%;
+	--bulma-primary-invert-l: 95%;
 
 	--bulma-family-primary:
 		Pretendard, Inter, SF Pro, Segoe UI, Roboto, Oxygen, Ubuntu,
@@ -86,8 +89,8 @@ textarea.textarea.inline {
 
 div.msg-user .message-body {
 	margin-left: 2rem;
-	color: var(--bulma-info-soft-invert);
-	background-color: var(--bulma-info-soft);
+	color: var(--bulma-primary-invert);
+	background-color: var(--bulma-primary);
 	border-radius: 1.25rem 0.125rem 1.25rem 1.25rem;
 }
 
