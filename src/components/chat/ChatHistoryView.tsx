@@ -1,39 +1,16 @@
-import { Component, For, Show } from 'solid-js';
+import { Component, createMemo, For, Show } from 'solid-js';
 
 import Message from './Message';
 import Title from './Title';
-import { Msg } from '../../lib/chat';
 import { getChatContext, getStreamingMessage } from '../../store';
 
 const ChatHistoryView: Component = () => {
-	type MsgItem = {
-		user?: Msg;
-		assistant?: Msg;
-		streaming?: string;
-	};
-	const messages = (): MsgItem[] => {
-		const outs: MsgItem[] = [];
-		for (const m of getChatContext().history.messages) {
-			if (m.role === 'user') {
-				outs.push({ user: m });
-			} else {
-				const last = outs[outs.length - 1];
-				if (last && !last.assistant) {
-					last.assistant = m;
-				} else {
-					outs.push({ assistant: m });
-				}
-			}
-		}
-		if (getStreamingMessage()) {
-			outs[outs.length - 1].streaming = getStreamingMessage();
-		}
-		return outs;
-	};
+	const pairs = createMemo(() => getChatContext().history.msgPairs);
+
 	return (
 		<div>
 			<Title />
-			<For each={messages()}>
+			<For each={pairs()}>
 				{(item, idx) => (
 					<div class="msg-group">
 						<Show when={item.user}>
@@ -42,9 +19,14 @@ const ChatHistoryView: Component = () => {
 						<Show when={item.assistant}>
 							<Message msg={item.assistant!} idx={idx()} />
 						</Show>
-						<Show when={item.streaming}>
+						<Show
+							when={
+								pairs().length - 1 === idx() &&
+								getStreamingMessage()
+							}
+						>
 							<div class="streaming-msg">
-								{item.streaming}
+								{getStreamingMessage()}
 								<span class="spinner" />
 							</div>
 						</Show>

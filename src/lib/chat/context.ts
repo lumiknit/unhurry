@@ -12,7 +12,7 @@ export type ChatContext = {
 export const emptyChatContext = (): ChatContext => ({
 	title: '',
 	history: {
-		messages: [],
+		msgPairs: [],
 	},
 	jsContext: new JSContext(),
 });

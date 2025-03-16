@@ -2,6 +2,7 @@ import { Component, createSignal } from 'solid-js';
 
 import BottomInput from './BottomInput';
 import ChatHistoryView from './ChatHistoryView';
+import { RateLimitError } from '../../lib/llm';
 import { cancelRequest, sendUserRequest } from '../../store/actions';
 
 const MainView: Component = () => {
@@ -25,8 +26,13 @@ const MainView: Component = () => {
 						behavior: 'smooth',
 					});
 				}
-			}, 100);
+			}, 33);
 			await sendUserRequest(text);
+		} catch (e) {
+			if (e instanceof RateLimitError) {
+				setProgressing(false);
+				throw e;
+			}
 		} finally {
 			setProgressing(false);
 		}

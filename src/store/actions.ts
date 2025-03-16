@@ -13,11 +13,12 @@ import { getBEService } from '../lib/be';
 import {
 	chatHistoryToLLMHistory,
 	emptyChatContext,
+	Msg,
 	MsgPart,
 	parseMessagePartType,
 	parseMsgParts,
 } from '../lib/chat';
-import { newClientFromConfig, Role, TextMessage } from '../lib/llm';
+import { newClientFromConfig, RateLimitError, TextMessage } from '../lib/llm';
 
 const turndownService = new TurndownService();
 
@@ -28,22 +29,44 @@ export const resetChatMessages = () => {
 	setChatContext(emptyChatContext());
 };
 
-/**
- * Insert single message to the chat history
- */
-const insertMessage = (role: Role, parts: MsgPart[]) => {
+const pushUserMessage = (parts: MsgPart[]) => {
 	setChatContext((c) => ({
 		...c,
 		history: {
-			messages: [
-				...c.history.messages,
+			msgPairs: [
+				...c.history.msgPairs,
 				{
-					role,
-					parts,
+					user: {
+						role: 'user',
+						parts,
+					},
 				},
 			],
 		},
 	}));
+};
+
+const pushAssistantMessage = (parts: MsgPart[]) => {
+	const m: Msg<'assistant'> = {
+		role: 'assistant',
+		parts,
+	};
+
+	setChatContext((c) => {
+		let mps = c.history.msgPairs;
+		const lastPair = mps[mps.length - 1];
+		if (lastPair && !lastPair.assistant) {
+			mps = [...mps.slice(0, -1), { ...lastPair, assistant: m }];
+		} else {
+			mps = [...mps, { assistant: m }];
+		}
+		return {
+			...c,
+			history: {
+				msgPairs: mps,
+			},
+		};
+	});
 };
 
 /**
@@ -269,7 +292,7 @@ export const sendUserParts = async (parts: MsgPart[]): Promise<void> => {
 	parts.push(...userSpecialParts);
 
 	// Append user message to history
-	insertMessage('user', parts);
+	pushUserMessage(parts);
 
 	// Generate response
 	const llmHistory = getLLMHistory();
@@ -283,14 +306,17 @@ export const sendUserParts = async (parts: MsgPart[]): Promise<void> => {
 		});
 		console.log('LLM Result', result);
 	} catch (e) {
-		toast.error('LLM Error: ' + e);
 		// Remove user last message
 		setChatContext((c) => ({
 			...c,
 			history: {
-				messages: c.history.messages.slice(0, -1),
+				msgPairs: c.history.msgPairs.slice(0, -1),
 			},
 		}));
+		if (e instanceof RateLimitError) {
+			throw e;
+		}
+		toast.error('LLM Error: ' + e);
 		return;
 	}
 
@@ -298,7 +324,7 @@ export const sendUserParts = async (parts: MsgPart[]): Promise<void> => {
 	const assistantParts = parseMsgParts(result.content);
 
 	// Insert the response to history
-	insertMessage('assistant', assistantParts);
+	pushAssistantMessage(assistantParts);
 	setStreamingMessage(undefined);
 
 	if (chatCancelled) {

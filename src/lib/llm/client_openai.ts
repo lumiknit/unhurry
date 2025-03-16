@@ -1,4 +1,5 @@
 import { ILLMService, Model } from './client_interface';
+import { RateLimitError } from './errors';
 import { readSSEJSONStream } from './json_stream_reader';
 import { History, Message } from './message';
 import { ModelConfig } from './model_config';
@@ -107,6 +108,9 @@ export class OpenAIClient implements ILLMService {
 			body: JSON.stringify(body),
 		});
 		if (!resp.ok) {
+			if (resp.status === 429) {
+				throw new RateLimitError(await resp.text());
+			}
 			throw new Error(
 				`Failed to chat stream: ${resp.status} ${resp.statusText}\n${await resp.text()}`
 			);

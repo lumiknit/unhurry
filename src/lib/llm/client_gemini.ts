@@ -1,4 +1,5 @@
 import { ILLMService, Model } from './client_interface';
+import { RateLimitError } from './errors';
 import { readSSEJSONStream } from './json_stream_reader';
 import { History, Message, Role } from './message';
 import { ModelConfig } from './model_config';
@@ -193,6 +194,9 @@ export class GeminiClient implements ILLMService {
 			headers,
 		});
 		if (!resp.ok) {
+			if (resp.status === 429) {
+				throw new RateLimitError(await resp.text());
+			}
 			throw new Error(
 				`Failed to list models: ${resp.status} ${resp.statusText}\n${await resp.text()}`
 			);

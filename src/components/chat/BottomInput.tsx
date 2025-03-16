@@ -40,7 +40,7 @@ const BottomInput: Component<Props> = (props) => {
 		autosizeTextarea();
 	};
 
-	const send = () => {
+	const send = async () => {
 		let v: string = taRef!.value;
 		if (lastSent > 0) {
 			v = v.slice(lastSent);
@@ -59,7 +59,13 @@ const BottomInput: Component<Props> = (props) => {
 			// Otherwise, some composing left.
 			// Just ignore the send
 		}
-		props.send?.(v);
+		try {
+			await props.send?.(v);
+		} catch (e) {
+			toast.error('Failed to send: ' + e);
+			taRef!.value = v;
+			lastSent = 0;
+		}
 		autosizeTextarea();
 	};
 
@@ -205,16 +211,18 @@ const BottomInput: Component<Props> = (props) => {
 					onInsertText={insertText}
 					onReplaceText={replaceText}
 				/>
-				<button
-					class={
-						'button button-send ' +
-						(props.progressing
-							? ' is-loading is-warning'
-							: 'is-primary')
-					}
-				>
-					<TbSend />
-				</button>
+				<div onClick={handleButtonClick} class="control">
+					<button
+						class={
+							'button button-send ' +
+							(props.progressing
+								? ' is-loading is-warning'
+								: 'is-primary')
+						}
+					>
+						<TbSend />
+					</button>
+				</div>
 			</div>
 		</div>
 	);
