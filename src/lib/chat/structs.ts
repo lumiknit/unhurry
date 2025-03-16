@@ -47,6 +47,7 @@ export const parseMessagePartType = (type: string): string[] => {
 export type Msg<R = Role> = {
 	role: R;
 	parts: MsgPart[];
+	timestamp: number;
 };
 
 export type MsgPair = {
@@ -66,6 +67,7 @@ export const textMsg = (role: Role, text: string): Msg => ({
 			content: text,
 		},
 	],
+	timestamp: Date.now(),
 });
 
 /**

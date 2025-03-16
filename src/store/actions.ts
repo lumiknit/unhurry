@@ -39,6 +39,7 @@ const pushUserMessage = (parts: MsgPart[]) => {
 					user: {
 						role: 'user',
 						parts,
+						timestamp: Date.now(),
 					},
 				},
 			],
@@ -50,6 +51,7 @@ const pushAssistantMessage = (parts: MsgPart[]) => {
 	const m: Msg<'assistant'> = {
 		role: 'assistant',
 		parts,
+		timestamp: Date.now(),
 	};
 
 	setChatContext((c) => {

@@ -21,6 +21,7 @@ export const readSSEJSONStream = async <T>(
 		for (const part of parts) {
 			if (!part.startsWith('data: ')) continue;
 			const data = part.slice('data: '.length);
+			if (data === "DONE" || data === "[DONE]") break;
 			try {
 				const chunk = JSON.parse(data) as T;
 				await onData(chunk);
