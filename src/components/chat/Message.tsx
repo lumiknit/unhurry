@@ -199,7 +199,8 @@ type Props = {
 };
 
 const Message: Component<Props> = (props) => {
-	const cls = props.msg.role === 'user' ? 'msg-user' : 'msg-assistant';
+	const cls =
+		'msg ' + (props.msg.role === 'user' ? 'msg-user' : 'msg-assistant');
 	return (
 		<div class={cls}>
 			<div class="message-body">

@@ -84,7 +84,7 @@ textarea.textarea.inline {
 		var(--bulma-control-padding-horizontal);
 }
 
-div.msg-user {
+div.msg-user .message-body {
 	margin-left: 2rem;
 	color: var(--bulma-info-soft-invert);
 	background-color: var(--bulma-info-soft);
@@ -92,7 +92,7 @@ div.msg-user {
 }
 
 div.message-body {
-	padding: 0.5rem 1rem;
+	padding: 0.5rem 0.75rem;
 	overflow-x: scroll;
 }
 
@@ -188,7 +188,20 @@ span[aria-hidden='true'] {
 .streaming-msg {
 	white-space: pre-wrap;
 	word-break: break-all;
+	margin: 0.5rem;
 	padding: 0.5rem;
+
+	font-family: monospace;
+	color: var(--bulma-text-soft-invert);
+	background-color: var(--bulma-text-soft);
+	border-radius: 0.5rem;
+
+	margin-bottom: 100dvh;
+}
+
+.msg-group:last-child {
+	min-height: calc(100svh - 56px - 11rem);
+	margin-bottom: 10rem;
 }
 
 // Bottom input
@@ -242,4 +255,17 @@ span[aria-hidden='true'] {
 	.button-send {
 		border-radius: 999rem;
 	}
+}
+
+.spinner {
+	animation: spinAround 500ms infinite linear;
+	border: 0.25rem solid var(--bulma-primary);
+	border-radius: var(--bulma-radius-rounded);
+	border-right-color: transparent;
+	border-top-color: transparent;
+	content: '';
+	display: inline-block;
+	vertical-align: bottom;
+	height: 1.25rem;
+	width: 1.25rem;
 }

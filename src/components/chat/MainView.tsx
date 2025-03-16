@@ -1,4 +1,4 @@
-import { Component, createSignal, onMount } from 'solid-js';
+import { Component, createSignal } from 'solid-js';
 
 import BottomInput from './BottomInput';
 import ChatHistoryView from './ChatHistoryView';
@@ -11,6 +11,21 @@ const MainView: Component = () => {
 		console.log('LLM Input: ', text);
 		setProgressing(true);
 		try {
+			// Pick the last user message and scroll to top.
+			setTimeout(() => {
+				const elems = document.getElementsByClassName('msg-user');
+				if (elems.length > 0) {
+					const last = elems[elems.length - 1];
+					const rect = last.getBoundingClientRect();
+					const top = window.scrollY + rect.top - 54;
+					// current scroll position
+					console.log(last, top);
+					window.scrollTo({
+						top,
+						behavior: 'smooth',
+					});
+				}
+			}, 100);
 			await sendUserRequest(text);
 		} finally {
 			setProgressing(false);
@@ -20,16 +35,6 @@ const MainView: Component = () => {
 	const handleCancel = () => {
 		cancelRequest();
 	};
-
-	onMount(() => {
-		// Scroll to bottom
-		setTimeout(() => {
-			window.scrollTo({
-				top: document.body.scrollHeight,
-				behavior: 'smooth',
-			});
-		}, 400);
-	});
 
 	return (
 		<>
