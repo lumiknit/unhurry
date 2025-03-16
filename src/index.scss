@@ -16,11 +16,19 @@
 
 @media (prefers-color-scheme: dark) {
 	:root {
-		--bulma-body-background-color: #000000 !important;
+		--bulma-body-background-color: hsl(0, 0%, 0%) !important;
+		--bulma-navbar-l: 0% !important;
 	}
 	nav.navbar {
-		--bulma-navbar-background-color: #000000 !important;
+		--bulma-navbar-l: 0% !important;
 	}
+}
+
+nav.navbar {
+	background-color: hsla(
+		var(--bulma-navbar-h) var(--bulma-navbar-s) var(--bulma-navbar-l) / 0.5
+	) !important;
+	backdrop-filter: blur(4px);
 }
 
 .toast-item {

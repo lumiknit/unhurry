@@ -1,10 +1,6 @@
 import { A, useNavigate } from '@solidjs/router';
-import {
-	TbFolderSearch,
-	TbMessage2Plus,
-	TbQuestionMark,
-	TbSettings,
-} from 'solid-icons/tb';
+import { BiSolidFilePlus } from 'solid-icons/bi';
+import { TbFolderSearch, TbQuestionMark, TbSettings } from 'solid-icons/tb';
 import { Component, onMount } from 'solid-js';
 import { toast } from 'solid-toast';
 
@@ -60,7 +56,7 @@ const NavBar: Component = () => {
 				</A>
 
 				<a class="navbar-item" onClick={handleNew}>
-					<TbMessage2Plus />
+					<BiSolidFilePlus />
 				</a>
 
 				<a
