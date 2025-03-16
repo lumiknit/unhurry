@@ -10,7 +10,7 @@ import { toast } from 'solid-toast';
 
 import ModelDropdown from './ModelDropdown';
 import { rootPath } from '../../env';
-import { newChat } from '../../store/actions';
+import { resetChatMessages } from '../../store/actions';
 
 const NavBar: Component = () => {
 	let burgerRef: HTMLAnchorElement;
@@ -31,7 +31,7 @@ const NavBar: Component = () => {
 	const handleNew = () => {
 		toast.success('New notebook created');
 		navigate(`${rootPath}/`);
-		newChat();
+		resetChatMessages();
 		close();
 	};
 
@@ -84,7 +84,6 @@ const NavBar: Component = () => {
 				class="navbar-menu no-user-select"
 			>
 				<div class="navbar-start">
-
 					<div class="navbar-item has-dropdown is-hoverable">
 						<a class="navbar-link">Menu</a>
 						<div class="navbar-dropdown">

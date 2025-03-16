@@ -1,6 +1,6 @@
 import { TbSend } from 'solid-icons/tb';
 import { Component, onMount } from 'solid-js';
-import toast from 'solid-toast';
+import { toast } from 'solid-toast';
 
 import InputTags from './PromptTags';
 import SpeechButton from './SpeechButton';

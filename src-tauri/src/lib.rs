@@ -1,3 +1,6 @@
+use std::error::Error;
+use std::fmt::Write;
+
 use tauri_plugin_http::reqwest;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
@@ -21,7 +24,7 @@ async fn fetch_http(
     headers: Option<Vec<(String, String)>>,
     body: Option<String>,
 ) -> Result<FetchResult, String> {
-    let client = reqwest::Client::new();
+    let client = reqwest::Client::builder().http1_only().build().map_err(|e| e.to_string())?;
     let mut request = client.request(
         reqwest::Method::from_bytes(method.as_bytes())
             .map_err(|e| format!("Invalid method: {}", e))?,
@@ -38,10 +41,18 @@ async fn fetch_http(
         request = request.body(body);
     }
 
-    let response = request
-        .send()
-        .await
-        .map_err(|e| format!("Request failed: {}", e))?;
+    let response = request.send().await.map_err(|e| {
+        let mut s = format!("{}", e);
+        if let Some(src) = e.source() {
+            let _ = write!(s, "\n\nCaused by: {}", src);
+            let mut err = src;
+            while let Some(src) = err.source() {
+                let _ = write!(s, "\n\nCaused by: {}", src);
+                err = src;
+            }
+        }
+        s
+    })?;
     let status = response.status();
     let headers = response
         .headers()
@@ -53,10 +64,18 @@ async fn fetch_http(
             )
         })
         .collect::<Vec<(String, String)>>();
-    let text = response
-        .text()
-        .await
-        .map_err(|e| format!("Failed to read response: {}", e))?;
+    let text = response.text().await.map_err(|e| {
+        let mut s = format!("{}", e);
+        if let Some(src) = e.source() {
+            let _ = write!(s, "\n\nCaused by: {}", src);
+            let mut err = src;
+            while let Some(src) = err.source() {
+                let _ = write!(s, "\n\nCaused by: {}", src);
+                err = src;
+            }
+        }
+        s
+    })?;
     Ok(FetchResult {
         status: status.as_u16(),
         headers: headers,

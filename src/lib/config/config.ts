@@ -108,7 +108,10 @@ export const sanitizeConfig = (config: UserConfig): UserConfig => {
 			}
 		});
 		Object.entries(merged).forEach(([key]) => {
-			if (typeof (d as any)[key] === 'undefined') {
+			if (
+				typeof (d as unknown as Record<string, undefined>)[key] ===
+				'undefined'
+			) {
 				delete merged[key];
 			}
 		});

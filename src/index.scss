@@ -9,7 +9,9 @@
 }
 
 :root {
-	--bulma-family-primary: Pretendard, Inter, SF Pro, Segoe UI, Roboto, Oxygen, Ubuntu, Helvetica Neue, Helvetica, Arial, sans-serif !important;
+	--bulma-family-primary:
+		Pretendard, Inter, SF Pro, Segoe UI, Roboto, Oxygen, Ubuntu,
+		Helvetica Neue, Helvetica, Arial, sans-serif !important;
 }
 
 @media (prefers-color-scheme: dark) {

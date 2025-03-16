@@ -76,57 +76,59 @@ const SettingsPage: Component = () => {
 	return (
 		<div class="container">
 			<div class="m-2">
-			<h1 class="title is-3">Settings</h1>
+				<h1 class="title is-3">Settings</h1>
 
-			<div class="tabs">
-				<ul>
-					<For each={tabs}>
-						{(tab) => (
-							<li
-								classList={{
-									'is-active': tab === activeTab(),
-								}}
-							>
-								<a onClick={() => setActiveTab(tab)}>{tab}</a>
-							</li>
-						)}
-					</For>
-				</ul>
-			</div>
+				<div class="tabs">
+					<ul>
+						<For each={tabs}>
+							{(tab) => (
+								<li
+									classList={{
+										'is-active': tab === activeTab(),
+									}}
+								>
+									<a onClick={() => setActiveTab(tab)}>
+										{tab}
+									</a>
+								</li>
+							)}
+						</For>
+					</ul>
+				</div>
 
-			<Switch>
-				<Match when={activeTab() === 'General'}>
-					<NumConfig
-						key="autoSendMillis"
-						label="Auto Send After (ms)"
-						desc="When send the typed text to the server automatically"
-					/>
+				<Switch>
+					<Match when={activeTab() === 'General'}>
+						<NumConfig
+							key="autoSendMillis"
+							label="Auto Send After (ms)"
+							desc="When send the typed text to the server automatically"
+						/>
 
-					<h2 class="title is-4">Remove service workers</h2>
-					<p>
-						If your webpage does not work properly, clear service
-						workers
-					</p>
-					<button
-						class="button is-danger"
-						onClick={forceRemoveServiceWorker}
-					>
-						Remove Service Workers
-					</button>
-				</Match>
+						<h2 class="title is-4">Remove service workers</h2>
+						<p>
+							If your webpage does not work properly, clear
+							service workers
+						</p>
+						<button
+							class="button is-danger"
+							onClick={forceRemoveServiceWorker}
+						>
+							Remove Service Workers
+						</button>
+					</Match>
 
-				<Match when={activeTab() === 'Models'}>
-					<ModelList />
-				</Match>
+					<Match when={activeTab() === 'Models'}>
+						<ModelList />
+					</Match>
 
-				<Match when={activeTab() === 'Prompt Tags'}>
-					<TagList />
-				</Match>
+					<Match when={activeTab() === 'Prompt Tags'}>
+						<TagList />
+					</Match>
 
-				<Match when={activeTab() === 'Im/Export'}>
-					<Xxport />
-				</Match>
-			</Switch>
+					<Match when={activeTab() === 'Im/Export'}>
+						<Xxport />
+					</Match>
+				</Switch>
 			</div>
 		</div>
 	);

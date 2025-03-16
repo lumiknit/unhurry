@@ -9,6 +9,7 @@ import {
 	setStreamingMessage,
 } from './store';
 import { systemPrompt } from './system_prompts';
+import { getBEService } from '../lib/be';
 import {
 	chatHistoryToLLMHistory,
 	emptyChatContext,
@@ -17,14 +18,19 @@ import {
 	parseMsgParts,
 } from '../lib/chat';
 import { newClientFromConfig, Role, TextMessage } from '../lib/llm';
-import { getTauriService } from '../lib/tauri';
 
 const turndownService = new TurndownService();
 
-export const newChat = () => {
+/**
+ * Reset the chat context
+ */
+export const resetChatMessages = () => {
 	setChatContext(emptyChatContext());
 };
 
+/**
+ * Insert single message to the chat history
+ */
 const insertMessage = (role: Role, parts: MsgPart[]) => {
 	setChatContext((c) => ({
 		...c,
@@ -40,20 +46,25 @@ const insertMessage = (role: Role, parts: MsgPart[]) => {
 	}));
 };
 
+/**
+ * Insert multiple messages to the chat history
+ */
 const getLLMHistory = () => {
 	const context = getChatContext();
 	return chatHistoryToLLMHistory(context.history);
 };
 
-let cancelled = false;
+// Chat request
+
+let chatCancelled = false;
 
 export const sendUserRequest = async (request: string) => {
-	cancelled = false;
+	chatCancelled = false;
 	return await sendUserParts(parseMsgParts(request));
 };
 
 export const cancelRequest = () => {
-	cancelled = true;
+	chatCancelled = true;
 };
 
 const runJS = async (t: string, code: string): Promise<MsgPart> => {
@@ -94,33 +105,48 @@ const userAgent = () => {
 	return `Mozilla/5.0 (Macintosh; Intel Mac OS X ${mac}) AppleWebKit/${safari} (KHTML, like Gecko) Chrome/${chrome} Safari/${safari}`;
 };
 
-const runSearchDDG = async (query: string): Promise<MsgPart> => {
-	const tauriService = await getTauriService();
+const fetchDocFromURL = async (
+	url: string,
+	onHTML: (doc: Document) => string | Promise<string>
+): Promise<string> => {
+	const tauriService = await getBEService();
 	if (!tauriService) {
-		return {
-			type: 'result:search',
-			content: 'Search is not available',
-		};
+		return 'HTTP fetch error: not available';
 	}
 
-	const htmlDDG = `https://lite.duckduckgo.com/lite/?q=${encodeURIComponent(query)}`;
 	try {
-		const result = await tauriService.fetch('GET', htmlDDG, [
+		const result = await tauriService.fetch('GET', url, [
 			['Accept', 'text/html'],
 			['User-Agent', userAgent()],
 		]);
-		if (result.status !== 200) {
+		if (result.status >= 400) {
 			throw new Error(`Status ${result.status}, ${result.body}`);
 		}
-		const body = result.body;
+
+		// Check if the content is html
+		const contentType = result.headers.find(
+			([k]) => k.toLowerCase() === 'content-type'
+		);
+		if (!contentType || !contentType[1].includes('text/html')) {
+			return result.body;
+		}
+
 		// Parse as html
 		const parser = new DOMParser();
-		const doc = parser.parseFromString(body, 'text/html');
+		const doc = parser.parseFromString(result.body, 'text/html');
+		return await onHTML(doc);
+	} catch (e) {
+		console.error(e);
+		return 'HTTP fetch error: ' + e;
+	}
+};
+
+const runSearchDDG = async (query: string): Promise<MsgPart> => {
+	const onHTML = async (doc: Document) => {
 		doc.querySelectorAll('style, input, select, script').forEach((el) =>
 			el.remove()
 		);
-		console.log('DOC', doc);
-		const results = doc.querySelectorAll('.filters');
+		const results = doc.querySelectorAll('.results');
 		const resultHTML =
 			results.length > 0 ? results[0].innerHTML : 'No results';
 		// Remove unusuful whitespaces
@@ -133,90 +159,41 @@ const runSearchDDG = async (query: string): Promise<MsgPart> => {
 				return `(${decodeURIComponent(p1)})`;
 			}
 		);
-
-		return {
-			type: 'result:search',
-			content: md,
-		};
-	} catch (e) {
-		console.error(e);
-		return {
-			type: 'result:search',
-			content: 'Search failed: ' + e,
-		};
-	}
+		return md;
+	};
+	const content = await fetchDocFromURL(
+		`https://lite.duckduckgo.com/lite/?q=${encodeURIComponent(query)}`,
+		onHTML
+	);
+	return {
+		type: 'result:search',
+		content,
+	};
 };
 
 const runSearchStartpage = async (query: string): Promise<MsgPart> => {
-	const tauriService = await getTauriService();
-	if (!tauriService) {
-		return {
-			type: 'result:search',
-			content: 'Search is not available',
-		};
-	}
-
-	const url = `https://www.startpage.com/sp/search?q=${encodeURIComponent(query)}`;
-	try {
-		const result = await tauriService.fetch('GET', url, [
-			['Accept', 'text/html'],
-			['User-Agent', userAgent()],
-		]);
-		if (result.status !== 200) {
-			throw new Error(`Status ${result.status}, ${result.body}`);
-		}
-		const body = result.body;
-		// Parse as html
-		const parser = new DOMParser();
-		const doc = parser.parseFromString(body, 'text/html');
+	const onHTML = async (doc: Document) => {
 		doc.querySelectorAll(
 			'noscript, style, script, link, meta, noscript, iframe, embed, object, svg'
 		).forEach((el) => el.remove());
-		console.log('DOC', doc);
 		// Remove unusuful whitespaces
-		return {
-			type: 'result:search',
-			content: doc.body.innerHTML.replace(/>\s+</g, '><'),
-		};
-	} catch (e) {
-		console.error(e);
-		return {
-			type: 'result:search:startpage',
-			content: 'Search failed: ' + e,
-		};
-	}
+		return doc.body.innerHTML.replace(/>\s+</g, '><');
+	};
+	const content = await fetchDocFromURL(
+		`https://www.startpage.com/sp/search?q=${encodeURIComponent(query)}`,
+		onHTML
+	);
+	return {
+		type: 'result:search:startpage',
+		content,
+	};
 };
 
 const runVisit = async (url: string): Promise<MsgPart> => {
-	const tauriService = await getTauriService();
-	if (!tauriService) {
-		return {
-			type: 'result:visit',
-			content: 'Visit is not available',
-		};
-	}
-
-	try {
-		// Try to parse the URL
-		if (!url.startsWith('http://') && !url.startsWith('https://')) {
-			url = 'http://' + url;
-		}
-		const result = await tauriService.fetch('GET', url, [
-			['User-Agent', userAgent()],
-		]);
-		if (result.status !== 200) {
-			throw new Error(`Status ${result.status}, ${result.body}`);
-		}
-		const body = result.body;
-		// Parse as html
-		const parser = new DOMParser();
-		const doc = parser.parseFromString(body, 'text/html');
-		// Remove styles, script tags
-		const elementsToRemove = doc.querySelectorAll(
+	const onHTML = async (doc: Document) => {
+		doc.querySelectorAll(
 			'style, script, link, meta, noscript, iframe, embed, object, svg'
-		);
-		elementsToRemove.forEach((el) => el.remove());
-		// Remove unusuful attributes
+		).forEach((el) => el.remove());
 		doc.querySelectorAll('*').forEach((el) => {
 			for (let i = 0; i < el.childNodes.length; i++) {
 				const node = el.childNodes[i];
@@ -235,48 +212,41 @@ const runVisit = async (url: string): Promise<MsgPart> => {
 				el.removeAttribute('style');
 			}
 		});
-		return {
-			type: 'result:visit',
-			content: doc.body.innerHTML.replace(/>\s+</g, '><'),
-		};
-	} catch (e) {
-		console.error(e);
-		return {
-			type: 'result:visit',
-			content: 'Visit failed: ' + e,
-		};
+		// Remove unusuful whitespaces
+		return doc.body.innerHTML.replace(/>\s+</g, '><');
+	};
+	const content = await fetchDocFromURL(url, onHTML);
+	return {
+		type: 'result:visit',
+		content,
+	};
+};
+
+const handleSpecialPart = async (
+	part: MsgPart
+): Promise<MsgPart | undefined> => {
+	switch (part.type) {
+		case 'run-js':
+			return await runJS(part.type, part.content);
+		case 'search':
+			return await runSearchDDG(part.content);
+		case 'search:brave':
+			return await runVisit(
+				`https://search.brave.com/search?q=${encodeURI(part.content)}`
+			);
+		case 'search:startpage':
+			return await runSearchStartpage(part.content);
+		case 'visit':
+			return await runVisit(part.content);
+		default:
+			return undefined;
 	}
 };
 
-const handleSpecialParts = async (parts: MsgPart[]): Promise<MsgPart[]> => {
-	const newParts = [];
-	for (const part of parts) {
-		if (cancelled) continue;
-		const pp = parseMessagePartType(part.type);
-		switch (pp[0]) {
-			case 'run-js':
-				newParts.push(await runJS(part.type, part.content));
-				break;
-			case 'search':
-				newParts.push(await runSearchDDG(part.content));
-				break;
-			case 'search:brave':
-				newParts.push(
-					await runVisit(
-						`https://search.brave.com/search?q=${encodeURI(part.content)}`
-					)
-				);
-				break;
-			case 'search:startpage':
-				newParts.push(await runSearchStartpage(part.content));
-				break;
-			case 'visit':
-				newParts.push(await runVisit(part.content));
-				break;
-		}
-	}
-	return newParts;
-};
+const handleSpecialParts = async (parts: MsgPart[]): Promise<MsgPart[]> =>
+	(await Promise.all(parts.map(handleSpecialPart))).filter(
+		(p) => p !== undefined
+	);
 
 export const sendUserParts = async (parts: MsgPart[]): Promise<void> => {
 	// Get LLM
@@ -308,8 +278,8 @@ export const sendUserParts = async (parts: MsgPart[]): Promise<void> => {
 	try {
 		result = await llm.chatStream(sys, llmHistory, (_, acc) => {
 			setStreamingMessage(acc);
-			console.log(cancelled);
-			return !cancelled;
+			console.log(chatCancelled);
+			return !chatCancelled;
 		});
 		console.log('LLM Result', result);
 	} catch (e) {
@@ -331,7 +301,7 @@ export const sendUserParts = async (parts: MsgPart[]): Promise<void> => {
 	insertMessage('assistant', assistantParts);
 	setStreamingMessage(undefined);
 
-	if (cancelled) {
+	if (chatCancelled) {
 		return;
 	}
 

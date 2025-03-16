@@ -1,4 +1,4 @@
-import { getTauriService } from '../lib/tauri';
+import { getBEService } from '../lib/be';
 
 export const systemPrompt = async (additional: string): Promise<string> => {
 	const role = "You are a helpful assistant 'Unhurry'.";
@@ -62,7 +62,7 @@ When user gave 'run-pseudo' block, you should rewrite them in 'run-js' block, wi
 	};
 
 	const tools = ['run-js', 'run-pseudo'];
-	if (await getTauriService()) {
+	if (await getBEService()) {
 		tools.push('search', 'search:startpage', 'search:brave', 'visit');
 	}
 

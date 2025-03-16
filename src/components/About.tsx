@@ -1,9 +1,17 @@
-import { Component, Match, Switch } from 'solid-js';
+import { Component, createSignal, Match, onMount, Switch } from 'solid-js';
 
 import './About.scss';
+import { getBEService, IBEService } from '../lib/be';
 
 const About: Component = () => {
+	const [be, setBE] = createSignal<IBEService | void>(undefined);
 	const link = 'https://github.com/lumiknit/unhurry';
+
+	onMount(async () => {
+		const be = await getBEService();
+		setBE(be);
+	});
+
 	return (
 		<div class="container">
 			<div class="text-center">
@@ -29,14 +37,14 @@ const About: Component = () => {
 				</ul>
 
 				<Switch>
-					<Match when={(window as any).__TAURI_INTERNALS__}>
-						<p>
-							<b>Platform</b>: Desktop (with Tauri)
-						</p>
-					</Match>
-					<Match when>
+					<Match when={be() === undefined}>
 						<p>
 							<b>Platform</b>: Web Browser
+						</p>
+					</Match>
+					<Match when={be()?.name() === 'Tauri'}>
+						<p>
+							<b>Platform</b>: Desktop (with Tauri)
 						</p>
 					</Match>
 				</Switch>
