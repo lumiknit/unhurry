@@ -66,6 +66,9 @@ export const loadChatContext = async (id: string) => {
 	if (!m) {
 		throw new Error(`Chat not found: ${id}`);
 	}
+	// Update lastUsedAt
+	m.lastUsedAt = Date.now();
+	await chatList.put(m);
 	const msgDB = await chatTx<MsgPair>(id);
 	const msgs = await msgDB.getAll();
 	setChatContext(() => ({
