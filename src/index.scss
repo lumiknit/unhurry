@@ -135,6 +135,13 @@ div.message-body {
 	overflow-x: scroll;
 }
 
+.msg-code-bottom-btns > span {
+	display: inline-block;
+	border-radius: 0.5rem;
+	height: auto;
+	background-color: #cccccc30;
+}
+
 .msg-code {
 	border-radius: 0.5rem;
 	background-color: #cccccc30;

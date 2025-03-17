@@ -5,6 +5,7 @@ export const systemPrompt = async (additional: string): Promise<string> => {
 	const importantGuidelines = [
 		"- Use the user's language for answers.",
 		'- Ensure your answer is in **correct Markdown format.**',
+		'- Use backspace escape for some special markdown characters (e.g. `*_~$`)',
 		'- LaTeX format is available with Dollor signs (e.g. $\\frac{x}{y}$ or $$y=x$$). Not brackets `\\(...\\)` or `\\[...\\]`',
 		'- **Simple Tasks** (e.g., summary, translation, format conversion. What LLM can do): Provide short, straightforward answers without extra explanations.',
 		'- **Complex Questions** (e.g. computation, search, invest, code running, draw image or diagram): Follow this strategy:',
