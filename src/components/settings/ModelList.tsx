@@ -40,18 +40,33 @@ const ModelList: Component = () => {
 		toast.success(`Model ${name} deleted`);
 	};
 
+	const handleMove = (idx: number, dir: number) => {
+		if (idx + dir < 0 || idx + dir >= models().length) return;
+		setUserConfig((c) => {
+			const models = [...c.models];
+			[models[idx], models[idx + dir]] = [models[idx + dir], models[idx]];
+			return { ...c, models };
+		});
+	};
+
 	return (
 		<div>
 			<h2 class="title is-4">
 				Model List ({models().length})
 				<button
-					class="button is-small is-primary is-gap-1"
+					class="button is-small is-primary is-gap-1 ml-2"
 					onClick={addModel}
 				>
 					<TbPlus />
 					Add model
 				</button>
 			</h2>
+
+			<p>
+				For fallback, <i>order may be matter</i>. When some model is not
+				available (e.g. Too many requests), the next model in the list
+				will be used.
+			</p>
 
 			<div class="columns is-multiline">
 				<For each={models()}>
@@ -61,6 +76,8 @@ const ModelList: Component = () => {
 								model={m}
 								updateModel={updateModel(i())}
 								idx={i()}
+								onMoveUp={() => handleMove(i(), -1)}
+								onMoveDown={() => handleMove(i(), 1)}
 								onDelete={() => deleteModel(i())}
 							/>
 						</div>

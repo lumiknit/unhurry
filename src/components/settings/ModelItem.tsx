@@ -13,6 +13,8 @@ type Props = {
 	model: ModelConfig;
 	updateModel: Setter<ModelConfig>;
 	idx: number;
+	onMoveUp: () => void;
+	onMoveDown: () => void;
 	onDelete: () => void;
 };
 
@@ -249,15 +251,15 @@ const ModelEditor: Component<Props> = (props) => {
 			</div>
 
 			<footer class="card-footer">
-				<div class="field">
-					<a
-						href="#"
-						class="card-footer-item"
-						onClick={props.onDelete}
-					>
-						Delete
-					</a>
-				</div>
+				<a href="#" class="card-footer-item" onClick={props.onMoveUp}>
+					Up
+				</a>
+				<a href="#" class="card-footer-item" onClick={props.onMoveDown}>
+					Down
+				</a>
+				<a href="#" class="card-footer-item" onClick={props.onDelete}>
+					Delete
+				</a>
 			</footer>
 		</div>
 	);

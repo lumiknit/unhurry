@@ -23,7 +23,7 @@ import {
 	parseMsgParts,
 } from '../lib/chat';
 import { chatListTx, chatTx } from '../lib/idb';
-import { newClientFromConfig, RateLimitError, TextMessage } from '../lib/llm';
+import { ModelConfig, newClientFromConfig } from '../lib/llm';
 
 const turndownService = new TurndownService();
 
@@ -314,58 +314,32 @@ const handleSpecialPart = async (
 	}
 };
 
+/**
+ * Find special parts and handle them.
+ */
 const handleSpecialParts = async (parts: MsgPart[]): Promise<MsgPart[]> =>
 	(await Promise.all(parts.map(handleSpecialPart))).filter(
 		(p) => p !== undefined
 	);
 
-export const sendUserParts = async (parts: MsgPart[]): Promise<void> => {
-	// Get LLM
-	const config = getUserConfig();
-	if (!config) {
-		throw new Error('No user config');
-	}
-
-	const modelConfig = config.models[config.currentModelIdx];
-	if (!modelConfig) {
-		throw new Error('No model config');
-	}
-
+/**
+ * Send current history to LLM and try to generate a response.
+ * If requests failed, it will throw an exception.
+ */
+export const processLLM = async (modelConfig: ModelConfig): Promise<void> => {
 	const llm = newClientFromConfig(modelConfig);
 	const additionalSystemPrompt = modelConfig.systemPrompt;
 
 	const sys = await systemPrompt(additionalSystemPrompt);
 
-	const userSpecialParts = await handleSpecialParts(parts);
-	parts.push(...userSpecialParts);
-
-	// Append user message to history
-	pushUserMessage(parts);
-
 	// Generate response
 	const llmHistory = getLLMHistory();
 	console.log('LLM Input', sys, llmHistory);
-	let result: TextMessage;
-	try {
-		result = await llm.chatStream(sys, llmHistory, (_, acc) => {
-			setStreamingMessage(acc);
-			return !chatCancelled;
-		});
-		console.log('LLM Result', result);
-	} catch (e) {
-		// Remove user last message
-		setChatContext((c) => ({
-			...c,
-			history: {
-				msgPairs: c.history.msgPairs.slice(0, -1),
-			},
-		}));
-		if (e instanceof RateLimitError) {
-			throw e;
-		}
-		toast.error('LLM Error: ' + e);
-		return;
-	}
+	const result = await llm.chatStream(sys, llmHistory, (_, acc) => {
+		setStreamingMessage(acc);
+		return !chatCancelled;
+	});
+	console.log('LLM Result', result);
 
 	// Parse the response to parts
 	const assistantParts = parseMsgParts(result.content);
@@ -412,4 +386,44 @@ export const sendUserParts = async (parts: MsgPart[]): Promise<void> => {
 		// Resend
 		return await sendUserParts(userParts);
 	}
+};
+
+/**
+ * Send user parts to the LLM.
+ * When the LLM fails, it will try the next model.
+ */
+export const sendUserParts = async (parts: MsgPart[]): Promise<void> => {
+	const userSpecialParts = await handleSpecialParts(parts);
+	const userParts = [...parts, ...userSpecialParts];
+
+	pushUserMessage(userParts);
+
+	const config = getUserConfig();
+	if (!config) {
+		throw new Error('No user config');
+	}
+
+	for (let i = config.currentModelIdx; i < config.models.length; i++) {
+		const modelConfig = config.models[i];
+		if (!modelConfig) {
+			throw new Error('No model config');
+		}
+		try {
+			await processLLM(modelConfig);
+			return;
+		} catch (e) {
+			if (!config.enableLLMFallback) {
+				break;
+			}
+			toast(`Model '${modelConfig.name}' failed, trying next model`);
+		}
+	}
+	// Pop last history
+	setChatContext((c) => ({
+		...c,
+		history: {
+			msgPairs: c.history.msgPairs.slice(0, -1),
+		},
+	}));
+	throw new Error('Failed to send user parts, no LLM are available');
 };

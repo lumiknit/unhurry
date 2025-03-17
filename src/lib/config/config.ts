@@ -45,10 +45,16 @@ export type UserConfig = {
 	 * LLM Models
 	 */
 	models: ModelConfig[];
+
 	/**
 	 * Current LLM
 	 */
 	currentModelIdx: number;
+
+	/**
+	 * LLM Fallback
+	 */
+	enableLLMFallback: boolean;
 
 	/**
 	 * Enable run code
@@ -82,6 +88,7 @@ export type UserConfig = {
 export const defaultConfig = (): UserConfig => ({
 	models: [],
 	currentModelIdx: 0,
+	enableLLMFallback: true,
 	enableRunCode: true,
 	enableAutoSend: false,
 	autoSendMillis: 2000,
