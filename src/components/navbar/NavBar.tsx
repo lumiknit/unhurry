@@ -1,6 +1,10 @@
 import { A, useNavigate } from '@solidjs/router';
-import { BiSolidFilePlus } from 'solid-icons/bi';
-import { TbFolderSearch, TbQuestionMark, TbSettings } from 'solid-icons/tb';
+import {
+	BiRegularCog,
+	BiRegularLibrary,
+	BiRegularQuestionMark,
+	BiSolidFilePlus,
+} from 'solid-icons/bi';
 import { Component, onMount } from 'solid-js';
 import { toast } from 'solid-toast';
 
@@ -57,7 +61,13 @@ const NavBar: Component = () => {
 
 				<a class="navbar-item" onClick={handleNew}>
 					<BiSolidFilePlus />
+					<span class="is-hidden-mobile">New</span>
 				</a>
+
+				<A class="navbar-item" href="/chat-list">
+					<BiRegularLibrary />
+					<span class="is-hidden-mobile">Open</span>
+				</A>
 
 				<a
 					ref={burgerRef!}
@@ -83,20 +93,15 @@ const NavBar: Component = () => {
 					<div class="navbar-item has-dropdown is-hoverable">
 						<a class="navbar-link">Menu</a>
 						<div class="navbar-dropdown">
-							<A class="navbar-item" href="/chat-list">
-								<TbFolderSearch />
-								Open
-							</A>
-							<hr class="navbar-divider" />
 							<A
 								class="navbar-item"
 								href={`${rootPath}/settings`}
 							>
-								<TbSettings />
+								<BiRegularCog />
 								Settings
 							</A>
 							<A class="navbar-item" href={`${rootPath}/about`}>
-								<TbQuestionMark />
+								<BiRegularQuestionMark />
 								About
 							</A>
 						</div>

@@ -1,4 +1,4 @@
-import { TbSend } from 'solid-icons/tb';
+import { BiRegularSend } from 'solid-icons/bi';
 import { Component, onMount } from 'solid-js';
 import { toast } from 'solid-toast';
 
@@ -13,6 +13,7 @@ type Props = {
 };
 
 const BottomInput: Component<Props> = (props) => {
+	let topRef: HTMLDivElement;
 	let taRef: HTMLTextAreaElement;
 
 	let autoSendAt = 0;
@@ -145,7 +146,8 @@ const BottomInput: Component<Props> = (props) => {
 		setAutoSend();
 	};
 
-	const handleButtonClick = () => {
+	const handleButtonClick = (e: MouseEvent) => {
+		e.stopPropagation();
 		if (props.progressing) {
 			toast('Canceling the current operation...');
 			props.cancel?.();
@@ -186,6 +188,10 @@ const BottomInput: Component<Props> = (props) => {
 		}
 	};
 
+	const handleClickMargin = (e: MouseEvent) => {
+		taRef!.focus();
+	};
+
 	// When mounted, focus
 	onMount(() => {
 		taRef!.focus();
@@ -193,7 +199,11 @@ const BottomInput: Component<Props> = (props) => {
 	});
 
 	return (
-		<div class="bottom-fixed bottom-input">
+		<div
+			ref={topRef!}
+			class="bottom-fixed bottom-input"
+			onClick={handleClickMargin}
+		>
 			<textarea
 				ref={taRef!}
 				onBeforeInput={handleBeforeInput}
@@ -203,9 +213,9 @@ const BottomInput: Component<Props> = (props) => {
 				onKeyUp={handleKeyUp}
 				placeholder="Type your message here..."
 			/>
-			<div class="buttons">
+			<div class="buttons no-user-select">
 				<SpeechButton
-					class="control is-size-7 button-mic "
+					class="control is-size-6 py-1 button-mic "
 					onSpeech={handleSpeech}
 				/>
 				<InputTags
@@ -215,13 +225,13 @@ const BottomInput: Component<Props> = (props) => {
 				<div onClick={handleButtonClick} class="control">
 					<button
 						class={
-							'button button-send ' +
+							'button button-send p-3 ' +
 							(props.progressing
 								? ' is-loading is-warning'
 								: 'is-primary')
 						}
 					>
-						<TbSend />
+						<BiRegularSend />
 					</button>
 				</div>
 			</div>
