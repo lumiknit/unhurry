@@ -1,5 +1,8 @@
 // bulma
+
 @use 'bulma/bulma.scss';
+
+// Fonts
 
 @font-face {
 	font-family: 'Pretendard';
@@ -7,6 +10,22 @@
 	font-weight: 100 900;
 	font-display: swap;
 }
+
+// Common helpers
+
+.flex-split {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+}
+
+.no-user-select {
+	user-select: none;
+	-webkit-user-drag: none;
+	-webkit-user-select: none;
+}
+
+// Root Styles
 
 :root {
 	--uh-theme-color-hex: #0b7f4e;
@@ -38,6 +57,21 @@
 	}
 }
 
+// Components
+
+.spinner {
+	animation: spinAround 500ms infinite linear;
+	border: 0.25rem solid var(--bulma-primary);
+	border-radius: var(--bulma-radius-rounded);
+	border-right-color: transparent;
+	border-top-color: transparent;
+	content: '';
+	display: inline-block;
+	vertical-align: bottom;
+	height: 1.25rem;
+	width: 1.25rem;
+}
+
 nav.navbar {
 	--bulma-navbar-l: var(--uh-navbar-l);
 }
@@ -45,6 +79,11 @@ nav.navbar {
 nav.navbar {
 	background-color: hsla(0, 0%, var(--uh-navbar-l), var(--uh-blur-opacity));
 	backdrop-filter: var(--uh-blur);
+}
+
+.navbar-menu,
+.navbar-menu .navbar-dropdown a.navbar-item {
+	background: #00000000;
 }
 
 .navbar-burger {
@@ -62,14 +101,16 @@ nav.navbar {
 	}
 }
 
-.flex-split {
-	display: flex;
-	flex-wrap: wrap;
-	justify-content: space-between;
+svg {
+	vertical-align: top;
+	width: 1.25em;
+	height: 1.25em;
 }
 
-svg {
-	vertical-align: bottom;
+a > svg {
+	vertical-align: top;
+	width: 1.25em;
+	height: 1.25em;
 }
 
 .navbar-item > .icon {
@@ -97,6 +138,13 @@ div.msg-user .message-body {
 div.message-body {
 	padding: 0.5rem 0.75rem;
 	overflow-x: scroll;
+}
+
+.msg-code-bottom-btns > span {
+	display: inline-block;
+	border-radius: 0.5rem;
+	height: auto;
+	background-color: #cccccc30;
 }
 
 .msg-code {
@@ -204,7 +252,7 @@ span[aria-hidden='true'] {
 }
 
 .msg-group:last-child {
-	min-height: calc(100svh - 56px - 11rem);
+	min-height: calc(100svh - 52px - 11rem);
 	margin-bottom: 10rem;
 }
 
@@ -259,17 +307,4 @@ span[aria-hidden='true'] {
 	.button-send {
 		border-radius: 999rem;
 	}
-}
-
-.spinner {
-	animation: spinAround 500ms infinite linear;
-	border: 0.25rem solid var(--bulma-primary);
-	border-radius: var(--bulma-radius-rounded);
-	border-right-color: transparent;
-	border-top-color: transparent;
-	content: '';
-	display: inline-block;
-	vertical-align: bottom;
-	height: 1.25rem;
-	width: 1.25rem;
 }

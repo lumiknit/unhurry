@@ -56,6 +56,48 @@ const NumConfig: Component<NumConfigProps> = (props) => {
 	);
 };
 
+type CheckboxConfigProps = {
+	key: keyof UserConfig;
+	label: string;
+	desc: string;
+};
+
+const CheckboxConfig: Component<CheckboxConfigProps> = (props) => {
+	const [checked, setChecked] = createSignal(false);
+
+	const handleChange = () => {
+		const newValue = !checked();
+		setChecked(newValue);
+		setUserConfig((c) => ({
+			...c,
+			[props.key]: newValue,
+		}));
+	};
+
+	createEffect(() => {
+		const c = getUserConfig();
+		if (c) {
+			const v = Boolean(c[props.key]);
+			setChecked(v);
+		}
+	});
+
+	return (
+		<div class="field">
+			<label class="label">{props.label}</label>
+			<label class="checkbox">
+				<input
+					type="checkbox"
+					checked={checked()}
+					onChange={handleChange}
+				/>
+				{props.label}
+			</label>
+			<p class="help">{props.desc}</p>
+		</div>
+	);
+};
+
 type Tab = 'General' | 'Models' | 'Prompt Tags' | 'Im/Export';
 const tabs: Tab[] = ['General', 'Models', 'Prompt Tags', 'Im/Export'];
 
@@ -102,6 +144,12 @@ const SettingsPage: Component = () => {
 							key="autoSendMillis"
 							label="Auto Send After (ms)"
 							desc="When send the typed text to the server automatically"
+						/>
+
+						<CheckboxConfig
+							key="enableLLMFallback"
+							label="Enable LLM Fallback"
+							desc="When LLM failed (e.g. 429 Too Many Requests), use the next model"
 						/>
 
 						<h2 class="title is-4">Remove service workers</h2>

@@ -26,7 +26,8 @@ const AutoSendTag: Component = () => {
 		}
 	};
 
-	const toggleAutoSend = () => {
+	const toggleAutoSend = (e: MouseEvent) => {
+		e.stopPropagation();
 		setUserConfig((c) => ({
 			...c,
 			enableAutoSend: !c.enableAutoSend,
@@ -49,7 +50,8 @@ const AutoSendTag: Component = () => {
 };
 
 const RunCodeTag: Component = () => {
-	const toggleRunCode = () => {
+	const toggleRunCode = (e: MouseEvent) => {
+		e.stopPropagation();
 		setUserConfig((c) => ({
 			...c,
 			enableRunCode: !c.enableRunCode,
@@ -77,7 +79,8 @@ type Props = {
 const PromptTags: Component<Props> = (props) => {
 	const promptTags = () => getUserConfig()?.promptTags || [];
 
-	const handlePromptTagClick = (tag: PromptTag) => {
+	const handlePromptTagClick = (e: MouseEvent, tag: PromptTag) => {
+		e.stopPropagation();
 		switch (tag.action) {
 			case 'insert':
 				props.onInsertText(tag.prompt);
@@ -98,7 +101,7 @@ const PromptTags: Component<Props> = (props) => {
 				{(tag) => (
 					<Tag
 						class={'is-' + tag.color}
-						onClick={() => handlePromptTagClick(tag)}
+						onClick={(e) => handlePromptTagClick(e, tag)}
 					>
 						{tag.tag}
 					</Tag>

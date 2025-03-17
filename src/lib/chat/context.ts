@@ -5,6 +5,7 @@ export type ChatMeta = {
 	_id: string;
 	title: string;
 	createdAt: number;
+	lastUsedAt?: number;
 };
 
 export type ChatContext = ChatMeta & {
@@ -33,4 +34,5 @@ export const getChatMeta = (c: ChatContext): ChatMeta => ({
 	_id: c._id,
 	title: c.title,
 	createdAt: c.createdAt,
+	lastUsedAt: c.lastUsedAt,
 });

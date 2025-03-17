@@ -115,12 +115,17 @@ const BlockMessage: Component<ItemProps> = (props) => {
 						</span>
 					</header>
 					<div class="msg-code-body" innerHTML={html()} />
-					<footer>
-						<button onClick={() => setFold(true)}>
-							<VsChevronUp />
+				</div>
+				<div class="msg-code-bottom-btns has-text-right is-size-7">
+					<span>
+						<button class="px-3 py-1" onClick={handleCopy}>
+							copy
+						</button>
+						{' | '}
+						<button class="px-3 py-1" onClick={() => setFold(true)}>
 							fold
 						</button>
-					</footer>
+					</span>
 				</div>
 			</Match>
 		</Switch>

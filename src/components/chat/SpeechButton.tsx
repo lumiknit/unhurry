@@ -1,4 +1,4 @@
-import { TbMicrophone, TbMicrophoneOff } from 'solid-icons/tb';
+import { BiRegularMicrophone, BiRegularMicrophoneOff } from 'solid-icons/bi';
 import {
 	Component,
 	createSignal,
@@ -107,10 +107,10 @@ const SpeechButton: Component<Props> = (props_) => {
 		<button {...btnProps} onClick={handleClick}>
 			<Switch>
 				<Match when={recording()}>
-					<TbMicrophoneOff />
+					<BiRegularMicrophoneOff />
 				</Match>
 				<Match when>
-					<TbMicrophone />
+					<BiRegularMicrophone />
 				</Match>
 			</Switch>
 		</button>

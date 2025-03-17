@@ -1,5 +1,5 @@
 import { useNavigate } from '@solidjs/router';
-import { TbNote, TbTrash } from 'solid-icons/tb';
+import { TbTrash } from 'solid-icons/tb';
 import { Component, createSignal, For, Match, onMount, Switch } from 'solid-js';
 import { toast } from 'solid-toast';
 
@@ -10,12 +10,27 @@ import { loadChatContext } from '../../store';
 
 const ChatListView: Component = () => {
 	const [chatList, setChatList] = createSignal<ChatMeta[] | undefined>();
+	const [filteredList, setFilteredList] = createSignal<ChatMeta[]>([]);
+	let filterRef: HTMLInputElement;
+
 	const navigate = useNavigate();
 
 	const loadChatMeta = async () => {
 		const db = await chatListTx<ChatMeta>();
 		const all = await db.getAll();
-		setChatList(all.reverse());
+		setChatList(all);
+		sortByLastUsed();
+	};
+
+	const filtered = () =>
+		chatList()!.filter((x) => x.title.indexOf(filterRef!.value) >= 0);
+
+	const sortByLastUsed = () => {
+		setFilteredList(
+			filtered().sort((a, b) =>
+				(a.lastUsedAt || 0) < (b.lastUsedAt || 0) ? 1 : -1
+			)
+		);
 	};
 
 	const handleClearAll = async () => {
@@ -26,6 +41,10 @@ const ChatListView: Component = () => {
 			error: 'Failed to clear',
 		});
 		loadChatMeta();
+	};
+
+	const handleFilterChange = () => {
+		setFilteredList(filtered());
 	};
 
 	const deleteChat = (id: string) => async (e: MouseEvent) => {
@@ -61,13 +80,24 @@ const ChatListView: Component = () => {
 				<nav class="panel is-primary">
 					<p class="panel-heading"> Chats </p>
 					<div class="panel-block">
-						<p class="control has-icons-left">
+						<p class="control">
 							<button
 								class="button is-danger is-outlined is-fullwidth"
 								onClick={handleClearAll}
 							>
 								Clear All
 							</button>
+						</p>
+					</div>
+					<div class="panel-block">
+						<p class="control">
+							<input
+								ref={filterRef!}
+								class="input"
+								type="text"
+								placeholder="Filter by..."
+								onInput={handleFilterChange}
+							/>
 						</p>
 					</div>
 					<Switch>
@@ -77,24 +107,23 @@ const ChatListView: Component = () => {
 							</a>
 						</Match>
 						<Match when>
-							<For each={chatList()!}>
+							<For each={filteredList()!}>
 								{(chat) => (
 									<a
 										class="panel-block is-active flex-split"
 										onClick={openChat(chat._id)}
 									>
 										<div>
-											<TbNote />
 											<Switch>
 												<Match when={chat.title}>
-													<span>{chat.title}</span>
+													<b>{chat.title}</b>
 												</Match>
 												<Match when>
 													<i>Untitled</i>
 												</Match>
 											</Switch>
-											<span class="ml-2">
-												-{' '}
+											<br />
+											<span class="ml-2 is-size-7">
 												{new Date(
 													chat.createdAt
 												).toLocaleString()}
