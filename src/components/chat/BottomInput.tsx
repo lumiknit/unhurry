@@ -188,7 +188,7 @@ const BottomInput: Component<Props> = (props) => {
 		}
 	};
 
-	const handleClickMargin = (e: MouseEvent) => {
+	const handleClickMargin = () => {
 		taRef!.focus();
 	};
 

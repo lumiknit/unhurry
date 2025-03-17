@@ -411,7 +411,7 @@ export const sendUserParts = async (parts: MsgPart[]): Promise<void> => {
 		try {
 			await processLLM(modelConfig);
 			return;
-		} catch (e) {
+		} catch {
 			if (!config.enableLLMFallback) {
 				break;
 			}
