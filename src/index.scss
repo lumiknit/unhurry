@@ -81,6 +81,10 @@ nav.navbar {
 	backdrop-filter: var(--uh-blur);
 }
 
+.navbar-menu, .navbar-menu .navbar-dropdown a.navbar-item {
+	background: #00000000;
+}
+
 .navbar-burger {
 	color: var(--uh-theme-color-hex) !important;
 }
