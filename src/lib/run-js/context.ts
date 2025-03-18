@@ -18,7 +18,7 @@ export class JSContext {
 	/**
 	 * Is the worker running flag
 	 */
-	running: boolean = false;
+	running = false;
 
 	/**
 	 * Resolve run promise.

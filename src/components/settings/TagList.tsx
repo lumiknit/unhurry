@@ -9,17 +9,18 @@ import {
 	PromptTag,
 	PromptTagAction,
 	promptTagActions,
-} from '../../lib/config';
-import { getUserConfig, setUserConfig } from '../../store';
+} from '@lib/config';
 
-type TagProps = {
+import { getUserConfig, setUserConfig } from '@store';
+
+interface TagProps {
 	idx: number;
 	promptTag: PromptTag;
 	onChange: (tag: PromptTag) => void;
 	onDelete: (idx: number) => void;
 	onMoveUp: (idx: number) => void;
 	onMoveDown: (idx: number) => void;
-};
+}
 
 const Tag: Component<TagProps> = (props) => {
 	let nameRef: HTMLInputElement;

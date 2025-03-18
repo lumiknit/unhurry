@@ -8,17 +8,19 @@ import {
 } from 'solid-js';
 import { toast } from 'solid-toast';
 
+import { UserConfig } from '@lib/config';
+
+import { getUserConfig, setUserConfig } from '@store';
+
 import ModelList from './ModelList';
 import TagList from './TagList';
 import Xxport from './Xxport';
-import { UserConfig } from '../../lib/config';
-import { getUserConfig, setUserConfig } from '../../store';
 
-type NumConfigProps = {
+interface NumConfigProps {
 	key: keyof UserConfig;
 	label: string;
 	desc: string;
-};
+}
 
 const NumConfig: Component<NumConfigProps> = (props) => {
 	let inputRef: HTMLInputElement;
@@ -56,11 +58,11 @@ const NumConfig: Component<NumConfigProps> = (props) => {
 	);
 };
 
-type CheckboxConfigProps = {
+interface CheckboxConfigProps {
 	key: keyof UserConfig;
 	label: string;
 	desc: string;
-};
+}
 
 const CheckboxConfig: Component<CheckboxConfigProps> = (props) => {
 	const [checked, setChecked] = createSignal(false);

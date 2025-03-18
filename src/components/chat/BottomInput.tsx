@@ -2,15 +2,16 @@ import { BiRegularSend } from 'solid-icons/bi';
 import { Component, onMount } from 'solid-js';
 import { toast } from 'solid-toast';
 
+import { getUserConfig } from '@store';
+
 import InputTags from './PromptTags';
 import SpeechButton from './SpeechButton';
-import { getUserConfig } from '../../store';
 
-type Props = {
+interface Props {
 	progressing?: boolean;
 	send?: (value: string) => void;
 	cancel?: () => void;
-};
+}
 
 const BottomInput: Component<Props> = (props) => {
 	let topRef: HTMLDivElement;
@@ -19,7 +20,7 @@ const BottomInput: Component<Props> = (props) => {
 	let autoSendAt = 0;
 	let autoSendTimeoutId: number | undefined;
 
-	let composing: boolean = false;
+	let composing = false;
 	let lastSent = 0;
 
 	const insertText = (text: string) => {

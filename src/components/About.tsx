@@ -11,6 +11,10 @@ import {
 import './About.scss';
 import { getBEService, IBEService } from '../lib/be';
 
+/**
+ * Compare two version strings.
+ * Each version should be in the format of "x.y.z".
+ */
 const compareVersion = (a: string, b: string): number => {
 	// Split version strings into num arrays
 	const aNums = a.split('.').map((n) => parseInt(n));
@@ -23,6 +27,29 @@ const compareVersion = (a: string, b: string): number => {
 		}
 	}
 	return aNums.length - bNums.length;
+};
+
+/**
+ * Get the latest release version.
+ */
+const getLatestRelease = async (): Promise<string | void> => {
+	const resp = await fetch(
+		'https://api.github.com/repos/lumiknit/unhurry/releases/latest'
+	);
+	if (resp.ok) {
+		interface RespBody {
+			assets_url: string;
+			created_at: string;
+			name: string;
+			tag_name: string;
+			html_url: string;
+		}
+		const j: RespBody = await resp.json();
+		let name = j.name;
+		if (name.startsWith('v')) {
+			name = name.slice(1);
+		}
+	}
 };
 
 /**
@@ -43,25 +70,8 @@ const About: Component = () => {
 	});
 
 	// Load latest release version
-	onMount(async () => {
-		const resp = await fetch(
-			'https://api.github.com/repos/lumiknit/unhurry/releases/latest'
-		);
-		if (resp.ok) {
-			type RespBody = {
-				assets_url: string;
-				created_at: string;
-				name: string;
-				tag_name: string;
-				html_url: string;
-			};
-			const j: RespBody = await resp.json();
-			let name = j.name;
-			if (name.startsWith('v')) {
-				name = name.slice(1);
-			}
-			setLatestRelease(name);
-		}
+	onMount(() => {
+		getLatestRelease().then(setLatestRelease);
 	});
 
 	return (

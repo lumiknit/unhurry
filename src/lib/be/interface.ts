@@ -1,8 +1,8 @@
-export type FetchResult = {
+export interface FetchResult {
 	status: number;
-	headers: Array<[string, string]>;
+	headers: [string, string][];
 	body: string;
-};
+}
 
 /**
  * Backend service interface.
@@ -25,7 +25,7 @@ export interface IBEService {
 	fetch(
 		method: string,
 		url: string,
-		headers?: Array<[string, string]>,
+		headers?: [string, string][],
 		body?: string
 	): Promise<FetchResult>;
 }

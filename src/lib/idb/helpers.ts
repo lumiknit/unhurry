@@ -3,10 +3,10 @@ import { SimpleIDB } from './client';
 const userConfigIDB = new SimpleIDB('local-user-config', 'configs', 1);
 const userConfigKey = 'current';
 
-type UserConfigType = {
+interface UserConfigType {
 	config: string;
 	_id: string;
-};
+}
 
 export const userConfigTx = async () => {
 	return await userConfigIDB.transaction<UserConfigType>('readwrite');

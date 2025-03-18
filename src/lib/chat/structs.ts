@@ -32,10 +32,10 @@ export const MSG_PART_TYPE_MERMAID = 'mermaid';
 /**
  * Message part.
  */
-export type MsgPart = {
+export interface MsgPart {
 	type: string;
 	content: string;
-};
+}
 
 export const parseMessagePartType = (type: string): string[] => {
 	return type.split('|').map((x) => x.trim().toLowerCase());
@@ -44,20 +44,20 @@ export const parseMessagePartType = (type: string): string[] => {
 /**
  * Chat message.
  */
-export type Msg<R = Role> = {
+export interface Msg<R = Role> {
 	role: R;
 	parts: MsgPart[];
 	timestamp: number;
-};
+}
 
-export type MsgPair = {
+export interface MsgPair {
 	user?: Msg<'user'>;
 	assistant?: Msg<'assistant'>;
-};
+}
 
-export type ChatHistory = {
+export interface ChatHistory {
 	msgPairs: MsgPair[];
-};
+}
 
 export const textMsg = (role: Role, text: string): Msg => ({
 	role,

@@ -23,7 +23,7 @@ export const promptTagActions = ['insert', 'replace'] as const;
 /**
  * Prompt preset tags.
  */
-export type PromptTag = {
+export interface PromptTag {
 	/** Label of tag */
 	tag: string;
 
@@ -35,12 +35,12 @@ export type PromptTag = {
 
 	/** Values */
 	prompt: string;
-};
+}
 
 /**
  * Configuration for the user
  */
-export type UserConfig = {
+export interface UserConfig {
 	/**
 	 * LLM Models
 	 */
@@ -80,7 +80,7 @@ export type UserConfig = {
 	 * Prompt tags
 	 */
 	promptTags: PromptTag[];
-};
+}
 
 /**
  * Create a default configuration.

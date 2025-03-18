@@ -1,13 +1,11 @@
 import { Component, createSignal } from 'solid-js';
 
+import { RateLimitError } from '@lib/llm';
+
+import { getChatContext, saveChatContextMeta, setChatContext } from '@store';
+
 import BottomInput from './BottomInput';
 import ChatHistoryView from './ChatHistoryView';
-import { RateLimitError } from '../../lib/llm';
-import {
-	getChatContext,
-	saveChatContextMeta,
-	setChatContext,
-} from '../../store';
 import {
 	cancelRequest,
 	generateChatTitle,

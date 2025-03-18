@@ -1,9 +1,9 @@
 export type Role = 'system' | 'user' | 'assistant';
 
-export type TextMessage = {
+export interface TextMessage {
 	role: Role;
 	content: string;
-};
+}
 
 export type Message = TextMessage;
 

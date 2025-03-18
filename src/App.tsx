@@ -3,9 +3,9 @@ import { Toaster } from 'solid-toast';
 
 import NavBar from './components/navbar/NavBar';
 
-type Props = {
+interface Props {
 	children?: JSX.Element | JSX.Element[];
-};
+}
 
 const App: Component<Props> = (props) => {
 	return (

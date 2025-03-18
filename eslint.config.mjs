@@ -3,8 +3,9 @@
 
 import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
-import importPlugin from 'eslint-plugin-import';
+import importPlugin from 'eslint-plugin-import-x';
 import unusedImports from 'eslint-plugin-unused-imports';
+import { createTypeScriptImportResolver } from 'eslint-import-resolver-typescript';
 
 export default tseslint.config(
 	eslint.configs.recommended,
@@ -19,25 +20,54 @@ export default tseslint.config(
 			'unused-imports': unusedImports,
 		},
 		settings: {
-			'import/resolver': {
-				node: true,
-				typescript: true,
-			},
+			'import-x/resolver-next': [
+				createTypeScriptImportResolver({
+					alwaysTryTypes: true,
+					project: ['./tsconfig.json', './tsconfig.app.json'],
+				}),
+			],
 		},
 		rules: {
-			'import/no-cycle': 'error',
+			'import-x/no-cycle': 'error',
 			'no-console': 'off',
 			'no-undef': 'off',
 			'no-unused-vars': 'off',
 			'@typescript-eslint/no-unused-vars': 'warn',
 			'@typescript-eslint/no-explicit-any': 'warn',
-			'import/order': [
+			'import-x/order': [
 				'error',
 				{
 					alphabetize: {
 						order: 'asc',
 						caseInsensitive: true,
 					},
+					pathGroups: [
+						{
+							pattern: '@/**',
+							group: 'internal',
+							position: 'before',
+						},
+						{
+							pattern: '@components/**',
+							group: 'internal',
+							position: 'before',
+						},
+						{
+							pattern: '@lib/**',
+							group: 'internal',
+							position: 'before',
+						},
+						{
+							pattern: '@store',
+							group: 'internal',
+							position: 'before',
+						},
+						{
+							pattern: '@store/**',
+							group: 'internal',
+							position: 'before',
+						},
+					],
 					groups: [
 						'builtin',
 						'external',
@@ -45,7 +75,6 @@ export default tseslint.config(
 						['sibling', 'parent', 'index'],
 					],
 					'newlines-between': 'always',
-					named: true,
 				},
 			],
 			'unused-imports/no-unused-imports': 'error',

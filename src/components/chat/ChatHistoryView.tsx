@@ -1,8 +1,9 @@
 import { Component, createMemo, For, Show } from 'solid-js';
 
-import Message from './Message';
+import { getChatContext, getStreamingMessage } from '@store';
+
+import { Message } from './message';
 import Title from './Title';
-import { getChatContext, getStreamingMessage } from '../../store';
 
 const ChatHistoryView: Component = () => {
 	const pairs = createMemo(() => getChatContext().history.msgPairs);

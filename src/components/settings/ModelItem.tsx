@@ -7,16 +7,16 @@ import {
 	Model,
 	ModelConfig,
 	newClientFromConfig,
-} from '../../lib/llm';
+} from '@lib/llm';
 
-type Props = {
+interface Props {
 	model: ModelConfig;
 	updateModel: Setter<ModelConfig>;
 	idx: number;
 	onMoveUp: () => void;
 	onMoveDown: () => void;
 	onDelete: () => void;
-};
+}
 
 const ModelEditor: Component<Props> = (props) => {
 	let nameRef: HTMLInputElement;

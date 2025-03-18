@@ -21,7 +21,7 @@ export class TauriService implements IBEService {
 	async fetch(
 		method: string,
 		url: string,
-		headers?: Array<[string, string]>,
+		headers?: [string, string][],
 		body?: string
 	): Promise<FetchResult> {
 		const result = await invoke('fetch_http', {

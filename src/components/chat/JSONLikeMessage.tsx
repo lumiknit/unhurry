@@ -6,11 +6,14 @@ import { toast } from 'solid-toast';
 import 'billboard.js/dist/billboard.min.css';
 import 'billboard.js/dist/theme/dark.min.css';
 
+import { copyToClipboard } from '@lib/clipboard';
+
 import { ItemProps } from './message_types';
-import { copyToClipboard } from '../../lib/clipboard';
 
 type JSON = null | boolean | number | string | JSON[] | JSONObject;
-type JSONObject = { [key: string]: JSON };
+interface JSONObject {
+	[key: string]: JSON;
+}
 
 type DisplayType =
 	| 'fold'
@@ -20,7 +23,7 @@ type DisplayType =
 	| 'table' // Array of objects
 	| 'plot'; // Array of numbers, or object with one or two number fields
 
-type JSONAnalysis = {
+interface JSONAnalysis {
 	// Root types
 	isArray: boolean;
 	isObject: boolean;
@@ -35,7 +38,7 @@ type JSONAnalysis = {
 
 	// Display Types
 	displayTypes: DisplayType[];
-};
+}
 
 const analyzeJSON = (json: JSON): JSONAnalysis => {
 	const analysis: JSONAnalysis = {
@@ -90,10 +93,10 @@ const analyzeJSON = (json: JSON): JSONAnalysis => {
 	return analysis;
 };
 
-type PlotProps = {
+interface PlotProps {
 	analysis: JSONAnalysis;
 	data: JSON;
-};
+}
 
 const Plot: Component<PlotProps> = (props) => {
 	let divRef: HTMLDivElement;
