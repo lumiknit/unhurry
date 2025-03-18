@@ -5,7 +5,6 @@ import { toast } from 'solid-toast';
 import { getUserConfig } from '@store';
 
 import InputTags from './PromptTags';
-import SpeechButton from './SpeechButton';
 
 interface Props {
 	progressing?: boolean;
@@ -101,13 +100,6 @@ const BottomInput: Component<Props> = (props) => {
 		}
 	};
 
-	const unsetAutoSend = () => {
-		if (autoSendTimeoutId) {
-			clearTimeout(autoSendTimeoutId);
-			autoSendTimeoutId = undefined;
-		}
-	};
-
 	const cleanSent = () => {
 		if (lastSent > 0) {
 			// Last selection
@@ -157,31 +149,6 @@ const BottomInput: Component<Props> = (props) => {
 		}
 	};
 
-	const handleSpeech = (
-		transcript: string,
-		isFinal: boolean,
-		lastTranscript: string
-	) => {
-		// Remove if the last transcript is exists
-		if (lastTranscript) {
-			const v = taRef!.value;
-			const selStart = taRef!.selectionStart;
-			const part = v.slice(0, selStart);
-			if (v.endsWith(lastTranscript)) {
-				taRef!.value =
-					part.slice(0, -lastTranscript.length) + v.slice(selStart);
-				taRef!.setSelectionRange(selStart, selStart);
-			}
-		}
-		// Insert the transcript
-		insertText(transcript);
-		if (isFinal) {
-			setAutoSend();
-		} else {
-			unsetAutoSend();
-		}
-	};
-
 	const autosizeTextarea = () => {
 		if (taRef!) {
 			taRef.style.height = '1px';
@@ -215,10 +182,6 @@ const BottomInput: Component<Props> = (props) => {
 				placeholder="Type your message here..."
 			/>
 			<div class="buttons no-user-select">
-				<SpeechButton
-					class="control is-size-6 py-1 button-mic "
-					onSpeech={handleSpeech}
-				/>
 				<InputTags
 					onInsertText={insertText}
 					onReplaceText={replaceText}

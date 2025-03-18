@@ -92,9 +92,8 @@ const About: Component = () => {
 					</li>
 					<li class="is-inline-flex is-align-items-center">
 						<b>Repository</b>:{' '}
-						<a class="button is-dark" href={link}>
-							{' '}
-							<BiLogosGithub /> &nbsp; lumiknit/unhurry{' '}
+						<a class="button is-dark" href={link} target="_blank">
+							<BiLogosGithub /> &nbsp; lumiknit/unhurry
 						</a>
 					</li>
 				</ul>
@@ -131,8 +130,7 @@ const About: Component = () => {
 							}
 						>
 							<span class="tag is-primary ml-1">
-								{' '}
-								New Version!{' '}
+								New Version!
 							</span>
 						</Show>
 					</p>

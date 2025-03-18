@@ -1,4 +1,12 @@
-import { Component, createSignal, For, Setter, Show } from 'solid-js';
+import {
+	Component,
+	createSignal,
+	For,
+	Match,
+	Setter,
+	Show,
+	Switch,
+} from 'solid-js';
 import { toast } from 'solid-toast';
 
 import {
@@ -26,6 +34,7 @@ const ModelEditor: Component<Props> = (props) => {
 	let clientTypeRef: HTMLInputElement;
 	let systemPromptRef: HTMLTextAreaElement;
 
+	const [editing, setEditing] = createSignal(false);
 	const [models, setModels] = createSignal<Model[] | undefined>();
 	const [showAllModels, setShowAllModels] = createSignal(false);
 
@@ -113,141 +122,169 @@ const ModelEditor: Component<Props> = (props) => {
 	return (
 		<div class="card">
 			<div class="card-content">
-				<div class="field">
-					<label class="label">Endpoint</label>
-					<div>
-						<For each={endpoints}>
-							{(e) => (
-								<button
-									class="tag mr-1"
-									onClick={() => handleEndpointClick(e)}
+				<Switch>
+					<Match when={editing()}>
+						<div class="field">
+							<label class="label">Endpoint</label>
+							<div class="mb-1">
+								<For each={endpoints}>
+									{(e) => (
+										<button
+											class="tag mr-1"
+											onClick={() =>
+												handleEndpointClick(e)
+											}
+										>
+											{e}
+										</button>
+									)}
+								</For>
+							</div>
+							<div class="control">
+								<input
+									ref={endpointRef!}
+									class="input"
+									type="text"
+									value={props.model.endpoint}
+									onChange={handleInputChange}
+								/>
+							</div>
+						</div>
+
+						<div class="field">
+							<label class="label">API Key</label>
+							<Show when={apiKeyURL}>
+								<p>
+									You can find API Key at:{' '}
+									<a href={apiKeyURL} target="_blank">
+										{apiKeyURL}
+									</a>
+								</p>
+							</Show>
+							<div class="control">
+								<input
+									ref={apiKeyRef!}
+									class="input"
+									type="text"
+									value={props.model.apiKey}
+									onChange={handleInputChange}
+								/>
+							</div>
+						</div>
+
+						<div class="field">
+							<label class="label">Model</label>
+							<div class="mb-1">
+								<For
+									each={(models() || []).slice(
+										0,
+										showAllModels() ? undefined : 5
+									)}
 								>
-									{e}
-								</button>
-							)}
-						</For>
-					</div>
-					<div class="control">
-						<input
-							ref={endpointRef!}
-							class="input"
-							type="text"
-							value={props.model.endpoint}
-							onChange={handleInputChange}
-						/>
-					</div>
-				</div>
-
-				<div class="field">
-					<label class="label">API Key</label>
-					<Show when={apiKeyURL}>
-						<p>
-							You can find API Key at:{' '}
-							<a href={apiKeyURL} target="_blank">
-								{apiKeyURL}
-							</a>
-						</p>
-					</Show>
-					<div class="control">
-						<input
-							ref={apiKeyRef!}
-							class="input"
-							type="text"
-							value={props.model.apiKey}
-							onChange={handleInputChange}
-						/>
-					</div>
-				</div>
-
-				<div class="field">
-					<label class="label">Model</label>
-					<div>
-						<For
-							each={(models() || []).slice(
-								0,
-								showAllModels() ? undefined : 5
-							)}
-						>
-							{(m) => (
-								<button
-									class="tag mr-1"
-									onClick={() => handleModelClick(m)}
+									{(m) => (
+										<button
+											class="tag mr-1"
+											onClick={() => handleModelClick(m)}
+										>
+											{m.id}
+										</button>
+									)}
+								</For>
+								<Show
+									when={
+										!models() ||
+										(!showAllModels() &&
+											models()!.length > 5)
+									}
 								>
-									{m.id}
-								</button>
-							)}
-						</For>
-						<Show
-							when={
-								!models() ||
-								(!showAllModels() && models()!.length > 5)
-							}
-						>
-							<button class="tag" onClick={loadModels}>
-								...
-							</button>
-						</Show>
-					</div>
-					<div class="control">
-						<input
-							ref={modelRef!}
-							class="input"
-							type="text"
-							value={props.model.model}
-							onChange={handleInputChange}
-						/>
-					</div>
-				</div>
+									<button class="tag" onClick={loadModels}>
+										...
+									</button>
+								</Show>
+							</div>
+							<div class="control">
+								<input
+									ref={modelRef!}
+									class="input"
+									type="text"
+									value={props.model.model}
+									onChange={handleInputChange}
+								/>
+							</div>
+						</div>
 
-				<div class="field">
-					<label class="label">Client Type</label>
-					<div>
-						<For each={clientTypes}>
-							{(t) => (
+						<div class="field">
+							<label class="label">Client Type</label>
+							<div class="mb-1">
+								<For each={clientTypes}>
+									{(t) => (
+										<button
+											class="tag mr-1"
+											onClick={() =>
+												handleClientTypeClick(t)
+											}
+										>
+											{t}
+										</button>
+									)}
+								</For>
+							</div>
+							<div class="control">
+								<input
+									ref={clientTypeRef!}
+									class="input"
+									type="text"
+									value={props.model.clientType}
+									onChange={handleInputChange}
+								/>
+							</div>
+						</div>
+
+						<div class="field">
+							<label class="label">Display Name</label>
+							<div class="control">
+								<input
+									ref={nameRef!}
+									class="input"
+									type="text"
+									value={props.model.name}
+									onChange={handleInputChange}
+								/>
+							</div>
+						</div>
+
+						<div class="field">
+							<label class="label">
+								Additional System Prompt
+							</label>
+							<div class="control">
+								<textarea
+									ref={systemPromptRef!}
+									class="textarea"
+									value={props.model.systemPrompt}
+									onChange={handleInputChange}
+								/>
+							</div>
+						</div>
+					</Match>
+					<Match when>
+						<div>
+							<p class="title is-4">{props.model.name}</p>
+							<ul>
+								<li>{props.model.endpoint}</li>
+								<li>{props.model.model}</li>
+							</ul>
+							<div class="has-text-right">
 								<button
-									class="tag mr-1"
-									onClick={() => handleClientTypeClick(t)}
+									class="button is-small"
+									onClick={() => setEditing(true)}
 								>
-									{t}
+									Edit
 								</button>
-							)}
-						</For>
-					</div>
-					<div class="control">
-						<input
-							ref={clientTypeRef!}
-							class="input"
-							type="text"
-							value={props.model.clientType}
-							onChange={handleInputChange}
-						/>
-					</div>
-				</div>
-
-				<div class="field">
-					<label class="label">Display Name</label>
-					<div class="control">
-						<input
-							ref={nameRef!}
-							class="input"
-							type="text"
-							value={props.model.name}
-							onChange={handleInputChange}
-						/>
-					</div>
-				</div>
-
-				<div class="field">
-					<label class="label">Additional System Prompt</label>
-					<div class="control">
-						<textarea
-							ref={systemPromptRef!}
-							class="textarea"
-							value={props.model.systemPrompt}
-							onChange={handleInputChange}
-						/>
-					</div>
-				</div>
+							</div>
+						</div>
+					</Match>
+				</Switch>
 			</div>
 
 			<footer class="card-footer">
@@ -257,7 +294,11 @@ const ModelEditor: Component<Props> = (props) => {
 				<a href="#" class="card-footer-item" onClick={props.onMoveDown}>
 					Down
 				</a>
-				<a href="#" class="card-footer-item" onClick={props.onDelete}>
+				<a
+					href="#"
+					class="card-footer-item has-text-danger"
+					onClick={props.onDelete}
+				>
 					Delete
 				</a>
 			</footer>
