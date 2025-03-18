@@ -3,10 +3,12 @@ import { TbTrash } from 'solid-icons/tb';
 import { Component, createSignal, For, Match, onMount, Switch } from 'solid-js';
 import { toast } from 'solid-toast';
 
+import { ChatMeta } from '@lib/chat';
+import { chatListTx, clearAllChats, deleteChatByID } from '@lib/idb';
+
+import { loadChatContext } from '@store/index';
+
 import { rootPath } from '../../env';
-import { ChatMeta } from '../../lib/chat';
-import { chatListTx, clearAllChats, deleteChatByID } from '../../lib/idb';
-import { loadChatContext } from '../../store';
 
 const ChatListView: Component = () => {
 	const [chatList, setChatList] = createSignal<ChatMeta[] | undefined>();

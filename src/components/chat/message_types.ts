@@ -1,4 +1,4 @@
-export type ItemProps = {
+export interface ItemProps {
 	type: string;
 	content: string;
-};
+}

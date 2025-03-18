@@ -14,12 +14,12 @@ import { sanitizeConfig, UserConfig } from '../lib/config';
 import { chatListTx, chatTx, loadUserConfig, saveUserConfig } from '../lib/idb';
 import { JSContext } from '../lib/run-js';
 
-type GlobalStore = {
+interface GlobalStore {
 	chatContext: ChatContext;
 	streamingMessage?: string;
 
 	userConfig?: UserConfig;
-};
+}
 
 export const [store, setStore] = createStore<GlobalStore>({
 	chatContext: emptyChatContext(),

@@ -15,7 +15,9 @@ yq eval ".version = \"$VERSION\"" -i package.json
 # tauri.conf.json
 yq eval ".version = \"$VERSION\"" -i src-tauri/tauri.conf.json
 # Cargo.toml
-yq eval ".package.version = \"$VERSION\"" -i src-tauri/Cargo.toml
+pushd src-tauri
+cargo set-version $VERSION
+popd
 
 # Create releases directory
 mkdir -p releases

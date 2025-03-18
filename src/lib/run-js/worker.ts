@@ -15,7 +15,7 @@ sleep(0);
 	type LogLevel = 'info' | 'warn' | 'error';
 
 	class Console {
-		fullText: string = '';
+		fullText = '';
 
 		private flushText(_level: LogLevel, text: string) {
 			postMessage({

@@ -2,17 +2,14 @@ import { TbSparkles } from 'solid-icons/tb';
 import { Component, createSignal, Match, Switch } from 'solid-js';
 import { toast } from 'solid-toast';
 
-import {
-	getChatContext,
-	saveChatContextMeta,
-	setChatContext,
-} from '../../store';
+import { getChatContext, saveChatContextMeta, setChatContext } from '@store';
+
 import { generateChatTitle } from '../../store/actions';
 
-type EditProps = {
+interface EditProps {
 	originalTitle: string;
 	onSave: (title: string) => void;
-};
+}
 
 const TitleEdit: Component<EditProps> = (props) => {
 	let titleInputRef: HTMLInputElement;

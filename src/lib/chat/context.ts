@@ -1,12 +1,12 @@
-import { JSContext } from '../run-js';
 import { ChatHistory } from './structs';
+import { JSContext } from '../run-js';
 
-export type ChatMeta = {
+export interface ChatMeta {
 	_id: string;
 	title: string;
 	createdAt: number;
 	lastUsedAt?: number;
-};
+}
 
 export type ChatContext = ChatMeta & {
 	history: ChatHistory;

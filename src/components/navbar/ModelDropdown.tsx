@@ -1,6 +1,6 @@
 import { Component, For } from 'solid-js';
 
-import { getUserConfig, setUserConfig } from '../../store';
+import { getUserConfig, setUserConfig } from '@store';
 
 const ModelDropdown: Component = () => {
 	const models = () => getUserConfig()?.models || [];

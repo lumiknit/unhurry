@@ -2,9 +2,11 @@ import { TbPlus } from 'solid-icons/tb';
 import { Component, For, Setter } from 'solid-js';
 import { toast } from 'solid-toast';
 
+import { emptyModelConfig, ModelConfig } from '@lib/llm';
+
+import { getUserConfig, setUserConfig } from '@store';
+
 import ModelEditor from './ModelItem';
-import { emptyModelConfig, ModelConfig } from '../../lib/llm';
-import { getUserConfig, setUserConfig } from '../../store';
 
 const ModelList: Component = () => {
 	const models = () => getUserConfig()?.models || [];

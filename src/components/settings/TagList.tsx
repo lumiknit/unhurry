@@ -9,17 +9,18 @@ import {
 	PromptTag,
 	PromptTagAction,
 	promptTagActions,
-} from '../../lib/config';
-import { getUserConfig, setUserConfig } from '../../store';
+} from '@lib/config';
 
-type TagProps = {
+import { getUserConfig, setUserConfig } from '@store';
+
+interface TagProps {
 	idx: number;
 	promptTag: PromptTag;
 	onChange: (tag: PromptTag) => void;
 	onDelete: (idx: number) => void;
 	onMoveUp: (idx: number) => void;
 	onMoveDown: (idx: number) => void;
-};
+}
 
 const Tag: Component<TagProps> = (props) => {
 	let nameRef: HTMLInputElement;
@@ -121,23 +122,23 @@ const Tag: Component<TagProps> = (props) => {
 				<a
 					href="#"
 					class="card-footer-item"
-					onClick={() => props.onDelete(props.idx)}
-				>
-					Delete
-				</a>
-				<a
-					href="#"
-					class="card-footer-item"
 					onClick={() => props.onMoveUp(props.idx)}
 				>
-					Move Up
+					Up
 				</a>
 				<a
 					href="#"
 					class="card-footer-item"
 					onClick={() => props.onMoveDown(props.idx)}
 				>
-					Move Down
+					Down
+				</a>
+				<a
+					href="#"
+					class="card-footer-item has-text-danger"
+					onClick={() => props.onDelete(props.idx)}
+				>
+					Delete
 				</a>
 			</footer>
 		</div>
@@ -197,19 +198,18 @@ const TagList: Component = () => {
 
 	return (
 		<div>
-			<h2 class="title is-4">Tag List</h2>
-
-			<p> Your preset prompts here. </p>
-
-			<div>
+			<h2 class="title is-4">
+				Tag List ({getUserConfig()?.promptTags.length})
 				<button
-					class="button is-small is-primary is-gap-1"
+					class="button is-small is-primary is-gap-1 ml-1"
 					onClick={handleAddTag}
 				>
 					<TbPlus />
 					Add tag
 				</button>
-			</div>
+			</h2>
+
+			<p> Your preset prompts here. </p>
 
 			<div>
 				<For each={getUserConfig()?.promptTags}>

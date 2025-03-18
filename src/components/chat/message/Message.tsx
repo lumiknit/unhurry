@@ -4,12 +4,18 @@ import { marked } from 'marked';
 import markedKatex from 'marked-katex-extension';
 import mermaid from 'mermaid';
 import { VsChevronDown, VsChevronUp, VsCopy } from 'solid-icons/vs';
-import { Component, createSignal, For, Match, onMount, Switch } from 'solid-js';
+import {
+	Component,
+	createSignal,
+	For,
+	Match,
+	onMount,
+	Show,
+	Switch,
+} from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 import { toast } from 'solid-toast';
 
-import JSONLikeMessage from './JSONLikeMessage';
-import { ItemProps } from './message_types';
 import {
 	Msg,
 	MSG_PART_TYPE_MERMAID,
@@ -17,7 +23,10 @@ import {
 	MSG_PART_TYPE_SVG,
 	MSG_PART_TYPE_TEXT,
 	MSG_PART_TYPE_THINK,
-} from '../../lib/chat';
+} from '@lib/chat';
+
+import JSONLikeMessage from '../JSONLikeMessage';
+import { ItemProps } from '../message_types';
 
 marked.use(
 	markedKatex({
@@ -116,17 +125,22 @@ const BlockMessage: Component<ItemProps> = (props) => {
 					</header>
 					<div class="msg-code-body" innerHTML={html()} />
 				</div>
-				<div class="msg-code-bottom-btns has-text-right is-size-7">
-					<span>
-						<button class="px-3 py-1" onClick={handleCopy}>
-							copy
-						</button>
-						{' | '}
-						<button class="px-3 py-1" onClick={() => setFold(true)}>
-							fold
-						</button>
-					</span>
-				</div>
+				<Show when={lines() > 10 || props.content.length > 800}>
+					<div class="msg-code-bottom-btns has-text-right is-size-7">
+						<span>
+							<button class="px-3 py-1" onClick={handleCopy}>
+								copy
+							</button>
+							{' | '}
+							<button
+								class="px-3 py-1"
+								onClick={() => setFold(true)}
+							>
+								fold
+							</button>
+						</span>
+					</div>
+				</Show>
 			</Match>
 		</Switch>
 	);
@@ -198,10 +212,10 @@ const compMap = new Map([
 	['json', JSONLikeMessage],
 ]);
 
-type Props = {
+interface Props {
 	msg: Msg;
 	idx: number;
-};
+}
 
 const Message: Component<Props> = (props) => {
 	const cls =

@@ -6,7 +6,7 @@ export type LLMClientType = 'OpenAI' | 'Anthropic' | 'Gemini';
 /**
  * LLM Service Info
  */
-export type LLMServiceInfo = {
+export interface LLMServiceInfo {
 	/** Service Name */
 	name: string;
 
@@ -21,13 +21,13 @@ export type LLMServiceInfo = {
 
 	/** Available models */
 	models: string[];
-};
+}
 
 /**
  * Model configuration.
  * This is used for user config.
  */
-export type ModelConfig = {
+export interface ModelConfig {
 	/** Display name */
 	name: string;
 
@@ -45,7 +45,7 @@ export type ModelConfig = {
 
 	/** Additional system prompt */
 	systemPrompt: string;
-};
+}
 
 /**
  * Create an empty model config.

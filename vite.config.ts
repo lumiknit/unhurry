@@ -1,3 +1,5 @@
+import path from 'path';
+
 import { defineConfig, loadEnv } from 'vite';
 import solid from 'vite-plugin-solid';
 import packageJson from './package.json';
@@ -13,9 +15,6 @@ export default ({ mode }: { mode: string }) => {
 	}
 
 	return defineConfig({
-		define: {
-			PACKAGE_VERSION: JSON.stringify(packageJson.version),
-		},
 		base,
 		build: {
 			rollupOptions: {
@@ -29,12 +28,23 @@ export default ({ mode }: { mode: string }) => {
 			},
 		},
 		clearScreen: false,
-		plugins: [solid()],
 		css: {
 			preprocessorOptions: {
 				scss: {
 					api: 'modern-compiler',
 				},
+			},
+		},
+		define: {
+			PACKAGE_VERSION: JSON.stringify(packageJson.version),
+		},
+		plugins: [solid()],
+		resolve: {
+			alias: {
+				'@': path.resolve(__dirname, 'src'),
+				'@components': path.resolve(__dirname, 'src/components'),
+				'@lib': path.resolve(__dirname, 'src/lib'),
+				'@store': path.resolve(__dirname, 'src/store'),
 			},
 		},
 		server: {

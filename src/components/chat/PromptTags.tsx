@@ -1,8 +1,9 @@
 import { Component, For, JSX, Match, splitProps, Switch } from 'solid-js';
 import { toast } from 'solid-toast';
 
-import { PromptTag } from '../../lib/config';
-import { getUserConfig, setUserConfig } from '../../store';
+import { PromptTag } from '@lib/config';
+
+import { getUserConfig, setUserConfig } from '@store';
 
 type TagProps = JSX.HTMLAttributes<HTMLButtonElement> & {
 	class?: string;
@@ -71,10 +72,10 @@ const RunCodeTag: Component = () => {
 	);
 };
 
-type Props = {
+interface Props {
 	onInsertText: (text: string) => void;
 	onReplaceText: (text: string) => void;
-};
+}
 
 const PromptTags: Component<Props> = (props) => {
 	const promptTags = () => getUserConfig()?.promptTags || [];

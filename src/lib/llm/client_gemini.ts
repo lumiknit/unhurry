@@ -6,20 +6,20 @@ import { ModelConfig } from './model_config';
 
 type GeminiRole = 'model' | 'user';
 
-type GeminiContent = {
+interface GeminiContent {
 	parts: {
 		text: string;
 	}[];
 	role: GeminiRole;
-};
+}
 
-type GenerateContentCandidate = {
+interface GenerateContentCandidate {
 	avgLogprobs: number;
 	content: GeminiContent;
 	finishReason: string;
-};
+}
 
-type GeminiGeneateContentResponse = {
+interface GeminiGeneateContentResponse {
 	candidates: GenerateContentCandidate[];
 	modelVersion: string;
 	usageMetadata: {
@@ -27,16 +27,16 @@ type GeminiGeneateContentResponse = {
 		promptTokenCount: number;
 		totalTokenCount: number;
 	};
-};
+}
 
-type GeminiStreamChunk = {
+interface GeminiStreamChunk {
 	candidates: GenerateContentCandidate[];
 	usageMetadata: {
 		promptTokenCount: number;
 		totalTokenCount: number;
 	};
 	modelVersion: string;
-};
+}
 
 export class GeminiClient implements ILLMService {
 	config: ModelConfig;
@@ -60,10 +60,7 @@ export class GeminiClient implements ILLMService {
 		};
 	}
 
-	convertHistoryForGemini(
-		systemPrompt: string,
-		history: History
-	): GeminiContent[] {
+	convertHistoryForGemini(history: History): GeminiContent[] {
 		const roleMap: Record<Role, GeminiRole> = {
 			system: 'user',
 			user: 'user',
@@ -72,7 +69,6 @@ export class GeminiClient implements ILLMService {
 		const mapped = history.map((msg) => {
 			return this.textContent(roleMap[msg.role], msg.content);
 		});
-		mapped.unshift(this.textContent('user', systemPrompt));
 		for (let i = mapped.length - 2; i >= 0; i--) {
 			if (mapped[i].role === mapped[i + 1].role) {
 				const mergedMsg =
@@ -96,10 +92,17 @@ export class GeminiClient implements ILLMService {
 			'Content-Type': 'application/json',
 		};
 
-		const contents = this.convertHistoryForGemini(systemPrompt, history);
+		const contents = this.convertHistoryForGemini(history);
 
 		const reqBody = JSON.stringify({
 			contents,
+			system_instruction: {
+				parts: [
+					{
+						text: systemPrompt,
+					},
+				],
+			},
 		});
 		const resp = await fetch(url, {
 			method: 'POST',
@@ -133,10 +136,17 @@ export class GeminiClient implements ILLMService {
 			'Content-Type': 'application/json',
 		};
 
-		const contents = this.convertHistoryForGemini(systemPrompt, history);
+		const contents = this.convertHistoryForGemini(history);
 
 		const reqBody = JSON.stringify({
 			contents,
+			system_instruction: {
+				parts: [
+					{
+						text: systemPrompt,
+					},
+				],
+			},
 		});
 		const resp = await fetch(url, {
 			method: 'POST',
@@ -175,7 +185,7 @@ export class GeminiClient implements ILLMService {
 	}
 
 	async listModels(): Promise<Model[]> {
-		type ModelRespItem = {
+		interface ModelRespItem {
 			name: string;
 			version: string;
 			displayName: string;
@@ -183,7 +193,7 @@ export class GeminiClient implements ILLMService {
 			inputTokenLimit: number;
 			outputTokenLimit: number;
 			supportedGenerationMethods: string[];
-		};
+		}
 
 		const url = `${this.config.endpoint}/models?key=${this.config.apiKey}`;
 		const headers = {

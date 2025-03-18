@@ -88,7 +88,7 @@ export class SimpleIDB {
 
 	db: IDBDatabase | null = null;
 
-	constructor(name: string, store: string, version: number = 1) {
+	constructor(name: string, store: string, version = 1) {
 		this.name = name;
 		this.store = store;
 		this.version = version;

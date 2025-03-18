@@ -4,33 +4,33 @@ import { readSSEJSONStream } from './json_stream_reader';
 import { History, Message } from './message';
 import { ModelConfig } from './model_config';
 
-type ChatChoice = {
+interface ChatChoice {
 	message: {
 		role: string;
 		content: string;
 	};
-};
+}
 
-type ChatCompletionResponse = {
+interface ChatCompletionResponse {
 	choices: ChatChoice[];
-};
+}
 
-type ChatStreamChoice = {
+interface ChatStreamChoice {
 	index: number;
 	delta: {
 		content: string;
 	};
 	logprobs: null | number[];
 	finish_reason: null | string;
-};
+}
 
-type ChatStreamChunk = {
+interface ChatStreamChunk {
 	id: string;
 	object: string;
 	created: number;
 	model: string;
 	choices: ChatStreamChoice[];
-};
+}
 
 export class OpenAIClient implements ILLMService {
 	config: ModelConfig;
@@ -135,12 +135,12 @@ export class OpenAIClient implements ILLMService {
 	}
 
 	async listModels(): Promise<Model[]> {
-		type ModelRespItem = {
+		interface ModelRespItem {
 			id: string;
 			object: string;
 			owned_by: string;
 			created: number;
-		};
+		}
 		const url = `${this.config.endpoint}/models`;
 		const headers = {
 			'Content-Type': 'application/json',
