@@ -33,10 +33,15 @@ const About: Component = () => {
 					<li>
 						<b>Repository</b>: <a href={link}>{link}</a>
 					</li>
-					<li>
-						<b>Version</b>: {PACKAGE_VERSION}
-					</li>
 				</ul>
+
+				<br />
+
+				<a href="https://github.com/lumiknit/unhurry/releases/latest">
+					The latest release (Github Release)
+				</a>
+
+				<br />
 
 				<Switch>
 					<Match when={be() === undefined}>
@@ -50,6 +55,9 @@ const About: Component = () => {
 						</p>
 					</Match>
 				</Switch>
+				<p>
+					<b>Version</b>: {PACKAGE_VERSION}
+				</p>
 			</div>
 		</div>
 	);
