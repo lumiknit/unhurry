@@ -1,8 +1,23 @@
 # Unhurry
 
-Quick llm chat.
+![GitHub Release](https://img.shields.io/github/v/release/lumiknit/unhurry)
 
-https://lumiknit.github.io/apps/unhurry/
+<p align="center">
+  <img src="https://lumiknit.github.io/apps/unhurry/unhurry.png" width="200" height="200" />
+</p>
+
+> Unhurry, be lazy.
+
+Simple chat UI with LLM models with some features.
+
+## Download / Web Version
+
+- Download: https://lumiknit.github.io/apps/unhurry/releases/latest
+    - Currently, only MacOS & Android are bundled.
+- Web Version: https://lumiknit.github.io/apps/unhurry/
+    - Because of CORS, some features may not work properly.
+
+## Features
 
 ## Usage
 
