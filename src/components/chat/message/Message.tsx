@@ -16,6 +16,8 @@ import {
 import { Dynamic } from 'solid-js/web';
 import { toast } from 'solid-toast';
 
+import { logr } from '@/lib/logr';
+
 import {
 	Msg,
 	MSG_PART_TYPE_MERMAID,
@@ -184,7 +186,7 @@ const MermaidMessage: Component<ItemProps> = (props) => {
 			setSvg(DOMPurify.sanitize(svg));
 			setErr('');
 		} catch (error) {
-			console.error('Error rendering Mermaid diagram:', error);
+			logr.error('Error rendering Mermaid diagram:', error);
 			setErr(`${error}`);
 		}
 	});

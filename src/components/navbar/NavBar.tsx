@@ -104,6 +104,9 @@ const NavBar: Component = () => {
 								<BiRegularQuestionMark />
 								About
 							</A>
+							<A class="navbar-item" href={`${rootPath}/logs`}>
+								Logs
+							</A>
 						</div>
 					</div>
 				</div>

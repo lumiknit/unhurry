@@ -3,6 +3,8 @@ import { unwrap } from 'solid-js/store';
 import { toast } from 'solid-toast';
 import TurndownService from 'turndown';
 
+import { logr } from '@/lib/logr';
+
 import {
 	getChatContext,
 	getUserConfig,
@@ -59,7 +61,7 @@ Based on the following conversation, please generate a title for this chat.
 		content: '[Give me a title for the above conversation]',
 	});
 	const result = await llm.chat(systemPrompt, llmHistory);
-	console.log('Generated Title', result);
+	logr.info('[store/action] Generated Title', result);
 	const list = result.content
 		.split('\n')
 		.map((l) => l.trim())
@@ -148,7 +150,7 @@ const runJS = async (t: string, code: string): Promise<MsgPart> => {
 
 	const jctx = getChatContext().jsContext;
 	const result = await jctx.run(code);
-	console.log('Run JS Result', result, code);
+	logr.info('[store/action] Run JS Result', result, code);
 	return {
 		type: outputType,
 		content: result,
@@ -207,7 +209,7 @@ const fetchDocFromURL = async (
 		const doc = parser.parseFromString(result.body, 'text/html');
 		return await onHTML(doc);
 	} catch (e) {
-		console.error(e);
+		logr.error(e);
 		return 'HTTP fetch error: ' + e;
 	}
 };
@@ -334,12 +336,12 @@ export const processLLM = async (modelConfig: ModelConfig): Promise<void> => {
 
 	// Generate response
 	const llmHistory = getLLMHistory();
-	console.log('LLM Input', sys, llmHistory);
+	logr.info('[store/action] LLM Input', sys, llmHistory);
 	const result = await llm.chatStream(sys, llmHistory, (_, acc) => {
 		setStreamingMessage(acc);
 		return !chatCancelled;
 	});
-	console.log('LLM Result', result);
+	logr.info('[store/action] LLM Result', result);
 
 	// Parse the response to parts
 	const assistantParts = parseMsgParts(result.content);
@@ -369,7 +371,7 @@ export const processLLM = async (modelConfig: ModelConfig): Promise<void> => {
 		]);
 	} catch (e) {
 		toast.error('Failed to push history into IDB');
-		console.error(e);
+		logr.error(e);
 	}
 
 	if (chatCancelled) {

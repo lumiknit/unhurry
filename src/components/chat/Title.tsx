@@ -2,6 +2,8 @@ import { TbSparkles } from 'solid-icons/tb';
 import { Component, createSignal, Match, Switch } from 'solid-js';
 import { toast } from 'solid-toast';
 
+import { logr } from '@/lib/logr';
+
 import { getChatContext, saveChatContextMeta, setChatContext } from '@store';
 
 import { generateChatTitle } from '../../store/actions';
@@ -26,7 +28,7 @@ const TitleEdit: Component<EditProps> = (props) => {
 			loading: 'Generating...',
 			success: 'Generated',
 			error: (e) => {
-				console.error(e);
+				logr.error(e);
 				return 'Failed to generate';
 			},
 		});

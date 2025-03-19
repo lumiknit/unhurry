@@ -9,6 +9,8 @@ import {
 } from 'solid-js';
 import { toast } from 'solid-toast';
 
+import { logr } from '@/lib/logr';
+
 import {
 	LLMClientType,
 	llmPresets,
@@ -52,7 +54,7 @@ const ModelEditor: Component<Props> = (props) => {
 				loading: `Loading models of ${props.model.endpoint}...`,
 				success: `Models of ${props.model.endpoint} loaded`,
 				error: (e) => {
-					console.error(e);
+					logr.error(e);
 					return 'Failed to load models';
 				},
 			},

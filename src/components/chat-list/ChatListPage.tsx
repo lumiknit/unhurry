@@ -10,7 +10,7 @@ import { loadChatContext } from '@store/index';
 
 import { rootPath } from '../../env';
 
-const ChatListView: Component = () => {
+const ChatListPage: Component = () => {
 	const [chatList, setChatList] = createSignal<ChatMeta[] | undefined>();
 	const [filteredList, setFilteredList] = createSignal<ChatMeta[]>([]);
 	let filterRef: HTMLInputElement;
@@ -150,4 +150,4 @@ const ChatListView: Component = () => {
 	);
 };
 
-export default ChatListView;
+export default ChatListPage;

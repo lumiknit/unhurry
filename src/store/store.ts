@@ -3,6 +3,8 @@
 import { createStore, StoreSetter, unwrap } from 'solid-js/store';
 import { toast } from 'solid-toast';
 
+import { logr } from '@/lib/logr';
+
 import {
 	ChatContext,
 	ChatMeta,
@@ -37,7 +39,7 @@ export const setUserConfig = (setter: StoreSetter<UserConfig>) => {
 	toast('Config updated', {
 		duration: 500,
 	});
-	console.log('Set user config');
+	logr.info('[store/config] User config updated, will save persistently');
 	setStore(
 		'userConfig',
 		setter as StoreSetter<UserConfig | undefined, ['userConfig']>

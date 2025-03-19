@@ -1,6 +1,7 @@
 import { Component, createSignal } from 'solid-js';
 
 import { RateLimitError } from '@lib/llm';
+import { logr } from '@lib/logr';
 
 import { getChatContext, saveChatContextMeta, setChatContext } from '@store';
 
@@ -12,13 +13,13 @@ import {
 	sendUserRequest,
 } from '../../store/actions';
 
-const MainView: Component = () => {
+const ChatPage: Component = () => {
 	const [progressing, setProgressing] = createSignal(false);
 
 	const handleSend = async (text: string) => {
 		const isFirst = getChatContext().history.msgPairs.length === 0;
 
-		console.log('LLM Input: ', text);
+		logr.info('LLM Input: ', text);
 		setProgressing(true);
 		try {
 			// Pick the last user message and scroll to top.
@@ -29,7 +30,6 @@ const MainView: Component = () => {
 					const rect = last.getBoundingClientRect();
 					const top = window.scrollY + rect.top - 54;
 					// current scroll position
-					console.log(last, top);
 					window.scrollTo({
 						top,
 						behavior: 'smooth',
@@ -39,9 +39,11 @@ const MainView: Component = () => {
 			await sendUserRequest(text);
 		} catch (e) {
 			if (e instanceof RateLimitError) {
+				logr.warn('[ChatPage] Rate limit error: ', e);
 				setProgressing(false);
 				throw e;
 			}
+			logr.error('[ChatPage] Error sending user request: ', e);
 		} finally {
 			setProgressing(false);
 		}
@@ -49,13 +51,14 @@ const MainView: Component = () => {
 		if (isFirst) {
 			// Generate a title
 			const title = await generateChatTitle();
-			console.log('Generated title: ', title);
+			logr.info('[ChatPage] Generated title: ', title);
 			setChatContext((c) => ({ ...c, title }));
 			saveChatContextMeta();
 		}
 	};
 
 	const handleCancel = () => {
+		logr.info('[ChatPage] Canceling request');
 		cancelRequest();
 	};
 
@@ -74,4 +77,4 @@ const MainView: Component = () => {
 	);
 };
 
-export default MainView;
+export default ChatPage;
