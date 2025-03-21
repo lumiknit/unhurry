@@ -7,26 +7,9 @@ import {
 	MSG_PART_TYPE_FUNCTION_CALL,
 	MsgPart,
 } from './structs';
+import { fnImpls, fnTools } from './tools';
 import { ModelConfig, newClientFromConfig } from '../llm';
-import { FunctionTool } from '../llm/function';
 import { logr } from '../logr';
-
-const functions: FunctionTool[] = [
-	{
-		name: 'search',
-		description: 'Search the web for the given query.',
-		parameters: {
-			type: 'object',
-			properties: {
-				query: {
-					type: 'string',
-					description: 'The search query.',
-				},
-			},
-			required: ['query'],
-		},
-	},
-];
 
 /**
  * Action for chatting with a single additional message.
@@ -125,7 +108,7 @@ export class SingleChatAction {
 	 */
 	protected async generate(modelConfig: ModelConfig) {
 		const llm = newClientFromConfig(modelConfig);
-		llm.setFunctions(functions);
+		llm.setFunctions(fnTools);
 		const sys = await systemPrompt(modelConfig.systemPrompt);
 
 		// Part parser
@@ -166,7 +149,11 @@ export class SingleChatAction {
 		if (functionCalls.length > 0) {
 			await Promise.all(
 				functionCalls.map(async (fc) => {
-					fc.result = 'Good';
+					try {
+						fc.result = await fnImpls[fc.name](JSON.parse(fc.args));
+					} catch (e) {
+						fc.result = `Error: ${e}`;
+					}
 				})
 			);
 			// Update the last message
