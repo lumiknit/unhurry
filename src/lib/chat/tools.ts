@@ -21,26 +21,28 @@ addFunc(
 	{
 		name: 'runJS',
 		description: [
-			'Run the given JavaScript code.',
-			'The code will be run in web worker.',
-			'You can use most browser APIs, such as Number, Math, Date, OffscreenCanvas, etc.',
-			'fetch may not work since CORS',
-			'You MUST use await to wait for async operations at top level.',
-			'The result will be console outputs.',
+			'Execute the given JavaScript code in web worker.',
+			'The result is the output of the code (console.log).',
+			'When user request precise calculation, date processing, random, string manipulation, etc., you may use this function.',
 		].join('\n'),
 		parameters: {
 			type: 'object',
 			properties: {
 				code: {
 					type: 'string',
-					description: 'The JavaScript code to execute.',
+					description:
+						'The JavaScript code to execute. Run in web worker. Use console to output.',
 				},
 			},
 			required: ['code'],
 		},
 	},
-	async (args: { type: string; code: string }) => {
+	async (args: { code: string }) => {
+		if (!args.code) {
+			return 'Error: no code is provide. Please give `code` parameter.';
+		}
 		const result = await jsContext.run(args.code);
+		console.log(args.code, result);
 		return result;
 	}
 );
@@ -110,7 +112,6 @@ addFunc(
 		description: [
 			'Search the given query from DuckDuckGo web search engine.',
 			'If user request "search", "find", "invest", etc., you may used this function first.',
-			'The result is a markdown format.',
 			'When you rephrase the result, show source. you should show link as markdown grammar. (e.g. [link](url))',
 		].join('\n'),
 		parameters: {

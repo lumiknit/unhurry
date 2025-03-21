@@ -18,23 +18,25 @@ export interface FunctionTool {
 	parameters: ObjectSchema;
 }
 
-export interface FunctionCall {
-	id: string;
-	name: string;
-	args: Record<string, any>;
-}
-
 export interface PartialFunctionCall {
 	id: string;
 	name: string;
 	args: string;
 }
 
-export const fixFunctionCall = (call: PartialFunctionCall): FunctionCall => {
+/**
+ * Append a partial function call to a function call.
+ * It may be useful for streamed function call.
+ */
+export const appendPartialFunctionCall = (
+	fc: undefined | PartialFunctionCall,
+	v: PartialFunctionCall
+): PartialFunctionCall => {
+	if (fc === undefined) return v;
 	return {
-		id: call.id,
-		name: call.name,
-		args: JSON.parse(call.args),
+		id: fc.id + v.id,
+		name: fc.name + v.name,
+		args: fc.args + v.args,
 	};
 };
 

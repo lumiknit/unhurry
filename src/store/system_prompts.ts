@@ -22,6 +22,9 @@ ${role}
 
 ${importantGuidelines.join('\n')}
 
+- When you use 'runJS' function tool, set 'code' parameter correctly.
+- It should contains console.log for outputs.
+
 ## Special displays
 
 Most code blocks are displayed as text. However, some blocks are displayed in a special way.

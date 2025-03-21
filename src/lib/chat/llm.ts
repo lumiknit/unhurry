@@ -81,7 +81,16 @@ export class SingleChatAction {
 	protected pushAssistantMessage(parts: MsgPart[]) {
 		// Check last message
 		const last = this.history.msgPairs[this.history.msgPairs.length - 1];
-		if (!last) {
+		if (!last.assistant) {
+			this.history.msgPairs[this.history.msgPairs.length - 1] = {
+				...last,
+				assistant: {
+					role: 'assistant',
+					timestamp: Date.now(),
+					parts: parts,
+				},
+			};
+		} else {
 			// Push new assistant message
 			this.history.msgPairs.push({
 				assistant: {
@@ -90,15 +99,6 @@ export class SingleChatAction {
 					timestamp: Date.now(),
 				},
 			});
-		} else {
-			this.history.msgPairs[this.history.msgPairs.length - 1] = {
-				...last,
-				assistant: {
-					role: 'assistant',
-					timestamp: Date.now(),
-					parts: [...(last.assistant?.parts || []), ...parts],
-				},
-			};
 		}
 		this.onUpdate?.(this.history.msgPairs.length - 1);
 	}

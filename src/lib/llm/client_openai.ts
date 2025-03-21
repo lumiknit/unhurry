@@ -1,6 +1,10 @@
 import { ILLMService, Model, StreamCallbacks } from './client_interface';
 import { RateLimitError } from './errors';
-import { FunctionTool, PartialFunctionCall } from './function';
+import {
+	appendPartialFunctionCall,
+	FunctionTool,
+	PartialFunctionCall,
+} from './function';
 import { readSSEJSONStream } from './json_stream_reader';
 import {
 	LLMMessages,
@@ -10,6 +14,8 @@ import {
 	LLMMsgContent,
 } from './message';
 import { ModelConfig } from './model_config';
+
+// OpenAI Message
 
 interface SystemMessage {
 	role: 'system';
@@ -44,10 +50,19 @@ interface ToolMessage {
 
 type Message = SystemMessage | UserMessage | AssistantMessage | ToolMessage;
 
+// OpenAI API Response
+
+interface ChatToolCall {
+	id: string;
+	type: 'function';
+	function: ChatStreamFunctionCall;
+}
+
 interface ChatChoice {
 	message: {
 		role: string;
 		content: string;
+		tool_calls?: ChatToolCall[];
 	};
 }
 
@@ -94,6 +109,7 @@ interface ChatStreamChunk {
 export class OpenAIClient implements ILLMService {
 	config: ModelConfig;
 	functions: FunctionTool[] = [];
+	isMistral?: boolean;
 
 	constructor(config: ModelConfig) {
 		if (config.clientType !== 'OpenAI') {
@@ -101,6 +117,10 @@ export class OpenAIClient implements ILLMService {
 		}
 
 		this.config = config;
+
+		if (this.config.endpoint.includes('api.mistral.ai')) {
+			this.isMistral = true;
+		}
 	}
 
 	setFunctions(functions: FunctionTool[]): void {
@@ -160,6 +180,58 @@ export class OpenAIClient implements ILLMService {
 		return msgs;
 	}
 
+	private async packChatResponse(
+		text: string,
+		toolCalls: PartialFunctionCall[]
+	): Promise<LLMMessage> {
+		if (toolCalls.length === 0) {
+			return LLMMessage.assistant(text);
+		}
+		return LLMMessage.assistant([
+			{
+				type: 'text',
+				text,
+			},
+			...toolCalls.map(
+				(tc): FunctionCallContent => ({
+					type: 'function_call',
+					id: tc.id,
+					name: tc.name,
+					args: tc.args,
+				})
+			),
+		]);
+	}
+
+	private chatCompletionBody(
+		system: string,
+		history: LLMMessages,
+		stream?: boolean
+	): string {
+		const fnArgsKey = this.isMistral ? 'parameters' : 'arguments';
+		const strict = this.isMistral ? undefined : true;
+		const tools = this.functions.map((f) => ({
+			type: 'function',
+			function: {
+				name: f.name,
+				[fnArgsKey]: f.parameters,
+			},
+			strict,
+		}));
+		return JSON.stringify({
+			model: this.config.model,
+			messages: [
+				{
+					role: 'system',
+					content: system,
+				},
+				...this.convertHistory(history),
+			],
+			tools: tools.length > 0 ? tools : undefined,
+			stream: stream,
+		});
+	}
+
 	async chat(
 		systemPrompt: string,
 		history: LLMMessages
@@ -172,24 +244,10 @@ export class OpenAIClient implements ILLMService {
 			Accept: 'application/json',
 		};
 
-		const reqBody = JSON.stringify({
-			model: this.config.model,
-			messages: [
-				{
-					role: 'system',
-					content: systemPrompt,
-				},
-				...this.convertHistory(history),
-			],
-			tools: this.functions.map((f) => ({
-				type: 'function',
-				function: f,
-			})),
-		});
 		const resp = await fetch(url, {
 			method: 'POST',
 			headers,
-			body: reqBody,
+			body: this.chatCompletionBody(systemPrompt, history),
 		});
 		if (!resp.ok) {
 			throw new Error(
@@ -197,8 +255,16 @@ export class OpenAIClient implements ILLMService {
 			);
 		}
 		const respBody = (await resp.json()) as ChatCompletionResponse;
-		const lastMessage = respBody.choices[0].message;
-		return LLMMessage.assistant(lastMessage.content);
+		const choiceZero = respBody.choices[0];
+		const textContent = choiceZero.message.content;
+		const toolCalls: PartialFunctionCall[] = (
+			choiceZero.message.tool_calls || []
+		).map((tc) => ({
+			id: tc.id || '',
+			name: tc.function.name,
+			args: tc.function.arguments,
+		}));
+		return this.packChatResponse(textContent, toolCalls);
 	}
 
 	async chatStream(
@@ -212,26 +278,11 @@ export class OpenAIClient implements ILLMService {
 			Authorization: `Bearer ${this.config.apiKey}`,
 		};
 		console.log('OopenAI History', this.convertHistory(history));
-		const body = {
-			model: this.config.model,
-			messages: [
-				{
-					role: 'system',
-					content: systemPrompt,
-				},
-				...this.convertHistory(history),
-			],
-			tools: this.functions.map((f) => ({
-				type: 'function',
-				function: f,
-			})),
-			stream: true,
-		};
 		// Use SSE
 		const resp = await fetch(url, {
 			method: 'POST',
 			headers,
-			body: JSON.stringify(body),
+			body: this.chatCompletionBody(systemPrompt, history, true),
 		});
 		if (!resp.ok) {
 			if (resp.status === 429) {
@@ -257,18 +308,14 @@ export class OpenAIClient implements ILLMService {
 			}
 			if (delta.tool_calls) {
 				for (const tc of delta.tool_calls) {
-					if (!toolCalls[tc.index]) {
-						toolCalls[tc.index] = {
-							id: '',
-							name: '',
-							args: '',
-						};
-					}
-					if (tc.id) toolCalls[tc.index].id += tc.id;
-					if (tc.function.name)
-						toolCalls[tc.index].name += tc.function.name;
-					if (tc.function.arguments)
-						toolCalls[tc.index].args += tc.function.arguments;
+					toolCalls[tc.index] = appendPartialFunctionCall(
+						toolCalls[tc.index],
+						{
+							id: tc.id || '',
+							name: tc.function.name || '',
+							args: tc.function.arguments || '',
+						}
+					);
 					callbacks.onFunctionCall?.(
 						tc.index,
 						tc.id,
@@ -282,23 +329,7 @@ export class OpenAIClient implements ILLMService {
 			}
 		});
 
-		if (toolCalls.length > 0) {
-			content = [
-				{
-					type: 'text',
-					text: content,
-				},
-				...toolCalls.map(
-					(tc): FunctionCallContent => ({
-						type: 'function_call',
-						id: tc.id,
-						name: tc.name,
-						args: tc.args,
-					})
-				),
-			];
-		}
-		return LLMMessage.assistant(content);
+		return this.packChatResponse(content, toolCalls);
 	}
 
 	async listModels(): Promise<Model[]> {
