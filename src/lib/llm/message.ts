@@ -20,22 +20,33 @@ export interface ImageURLTypeContent {
 	url: string;
 }
 
+export interface FunctionCallContent {
+	type: 'function_call';
+	id: string;
+	name: string;
+	args: string;
+	result?: string;
+}
+
 /**
  * Typed content.
  */
-export type TypedContent = TextTypeContent | ImageURLTypeContent;
+export type TypedContent =
+	| TextTypeContent
+	| ImageURLTypeContent
+	| FunctionCallContent;
 
-export type MessageContent = string | TypedContent[];
+export type LLMMsgContent = string | TypedContent[];
 
 /**
  * Message for LLM.
  * Basically for OpenAI.
  */
-export class Message {
+export class LLMMessage {
 	role: Role;
-	content: MessageContent;
+	content: LLMMsgContent;
 
-	constructor(role: Role, content: MessageContent) {
+	constructor(role: Role, content: LLMMsgContent) {
 		this.role = role;
 		this.content = content;
 	}
@@ -43,15 +54,15 @@ export class Message {
 	/**
 	 * Create an assistant message.
 	 */
-	static assistant(content: MessageContent): Message {
-		return new Message('assistant', content);
+	static assistant(content: LLMMsgContent): LLMMessage {
+		return new LLMMessage('assistant', content);
 	}
 
 	/**
 	 * Create a user message.
 	 */
-	static user(content: MessageContent): Message {
-		return new Message('user', content);
+	static user(content: LLMMsgContent): LLMMessage {
+		return new LLMMessage('user', content);
 	}
 
 	/** Extract only text contents */
@@ -67,6 +78,14 @@ export class Message {
 		}
 		return t.join('\n\n');
 	}
+
+	/** Function calls */
+	functionCalls(): FunctionCallContent[] {
+		if (typeof this.content === 'string') {
+			return [];
+		}
+		return this.content.filter((x) => x.type === 'function_call');
+	}
 }
 
-export type LLMMessages = Message[];
+export type LLMMessages = LLMMessage[];

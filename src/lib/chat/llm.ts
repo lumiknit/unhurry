@@ -1,9 +1,32 @@
 import { systemPrompt } from '@/store/system_prompts';
 
 import { MsgPartsParser } from './parser';
-import { ChatHistory, convertChatHistoryForLLM, MsgPart } from './structs';
+import {
+	ChatHistory,
+	convertChatHistoryForLLM,
+	MSG_PART_TYPE_FUNCTION_CALL,
+	MsgPart,
+} from './structs';
 import { ModelConfig, newClientFromConfig } from '../llm';
+import { FunctionTool } from '../llm/function';
 import { logr } from '../logr';
+
+const functions: FunctionTool[] = [
+	{
+		name: 'search',
+		description: 'Search the web for the given query.',
+		parameters: {
+			type: 'object',
+			properties: {
+				query: {
+					type: 'string',
+					description: 'The search query.',
+				},
+			},
+			required: ['query'],
+		},
+	},
+];
 
 /**
  * Action for chatting with a single additional message.
@@ -23,6 +46,8 @@ export class SingleChatAction {
 	 * Chat history.
 	 */
 	history: ChatHistory;
+
+	enableFallback: boolean = false;
 
 	/**
 	 *
@@ -48,6 +73,10 @@ export class SingleChatAction {
 	constructor(modelConfigs: ModelConfig[], history: ChatHistory) {
 		this.modelConfigs = modelConfigs;
 		this.history = history;
+	}
+
+	setFallback(enable: boolean) {
+		this.enableFallback = enable;
 	}
 
 	cancel() {
@@ -96,6 +125,7 @@ export class SingleChatAction {
 	 */
 	protected async generate(modelConfig: ModelConfig) {
 		const llm = newClientFromConfig(modelConfig);
+		llm.setFunctions(functions);
 		const sys = await systemPrompt(modelConfig.systemPrompt);
 
 		// Part parser
@@ -103,36 +133,65 @@ export class SingleChatAction {
 
 		// History for LLM
 		const llmHistory = convertChatHistoryForLLM(this.history);
+		console.log('history', llmHistory);
 		logr.info('[chat/SingleChatAction/generate] Stream Start');
-		await llm.chatStream(sys, llmHistory, (chunk, acc) => {
-			this.onChunk?.(chunk, ...parser.state());
-			parser.push(chunk);
-			return !this.cancelled;
+		const result = await llm.chatStream(sys, llmHistory, {
+			onText: (text) => {
+				this.onChunk?.(text, ...parser.state());
+				parser.push(text);
+				return !this.cancelled;
+			},
 		});
 		logr.info('[chat/SingleChatAction/generate] Stream End');
 
 		// Finish parser
 		const assistantParts = parser.finish();
-		this.pushAssistantMessage(assistantParts);
+		const functionCalls = result.functionCalls();
+
+		this.pushAssistantMessage([
+			...assistantParts,
+			...functionCalls.map(
+				(fc): MsgPart => ({
+					type: MSG_PART_TYPE_FUNCTION_CALL,
+					content: JSON.stringify(fc),
+				})
+			),
+		]);
 
 		if (this.cancelled) {
 			return;
 		}
 
-		const userParts: MsgPart[] = [];
-		if (userParts.length > 0) {
-			return await this.run(userParts);
+		// Run the function
+		if (functionCalls.length > 0) {
+			await Promise.all(
+				functionCalls.map(async (fc) => {
+					fc.result = 'Good';
+				})
+			);
+			// Update the last message
+			this.history.msgPairs[this.history.msgPairs.length - 1] = {
+				...this.history.msgPairs[this.history.msgPairs.length - 1],
+				assistant: {
+					role: 'assistant',
+					timestamp: Date.now(),
+					parts: [
+						...assistantParts,
+						...functionCalls.map(
+							(fc): MsgPart => ({
+								type: MSG_PART_TYPE_FUNCTION_CALL,
+								content: JSON.stringify(fc),
+							})
+						),
+					],
+				},
+			};
+			this.onUpdate?.(this.history.msgPairs.length - 1);
+			return await this.run();
 		}
 	}
 
-	/**
-	 * Run the action.
-	 * This will change the given history inplace.
-	 */
-	async run(userParts: MsgPart[]): Promise<void> {
-		logr.info('[chat/SingleChatAction/run] ', userParts);
-
-		this.pushUserMessage(userParts);
+	protected async run(): Promise<void> {
 		for (let idx = 0; idx < this.modelConfigs.length; idx++) {
 			if (this.cancelled) {
 				logr.info('[chat/SingleChatAction/run] Cancelled');
@@ -151,12 +210,27 @@ export class SingleChatAction {
 			}
 		}
 
-		// All fallbacks are failed
 		logr.error('[chat/SingleChatAction/run] All fallbacks are failed');
 
-		// Remove the last user message
-		this.history.msgPairs.pop();
-
 		throw new Error('All fallbacks are failed');
+	}
+
+	/**
+	 * Run the action.
+	 * This will change the given history inplace.
+	 */
+	async runWithUserMessage(userParts: MsgPart[]): Promise<void> {
+		logr.info('[chat/SingleChatAction/run] ', userParts);
+
+		this.pushUserMessage(userParts);
+
+		try {
+			await this.run();
+		} catch (e) {
+			// Remove the last user message
+			this.history.msgPairs.pop();
+
+			throw e;
+		}
 	}
 }

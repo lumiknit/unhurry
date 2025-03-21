@@ -25,7 +25,7 @@ import {
 	MsgPartsParser,
 } from '../lib/chat';
 import { chatListTx, chatTx } from '../lib/idb';
-import { Message, newClientFromConfig } from '../lib/llm';
+import { LLMMessage, newClientFromConfig } from '../lib/llm';
 
 const turndownService = new TurndownService();
 
@@ -57,7 +57,7 @@ Based on the following conversation, please generate a title for this chat.
 	// Generate response
 	const llmHistory = getLLMHistory();
 	llmHistory.push(
-		Message.user('[Give me a title for the above conversation]')
+		LLMMessage.user('[Give me a title for the above conversation]')
 	);
 	const result = await llm.chat(systemPrompt, llmHistory);
 	logr.info('[store/action] Generated Title', result);
@@ -376,7 +376,7 @@ export const chat = async (text: string) => {
 	};
 
 	try {
-		await action.run(parts);
+		await action.runWithUserMessage(parts);
 	} catch (e) {
 		logr.error(e);
 		toast.error('Failed to generate');

@@ -1,7 +1,14 @@
-import { ILLMService, Model } from './client_interface';
+import { ILLMService, Model, StreamCallbacks } from './client_interface';
 import { RateLimitError } from './errors';
+import { FunctionTool } from './function';
 import { readSSEJSONStream } from './json_stream_reader';
-import { LLMMessages, Message, MessageContent, Role } from './message';
+import {
+	LLMMessages,
+	LLMMessage,
+	LLMMsgContent,
+	Role,
+	FunctionCallContent,
+} from './message';
 import { ModelConfig } from './model_config';
 
 /**
@@ -34,7 +41,35 @@ interface GeminiFileDataPart {
 	file_uri: string;
 }
 
-type GeminiPart = GeminiTextPart | GeminiInlineDataPart | GeminiFileDataPart;
+/**
+ * Gemini functionCall part
+ */
+interface GeminiFunctionCallPart {
+	functionCall: {
+		name: string;
+		args: Record<string, any>;
+	};
+}
+
+/**
+ * Gemini functionResponse part
+ */
+interface GeminiFunctionResponsePart {
+	functionResponse: {
+		name: string;
+		response: {
+			name: string;
+			content: any;
+		};
+	};
+}
+
+type GeminiPart =
+	| GeminiTextPart
+	| GeminiInlineDataPart
+	| GeminiFileDataPart
+	| GeminiFunctionCallPart
+	| GeminiFunctionResponsePart;
 
 /**
  * Gemini LLM Content
@@ -71,6 +106,7 @@ interface GeminiStreamChunk {
 
 export class GeminiClient implements ILLMService {
 	config: ModelConfig;
+	functions: FunctionTool[] = [];
 
 	constructor(config: ModelConfig) {
 		if (config.clientType !== 'Gemini') {
@@ -78,6 +114,10 @@ export class GeminiClient implements ILLMService {
 		}
 
 		this.config = config;
+	}
+
+	setFunctions(functions: FunctionTool[]): void {
+		this.functions = functions;
 	}
 
 	/**
@@ -102,7 +142,9 @@ export class GeminiClient implements ILLMService {
 				});
 			}
 			const last = out[out.length - 1];
+			const fnResults: GeminiFunctionResponsePart[] = [];
 			if (typeof msg.content === 'string') {
+				if (msg.content.length === 0) continue;
 				last.parts.push({
 					text: msg.content,
 				});
@@ -120,14 +162,46 @@ export class GeminiClient implements ILLMService {
 								data: item.url,
 							});
 							break;
+						case 'function_call':
+							last.parts.push({
+								functionCall: {
+									name: item.name,
+									args: JSON.parse(item.args),
+								},
+							});
+							if (item.result !== undefined) {
+								fnResults.push({
+									functionResponse: {
+										name: item.name,
+										response: {
+											name: item.name,
+											content: item.result,
+										},
+									},
+								});
+							}
+							break;
 					}
 				}
 			}
+			if (fnResults.length > 0) {
+				// Function results should be pushed as user message
+				if (out.length === 0 || out[out.length - 1].role !== 'user') {
+					out.push({
+						parts: [],
+						role: 'user',
+					});
+				}
+				out[out.length - 1].parts.push(...fnResults);
+			}
 		}
-		return out;
+		return out.filter((c) => c.parts.length > 0);
 	}
 
-	async chat(systemPrompt: string, history: LLMMessages): Promise<Message> {
+	async chat(
+		systemPrompt: string,
+		history: LLMMessages
+	): Promise<LLMMessage> {
 		const url = `${this.config.endpoint}/models/${this.config.model}:generateContent?key=${this.config.apiKey}`;
 
 		const headers = {
@@ -135,6 +209,11 @@ export class GeminiClient implements ILLMService {
 		};
 
 		const contents = this.convertMessagesForGemini(history);
+
+		let tools = undefined;
+		if (this.functions.length > 0) {
+			tools = [{ function_declarations: this.functions }];
+		}
 
 		const reqBody = JSON.stringify({
 			contents,
@@ -145,6 +224,7 @@ export class GeminiClient implements ILLMService {
 					},
 				],
 			},
+			tools,
 		});
 		const resp = await fetch(url, {
 			method: 'POST',
@@ -158,7 +238,7 @@ export class GeminiClient implements ILLMService {
 		}
 		const respBody = (await resp.json()) as GeminiGeneateContentResponse;
 		const lastMessage = respBody.candidates[0].content;
-		let content: MessageContent = [];
+		let content: LLMMsgContent = [];
 		for (const part of lastMessage.parts) {
 			if ('text' in part) {
 				content.push({
@@ -175,14 +255,14 @@ export class GeminiClient implements ILLMService {
 		if (content.length === 1 && content[0].type === 'text') {
 			content = content[0].text;
 		}
-		return Message.assistant(content);
+		return LLMMessage.assistant(content);
 	}
 
 	async chatStream(
 		systemPrompt: string,
 		history: LLMMessages,
-		messageCallback: (s: string, acc: string) => boolean
-	): Promise<Message> {
+		callbacks: StreamCallbacks
+	): Promise<LLMMessage> {
 		const url = `${this.config.endpoint}/models/${this.config.model}:streamGenerateContent?alt=sse&key=${this.config.apiKey}`;
 
 		const headers = {
@@ -190,6 +270,11 @@ export class GeminiClient implements ILLMService {
 		};
 
 		const contents = this.convertMessagesForGemini(history);
+
+		let tools = undefined;
+		if (this.functions.length > 0) {
+			tools = [{ function_declarations: this.functions }];
+		}
 
 		const reqBody = JSON.stringify({
 			contents,
@@ -200,6 +285,7 @@ export class GeminiClient implements ILLMService {
 					},
 				],
 			},
+			tools,
 		});
 		const resp = await fetch(url, {
 			method: 'POST',
@@ -217,7 +303,8 @@ export class GeminiClient implements ILLMService {
 		if (!reader) {
 			throw new Error('Failed to get reader');
 		}
-		let content = '';
+		let content: LLMMsgContent = '';
+		const fc: FunctionCallContent[] = [];
 		await readSSEJSONStream<GeminiStreamChunk>(reader, (chunk) => {
 			const lastMessage = chunk.candidates[0].content;
 
@@ -225,18 +312,41 @@ export class GeminiClient implements ILLMService {
 			for (const part of lastMessage.parts) {
 				if ('text' in part) {
 					gen += part.text;
+				} else if ('functionCall' in part) {
+					fc.push({
+						type: 'function_call',
+						id: part.functionCall.name,
+						name: part.functionCall.name,
+						args: JSON.stringify(part.functionCall.args),
+					});
+					callbacks.onFunctionCall?.(
+						0,
+						part.functionCall.name,
+						JSON.stringify(part.functionCall.args)
+					);
 				}
 			}
 			content += gen;
 
-			const cont = messageCallback(gen, content);
-			if (!cont) {
+			callbacks.onText?.(gen);
+
+			if (callbacks.isCancelled?.()) {
 				reader.cancel();
 				console.log('Cancelled');
 			}
 		});
 
-		return Message.assistant(content);
+		if (fc.length > 0) {
+			content = [
+				{
+					type: 'text',
+					text: content,
+				},
+				...fc,
+			];
+		}
+
+		return LLMMessage.assistant(content);
 	}
 
 	async listModels(): Promise<Model[]> {

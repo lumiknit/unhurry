@@ -1,4 +1,4 @@
-import { LLMMessages, Message, Role } from '../llm';
+import { LLMMessages, LLMMessage, Role, TypedContent } from '../llm';
 
 /*
  * Message parts.
@@ -32,6 +32,8 @@ export type MsgPartType = string;
  * MSG_PART_TYPE_TEXT is a just text, not markdown block.
  */
 export const MSG_PART_TYPE_TEXT = '';
+
+export const MSG_PART_TYPE_FUNCTION_CALL = '*fn:call';
 
 /**
  * MSG_PART_TYPE_THINK is a think block.
@@ -105,8 +107,31 @@ export const msgPartToText = (msg: MsgPart): string => {
  * Convert Msg to string.
  * This can be used as an input of any LLM.
  */
-export const msgToText = (msg: Msg): Message =>
-	new Message(msg.role, msg.parts.map(msgPartToText).join('\n\n'));
+export const convertMsgForLLM = (msg: Msg): LLMMessage => {
+	const content: TypedContent[] = [];
+	let textContent = '';
+	for (const part of msg.parts) {
+		if (part.type === MSG_PART_TYPE_FUNCTION_CALL) {
+			if (textContent) {
+				content.push({ type: 'text', text: textContent });
+				textContent = '';
+			}
+			content.push(JSON.parse(part.content));
+		} else {
+			if (textContent) {
+				textContent += '\n\n';
+			}
+			textContent += part.content;
+		}
+	}
+	if (content.length === 0) {
+		return new LLMMessage(msg.role, textContent);
+	}
+	if (textContent) {
+		content.push({ type: 'text', text: textContent });
+	}
+	return new LLMMessage(msg.role, content);
+};
 
 /**
  * Convert chat history to LLM message history.
@@ -114,10 +139,10 @@ export const msgToText = (msg: Msg): Message =>
 export const convertChatHistoryForLLM = (history: ChatHistory): LLMMessages => {
 	return history.msgPairs.reduce<LLMMessages>((acc, pair) => {
 		if (pair.user) {
-			acc.push(msgToText(pair.user));
+			acc.push(convertMsgForLLM(pair.user));
 		}
 		if (pair.assistant) {
-			acc.push(msgToText(pair.assistant));
+			acc.push(convertMsgForLLM(pair.assistant));
 		}
 		return acc;
 	}, []);
