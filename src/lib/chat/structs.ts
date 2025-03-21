@@ -1,4 +1,4 @@
-import { History, Message, Role } from '../llm';
+import { LLMMessages, Message, Role } from '../llm';
 
 export type MsgPartType = string;
 
@@ -146,8 +146,11 @@ export const parseMsgParts = (text: string): MsgPart[] => {
 	return parts;
 };
 
-export const chatHistoryToLLMHistory = (history: ChatHistory): History => {
-	return history.msgPairs.reduce<History>((acc, pair) => {
+/**
+ * Convert chat history to LLM message history.
+ */
+export const chatHistoryToLLMHistory = (history: ChatHistory): LLMMessages => {
+	return history.msgPairs.reduce<LLMMessages>((acc, pair) => {
 		if (pair.user) {
 			acc.push(msgToText(pair.user));
 		}

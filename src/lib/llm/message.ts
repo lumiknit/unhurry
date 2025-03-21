@@ -1,34 +1,39 @@
+/**
+ * Role of a message.
+ * Based on OpenAI.
+ */
 export type Role = 'system' | 'user' | 'assistant';
 
-export interface TextMessage {
-	role: Role;
-	content: string;
+/**
+ * Text-type content.
+ */
+export interface TextTypeContent {
+	type: 'text';
+	text: string;
 }
 
-export type Message = TextMessage;
-
-export type History = Message[];
+/**
+ * Image-type content.
+ */
+export interface ImageURLTypeContent {
+	type: 'image_url';
+	url: string;
+}
 
 /**
- * Create a history in order of system, user, assistant, user, assistant, ...
+ * Typed content.
  */
-export const easyTextHistory = (
-	systemPrompt: string,
-	...messages: string[]
-): History => {
-	const history: History = [
-		{
-			role: 'system',
-			content: systemPrompt,
-		},
-	];
+export type TypedContent = TextTypeContent | ImageURLTypeContent;
 
-	for (let i = 0; i < messages.length; i++) {
-		history.push({
-			role: i % 2 === 0 ? 'user' : 'assistant',
-			content: messages[i],
-		});
-	}
+export type MessageContent = string | TypedContent[];
 
-	return history;
-};
+/**
+ * Message for LLM.
+ * Basically for OpenAI.
+ */
+export interface Message {
+	role: Role;
+	content: MessageContent;
+}
+
+export type LLMMessages = Message[];

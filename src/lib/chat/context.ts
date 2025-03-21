@@ -1,12 +1,24 @@
 import { ChatHistory } from './structs';
 import { JSContext } from '../run-js';
 
+/**
+ * Metadata of the chat context.
+ * This is a subset of the ChatContext,
+ * lack of messages (ChatHistory)
+ * and runtime values (JSContext).
+ */
 export interface ChatMeta {
 	_id: string;
 	title: string;
 	createdAt: number;
 	lastUsedAt?: number;
 }
+const chatMetaFields: (keyof ChatMeta)[] = [
+	'_id',
+	'title',
+	'createdAt',
+	'lastUsedAt',
+];
 
 export type ChatContext = ChatMeta & {
 	history: ChatHistory;
@@ -14,14 +26,20 @@ export type ChatContext = ChatMeta & {
 	jsContext: JSContext;
 };
 
-export const chatID = () => {
+/**
+ * Generate random Chat ID.
+ */
+export const genChatID = () => {
 	const ts = Date.now().toString(36);
 	const rand = Math.random().toString(36).slice(2);
 	return ts + '_' + rand;
 };
 
+/**
+ * Create an empty chat context.
+ */
 export const emptyChatContext = (): ChatContext => ({
-	_id: chatID(),
+	_id: genChatID(),
 	createdAt: Date.now(),
 	title: '',
 	history: {
@@ -30,9 +48,10 @@ export const emptyChatContext = (): ChatContext => ({
 	jsContext: new JSContext(),
 });
 
-export const getChatMeta = (c: ChatContext): ChatMeta => ({
-	_id: c._id,
-	title: c.title,
-	createdAt: c.createdAt,
-	lastUsedAt: c.lastUsedAt,
-});
+/**
+ * Extract chat metadata from the chat context.
+ */
+export const extractChatMeta = (c: ChatContext): ChatMeta =>
+	Object.fromEntries(
+		chatMetaFields.map((k) => [k, c[k]])
+	) as unknown as ChatMeta;

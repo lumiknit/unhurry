@@ -1,7 +1,7 @@
 import { ILLMService, Model } from './client_interface';
 import { RateLimitError } from './errors';
 import { readSSEJSONStream } from './json_stream_reader';
-import { History, Message } from './message';
+import { LLMMessages, Message } from './message';
 import { ModelConfig } from './model_config';
 
 interface ChatChoice {
@@ -32,6 +32,9 @@ interface ChatStreamChunk {
 	choices: ChatStreamChoice[];
 }
 
+/**
+ * OpenAI & OpenAI Compatible LLM Service
+ */
 export class OpenAIClient implements ILLMService {
 	config: ModelConfig;
 
@@ -43,7 +46,7 @@ export class OpenAIClient implements ILLMService {
 		this.config = config;
 	}
 
-	async chat(systemPrompt: string, history: History): Promise<Message> {
+	async chat(systemPrompt: string, history: LLMMessages): Promise<Message> {
 		const url = `${this.config.endpoint}/chat/completions`;
 
 		const headers = {
@@ -82,7 +85,7 @@ export class OpenAIClient implements ILLMService {
 
 	async chatStream(
 		systemPrompt: string,
-		history: History,
+		history: LLMMessages,
 		messageCallback: (s: string, acc: string) => boolean
 	): Promise<Message> {
 		const url = `${this.config.endpoint}/chat/completions`;

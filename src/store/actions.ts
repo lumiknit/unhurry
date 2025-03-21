@@ -17,7 +17,7 @@ import {
 	chatHistoryToLLMHistory,
 	ChatMeta,
 	emptyChatContext,
-	getChatMeta,
+	extractChatMeta,
 	Msg,
 	MsgPair,
 	MsgPart,
@@ -358,7 +358,7 @@ export const processLLM = async (modelConfig: ModelConfig): Promise<void> => {
 				const chatList = await chatListTx<ChatMeta>();
 				const m = await chatList.get(ctx._id);
 				if (!m) {
-					await chatList.put(getChatMeta(unwrap(ctx)));
+					await chatList.put(extractChatMeta(unwrap(ctx)));
 				}
 			})(),
 			(async () => {

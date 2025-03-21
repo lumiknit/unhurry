@@ -1,15 +1,46 @@
 import { ILLMService, Model } from './client_interface';
 import { RateLimitError } from './errors';
 import { readSSEJSONStream } from './json_stream_reader';
-import { History, Message, Role } from './message';
+import { LLMMessages, Message, MessageContent, Role } from './message';
 import { ModelConfig } from './model_config';
 
+/**
+ * Gemini LLM Message Role
+ */
 type GeminiRole = 'model' | 'user';
 
+/**
+ * Gemini text content part
+ */
+interface GeminiTextPart {
+	text: string;
+}
+
+/**
+ * Gemini inline data content part
+ * (e.g. image)
+ */
+interface GeminiInlineDataPart {
+	mime_type: string;
+	data: string;
+}
+
+/**
+ * Gemini inline data content part
+ * (e.g. image)
+ */
+interface GeminiFileDataPart {
+	mime_type: string;
+	file_uri: string;
+}
+
+type GeminiPart = GeminiTextPart | GeminiInlineDataPart | GeminiFileDataPart;
+
+/**
+ * Gemini LLM Content
+ */
 interface GeminiContent {
-	parts: {
-		text: string;
-	}[];
+	parts: GeminiPart[];
 	role: GeminiRole;
 }
 
@@ -49,50 +80,61 @@ export class GeminiClient implements ILLMService {
 		this.config = config;
 	}
 
-	textContent(role: GeminiRole, text: string): GeminiContent {
-		return {
-			parts: [
-				{
-					text,
-				},
-			],
-			role,
-		};
-	}
-
-	convertHistoryForGemini(history: History): GeminiContent[] {
+	/**
+	 * Convert LLM messages (openai format) to Gemini format.
+	 */
+	convertMessagesForGemini(messages: LLMMessages): GeminiContent[] {
 		const roleMap: Record<Role, GeminiRole> = {
 			system: 'user',
 			user: 'user',
 			assistant: 'model',
 		};
-		const mapped = history.map((msg) => {
-			return this.textContent(roleMap[msg.role], msg.content);
-		});
-		for (let i = mapped.length - 2; i >= 0; i--) {
-			if (mapped[i].role === mapped[i + 1].role) {
-				const mergedMsg =
-					mapped[i].parts[0].text +
-					'\n' +
-					mapped[i + 1].parts[0].text;
-				mapped.splice(
-					i,
-					2,
-					this.textContent(mapped[i].role, mergedMsg)
-				);
+		const out: GeminiContent[] = [];
+		for (const msg of messages) {
+			// Check role first
+			if (
+				out.length === 0 ||
+				out[out.length - 1].role !== roleMap[msg.role]
+			) {
+				out.push({
+					parts: [],
+					role: roleMap[msg.role],
+				});
+			}
+			const last = out[out.length - 1];
+			if (typeof msg.content === 'string') {
+				last.parts.push({
+					text: msg.content,
+				});
+			} else {
+				for (const item of msg.content) {
+					switch (item.type) {
+						case 'text':
+							last.parts.push({
+								text: item.text,
+							});
+							break;
+						case 'image_url':
+							last.parts.push({
+								mime_type: 'image',
+								data: item.url,
+							});
+							break;
+					}
+				}
 			}
 		}
-		return mapped;
+		return out;
 	}
 
-	async chat(systemPrompt: string, history: History): Promise<Message> {
+	async chat(systemPrompt: string, history: LLMMessages): Promise<Message> {
 		const url = `${this.config.endpoint}/models/${this.config.model}:generateContent?key=${this.config.apiKey}`;
 
 		const headers = {
 			'Content-Type': 'application/json',
 		};
 
-		const contents = this.convertHistoryForGemini(history);
+		const contents = this.convertMessagesForGemini(history);
 
 		const reqBody = JSON.stringify({
 			contents,
@@ -116,18 +158,32 @@ export class GeminiClient implements ILLMService {
 		}
 		const respBody = (await resp.json()) as GeminiGeneateContentResponse;
 		const lastMessage = respBody.candidates[0].content;
+		let content: MessageContent = [];
+		for (const part of lastMessage.parts) {
+			if ('text' in part) {
+				content.push({
+					type: 'text',
+					text: part.text,
+				});
+			} else if ('data' in part) {
+				content.push({
+					type: 'image_url',
+					url: part.data,
+				});
+			}
+		}
+		if (content.length === 1 && content[0].type === 'text') {
+			content = content[0].text;
+		}
 		return {
 			role: 'assistant',
-			content: lastMessage.parts.reduce(
-				(acc, part) => acc + part.text,
-				''
-			),
+			content,
 		};
 	}
 
 	async chatStream(
 		systemPrompt: string,
-		history: History,
+		history: LLMMessages,
 		messageCallback: (s: string, acc: string) => boolean
 	): Promise<Message> {
 		const url = `${this.config.endpoint}/models/${this.config.model}:streamGenerateContent?alt=sse&key=${this.config.apiKey}`;
@@ -136,7 +192,7 @@ export class GeminiClient implements ILLMService {
 			'Content-Type': 'application/json',
 		};
 
-		const contents = this.convertHistoryForGemini(history);
+		const contents = this.convertMessagesForGemini(history);
 
 		const reqBody = JSON.stringify({
 			contents,
@@ -164,14 +220,19 @@ export class GeminiClient implements ILLMService {
 		if (!reader) {
 			throw new Error('Failed to get reader');
 		}
-		let acc = '';
+		let content = '';
 		await readSSEJSONStream<GeminiStreamChunk>(reader, (chunk) => {
 			const lastMessage = chunk.candidates[0].content;
-			acc += lastMessage.parts.reduce((acc, part) => acc + part.text, '');
-			const cont = messageCallback(
-				lastMessage.parts.reduce((acc, part) => acc + part.text, ''),
-				acc
-			);
+
+			let gen = '';
+			for (const part of lastMessage.parts) {
+				if ('text' in part) {
+					gen += part.text;
+				}
+			}
+			content += gen;
+
+			const cont = messageCallback(gen, content);
 			if (!cont) {
 				reader.cancel();
 				console.log('Cancelled');
@@ -180,7 +241,7 @@ export class GeminiClient implements ILLMService {
 
 		return {
 			role: 'assistant',
-			content: acc,
+			content,
 		};
 	}
 

@@ -1,4 +1,4 @@
-import { History, Message } from './message';
+import { LLMMessages, Message } from './message';
 
 export interface Model {
 	id: string;
@@ -8,10 +8,10 @@ export interface Model {
 }
 
 export interface ILLMService {
-	chat(systemPrompt: string, history: History): Promise<Message>;
+	chat(systemPrompt: string, history: LLMMessages): Promise<Message>;
 	chatStream(
 		systemPrompt: string,
-		history: History,
+		history: LLMMessages,
 		messageCallback: (s: string, acc: string) => boolean
 	): Promise<Message>;
 	listModels(): Promise<Model[]>;

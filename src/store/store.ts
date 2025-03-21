@@ -9,7 +9,7 @@ import {
 	ChatContext,
 	ChatMeta,
 	emptyChatContext,
-	getChatMeta,
+	extractChatMeta,
 	MsgPair,
 } from '../lib/chat';
 import { sanitizeConfig, UserConfig } from '../lib/config';
@@ -59,7 +59,7 @@ export const setChatContext = (setter: StoreSetter<ChatContext>) => {
 export const saveChatContextMeta = async () => {
 	const ctx = getChatContext();
 	const chatList = await chatListTx<ChatMeta>();
-	await chatList.put(getChatMeta(unwrap(ctx)));
+	await chatList.put(extractChatMeta(unwrap(ctx)));
 };
 
 export const loadChatContext = async (id: string) => {
