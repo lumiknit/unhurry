@@ -240,12 +240,10 @@ span[aria-hidden='true'] {
 .streaming-msg {
 	white-space: pre-wrap;
 	word-break: break-all;
-	margin: 0.5rem;
-	padding: 0.5rem;
 
-	font-family: monospace;
+	padding: 0 0.75rem;
+
 	color: var(--bulma-text-soft-invert);
-	background-color: var(--bulma-text-soft);
 	border-radius: 0.5rem;
 
 	margin-bottom: 100dvh;

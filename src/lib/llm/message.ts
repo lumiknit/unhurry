@@ -31,9 +31,42 @@ export type MessageContent = string | TypedContent[];
  * Message for LLM.
  * Basically for OpenAI.
  */
-export interface Message {
+export class Message {
 	role: Role;
 	content: MessageContent;
+
+	constructor(role: Role, content: MessageContent) {
+		this.role = role;
+		this.content = content;
+	}
+
+	/**
+	 * Create an assistant message.
+	 */
+	static assistant(content: MessageContent): Message {
+		return new Message('assistant', content);
+	}
+
+	/**
+	 * Create a user message.
+	 */
+	static user(content: MessageContent): Message {
+		return new Message('user', content);
+	}
+
+	/** Extract only text contents */
+	extractText(): string {
+		if (typeof this.content === 'string') {
+			return this.content;
+		}
+		const t: string[] = [];
+		for (const x of this.content) {
+			if (x.type === 'text') {
+				t.push(x.text);
+			}
+		}
+		return t.join('\n\n');
+	}
 }
 
 export type LLMMessages = Message[];

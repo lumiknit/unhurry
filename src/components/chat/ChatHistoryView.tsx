@@ -26,8 +26,16 @@ const ChatHistoryView: Component = () => {
 								getStreamingMessage()
 							}
 						>
+							<Message
+								msg={{
+									role: 'assistant',
+									parts: getStreamingMessage()!.parts,
+									timestamp: Date.now(),
+								}}
+								idx={idx()}
+							/>
 							<div class="streaming-msg">
-								{getStreamingMessage()}
+								{getStreamingMessage()!.rest}
 								<div class="text-center">
 									<span class="spinner" />
 								</div>

@@ -175,10 +175,7 @@ export class GeminiClient implements ILLMService {
 		if (content.length === 1 && content[0].type === 'text') {
 			content = content[0].text;
 		}
-		return {
-			role: 'assistant',
-			content,
-		};
+		return Message.assistant(content);
 	}
 
 	async chatStream(
@@ -239,10 +236,7 @@ export class GeminiClient implements ILLMService {
 			}
 		});
 
-		return {
-			role: 'assistant',
-			content,
-		};
+		return Message.assistant(content);
 	}
 
 	async listModels(): Promise<Model[]> {

@@ -3,6 +3,7 @@ import { unwrap } from 'solid-js/store';
 import { toast } from 'solid-toast';
 import TurndownService from 'turndown';
 
+import { SingleChatAction } from '@/lib/chat/llm';
 import { logr } from '@/lib/logr';
 
 import {
@@ -11,10 +12,9 @@ import {
 	setChatContext,
 	setStreamingMessage,
 } from './store';
-import { systemPrompt } from './system_prompts';
 import { getBEService } from '../lib/be';
 import {
-	chatHistoryToLLMHistory,
+	convertChatHistoryForLLM,
 	ChatMeta,
 	emptyChatContext,
 	extractChatMeta,
@@ -22,10 +22,10 @@ import {
 	MsgPair,
 	MsgPart,
 	parseMessagePartType,
-	parseMsgParts,
+	MsgPartsParser,
 } from '../lib/chat';
 import { chatListTx, chatTx } from '../lib/idb';
-import { ModelConfig, newClientFromConfig } from '../lib/llm';
+import { Message, newClientFromConfig } from '../lib/llm';
 
 const turndownService = new TurndownService();
 
@@ -56,13 +56,13 @@ Based on the following conversation, please generate a title for this chat.
 
 	// Generate response
 	const llmHistory = getLLMHistory();
-	llmHistory.push({
-		role: 'user',
-		content: '[Give me a title for the above conversation]',
-	});
+	llmHistory.push(
+		Message.user('[Give me a title for the above conversation]')
+	);
 	const result = await llm.chat(systemPrompt, llmHistory);
 	logr.info('[store/action] Generated Title', result);
-	const list = result.content
+	const list = result
+		.extractText()
 		.split('\n')
 		.map((l) => l.trim())
 		.filter((l) => l);
@@ -124,21 +124,10 @@ const pushAssistantMessage = (parts: MsgPart[]) => {
  */
 const getLLMHistory = () => {
 	const context = getChatContext();
-	return chatHistoryToLLMHistory(context.history);
+	return convertChatHistoryForLLM(context.history);
 };
 
 // Chat request
-
-let chatCancelled = false;
-
-export const sendUserRequest = async (request: string) => {
-	chatCancelled = false;
-	return await sendUserParts(parseMsgParts(request));
-};
-
-export const cancelRequest = () => {
-	chatCancelled = true;
-};
 
 const runJS = async (t: string, code: string): Promise<MsgPart> => {
 	// Check if type has pipe
@@ -316,40 +305,7 @@ const handleSpecialPart = async (
 	}
 };
 
-/**
- * Find special parts and handle them.
- */
-const handleSpecialParts = async (parts: MsgPart[]): Promise<MsgPart[]> =>
-	(await Promise.all(parts.map(handleSpecialPart))).filter(
-		(p) => p !== undefined
-	);
-
-/**
- * Send current history to LLM and try to generate a response.
- * If requests failed, it will throw an exception.
- */
-export const processLLM = async (modelConfig: ModelConfig): Promise<void> => {
-	const llm = newClientFromConfig(modelConfig);
-	const additionalSystemPrompt = modelConfig.systemPrompt;
-
-	const sys = await systemPrompt(additionalSystemPrompt);
-
-	// Generate response
-	const llmHistory = getLLMHistory();
-	logr.info('[store/action] LLM Input', sys, llmHistory);
-	const result = await llm.chatStream(sys, llmHistory, (_, acc) => {
-		setStreamingMessage(acc);
-		return !chatCancelled;
-	});
-	logr.info('[store/action] LLM Result', result);
-
-	// Parse the response to parts
-	const assistantParts = parseMsgParts(result.content);
-
-	// Insert the response to history
-	pushAssistantMessage(assistantParts);
-	setStreamingMessage(undefined);
-
+export const saveCurrentChatToDB = async () => {
 	// Using DB, save the chat history
 	try {
 		const ctx = getChatContext();
@@ -373,59 +329,62 @@ export const processLLM = async (modelConfig: ModelConfig): Promise<void> => {
 		toast.error('Failed to push history into IDB');
 		logr.error(e);
 	}
-
-	if (chatCancelled) {
-		return;
-	}
-
-	// Check run-js parts
-	let userParts: MsgPart[] = [];
-	if (getUserConfig()?.enableRunCode) {
-		userParts = await handleSpecialParts(assistantParts);
-	}
-
-	if (userParts.length > 0) {
-		// Resend
-		return await sendUserParts(userParts);
-	}
 };
 
-/**
- * Send user parts to the LLM.
- * When the LLM fails, it will try the next model.
- */
-export const sendUserParts = async (parts: MsgPart[]): Promise<void> => {
-	const userSpecialParts = await handleSpecialParts(parts);
-	const userParts = [...parts, ...userSpecialParts];
+export let actions: SingleChatAction[] = [];
 
-	pushUserMessage(userParts);
-
+export const chat = async (text: string) => {
 	const config = getUserConfig();
 	if (!config) {
 		throw new Error('No user config');
 	}
 
-	for (let i = config.currentModelIdx; i < config.models.length; i++) {
-		const modelConfig = config.models[i];
-		if (!modelConfig) {
-			throw new Error('No model config');
-		}
-		try {
-			await processLLM(modelConfig);
-			return;
-		} catch {
-			if (!config.enableLLMFallback) {
-				break;
-			}
-			toast(`Model '${modelConfig.name}' failed, trying next model`);
-		}
+	const chatContext = getChatContext();
+	if (!chatContext) {
+		throw new Error('No chat context');
 	}
-	// Pop last history
-	setChatContext((c) => ({
-		...c,
-		history: {
-			msgPairs: c.history.msgPairs.slice(0, -1),
-		},
-	}));
-	throw new Error('Failed to send user parts, no LLM are available');
+
+	const parts = MsgPartsParser.parse(text);
+
+	const history = unwrap(chatContext.history);
+
+	const action = new SingleChatAction(
+		config.models.slice(config.currentModelIdx),
+		history
+	);
+	actions.push(action);
+
+	action.onChunk = (chunk, parts, rest) => {
+		setStreamingMessage({
+			parts: [...parts],
+			rest,
+		});
+	};
+	action.onLLMFallback = (idx, mc) => {
+		toast(`Model '${mc.name}' failed, trying next model`);
+	};
+	action.onUpdate = (idx) => {
+		console.log('Update', idx, history);
+		setStreamingMessage();
+		setChatContext((c) => ({
+			...c,
+			history: {
+				msgPairs: [...history.msgPairs],
+			},
+		}));
+		saveCurrentChatToDB();
+	};
+
+	try {
+		await action.run(parts);
+	} catch (e) {
+		logr.error(e);
+		toast.error('Failed to generate');
+	}
+
+	actions = actions.filter((a) => a !== action);
+};
+
+export const cancelAllChats = () => {
+	actions.forEach((a) => a.cancel());
 };

@@ -11,14 +11,20 @@ import {
 	emptyChatContext,
 	extractChatMeta,
 	MsgPair,
+	MsgPart,
 } from '../lib/chat';
 import { sanitizeConfig, UserConfig } from '../lib/config';
 import { chatListTx, chatTx, loadUserConfig, saveUserConfig } from '../lib/idb';
 import { JSContext } from '../lib/run-js';
 
+interface StreamingMessage {
+	parts: MsgPart[];
+	rest: string;
+}
+
 interface GlobalStore {
 	chatContext: ChatContext;
-	streamingMessage?: string;
+	streamingMessage?: StreamingMessage;
 
 	userConfig?: UserConfig;
 }
@@ -27,7 +33,8 @@ export const [store, setStore] = createStore<GlobalStore>({
 	chatContext: emptyChatContext(),
 });
 
-// Load user config
+// Config
+
 (async () => {
 	const c = await loadUserConfig<UserConfig>();
 	const userConfig = sanitizeConfig(c);
@@ -47,6 +54,8 @@ export const setUserConfig = (setter: StoreSetter<UserConfig>) => {
 	// Save to IDB
 	saveUserConfig(unwrap(getUserConfig()));
 };
+
+// Chat Context
 
 export const getChatContext = () => store.chatContext;
 export const setChatContext = (setter: StoreSetter<ChatContext>) => {
@@ -82,12 +91,17 @@ export const loadChatContext = async (id: string) => {
 	}));
 };
 
+// Streaming message
+
 export const getStreamingMessage = () => store.streamingMessage;
 export const setStreamingMessage = (
-	setter: StoreSetter<string | undefined>
+	setter: StoreSetter<StreamingMessage | void>
 ) => {
 	setStore(
 		'streamingMessage',
-		setter as StoreSetter<string | undefined, ['streamingMessage']>
+		setter as StoreSetter<
+			StreamingMessage | undefined,
+			['streamingMessage']
+		>
 	);
 };

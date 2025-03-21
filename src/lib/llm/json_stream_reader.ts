@@ -31,7 +31,7 @@ export const readSSEJSONStream = async <T>(
 			if (colon < 0) continue;
 			const field = part.slice(0, colon);
 			const data = part.slice(colon + 1).trim();
-			switch(field) {
+			switch (field) {
 				case 'event':
 					event = data;
 					break;

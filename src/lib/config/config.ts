@@ -1,5 +1,8 @@
 import { ModelConfig } from '../llm';
 
+/**
+ * Display color. Used for the prompt tags.
+ */
 export type Color =
 	| 'none'
 	| 'primary'
@@ -7,6 +10,10 @@ export type Color =
 	| 'success'
 	| 'warning'
 	| 'danger';
+
+/**
+ * Array of all options for the color.
+ */
 export const colors = [
 	'none',
 	'primary',
@@ -15,6 +22,10 @@ export const colors = [
 	'warning',
 	'danger',
 ] as const;
+
+/**
+ * Set of all options for the color.
+ */
 export const colorSet = new Set(colors);
 
 export type PromptTagAction = 'insert' | 'replace';

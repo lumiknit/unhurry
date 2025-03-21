@@ -7,11 +7,7 @@ import { getChatContext, saveChatContextMeta, setChatContext } from '@store';
 
 import BottomInput from './BottomInput';
 import ChatHistoryView from './ChatHistoryView';
-import {
-	cancelRequest,
-	generateChatTitle,
-	sendUserRequest,
-} from '../../store/actions';
+import { cancelAllChats, chat, generateChatTitle } from '../../store/actions';
 
 const ChatPage: Component = () => {
 	const [progressing, setProgressing] = createSignal(false);
@@ -36,7 +32,7 @@ const ChatPage: Component = () => {
 					});
 				}
 			}, 33);
-			await sendUserRequest(text);
+			await chat(text);
 		} catch (e) {
 			if (e instanceof RateLimitError) {
 				logr.warn('[ChatPage] Rate limit error: ', e);
@@ -59,7 +55,7 @@ const ChatPage: Component = () => {
 
 	const handleCancel = () => {
 		logr.info('[ChatPage] Canceling request');
-		cancelRequest();
+		cancelAllChats();
 	};
 
 	return (

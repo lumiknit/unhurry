@@ -7,6 +7,9 @@ export interface Model {
 	created: number;
 }
 
+/**
+ * LLM Service Interface
+ */
 export interface ILLMService {
 	chat(systemPrompt: string, history: LLMMessages): Promise<Message>;
 	chatStream(

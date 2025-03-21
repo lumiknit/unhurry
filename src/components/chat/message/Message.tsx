@@ -47,10 +47,14 @@ mermaid.initialize({
 const TextMessage: Component<ItemProps> = (props) => {
 	const [html, setHtml] = createSignal('');
 
-	onMount(async () => {
-		const html = await marked(props.content, { async: true });
+	const setMD = async (v: string) => {
+		const html = await marked(v, { async: true });
 		const sanitized = html; //DOMPurify.sanitize(html);
 		setHtml(sanitized.replace(/<a href/g, '<a target="_blank" href'));
+	};
+
+	onMount(async () => {
+		await setMD(props.content);
 	});
 
 	return <div class="content" innerHTML={html()} />;

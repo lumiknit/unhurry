@@ -1,5 +1,29 @@
 import { LLMMessages, Message, Role } from '../llm';
 
+/*
+ * Message parts.
+ * Message parts are used to represent the various types of content
+ * that can be included in a message.
+ *
+ * The message parts has 'type' and 'content', both are strings.
+ * The 'type' is used to identify the kind of content.
+ * The 'content' is the actual content.
+ *
+ * Empty type '' is used for plain text, which will be shown as markdown.
+ * All other types may be safe to be shown as markdown code blocks.
+ *
+ * Some special types may be displayed to the user in a special way.
+ * - '*fn:call', '*fn:ret': LLM function calling
+ * - '*think': Think block, which is used for reasoning model.
+ * - 'run-js': JavaScript code block
+ * - 'svg: Show the SVG tag as an image
+ * - 'mermaid': Show the Mermaid diagram
+ * Asterisk prefix is used when the type is not a real markdown block.
+ */
+
+/**
+ * Message part type.
+ */
 export type MsgPartType = string;
 
 // Special message part types
@@ -12,7 +36,7 @@ export const MSG_PART_TYPE_TEXT = '';
 /**
  * MSG_PART_TYPE_THINK is a think block.
  */
-export const MSG_PART_TYPE_THINK = 'think';
+export const MSG_PART_TYPE_THINK = '*think';
 
 /**
  * MSG_PART_TYPE_RUN_JS is a javascript code which should be executed.
@@ -50,6 +74,11 @@ export interface Msg<R = Role> {
 	timestamp: number;
 }
 
+/**
+ * Group of message pair, user than assistant (Order is important).
+ * They are grouped for
+ * - More convenient to display in UI
+ */
 export interface MsgPair {
 	user?: Msg<'user'>;
 	assistant?: Msg<'assistant'>;
@@ -58,17 +87,6 @@ export interface MsgPair {
 export interface ChatHistory {
 	msgPairs: MsgPair[];
 }
-
-export const textMsg = (role: Role, text: string): Msg => ({
-	role,
-	parts: [
-		{
-			type: MSG_PART_TYPE_TEXT,
-			content: text,
-		},
-	],
-	timestamp: Date.now(),
-});
 
 /**
  * Convert MsgPart to string.
@@ -87,69 +105,13 @@ export const msgPartToText = (msg: MsgPart): string => {
  * Convert Msg to string.
  * This can be used as an input of any LLM.
  */
-export const msgToText = (msg: Msg): Message => ({
-	role: msg.role,
-	content: msg.parts.map(msgPartToText).join('\n\n'),
-});
-
-export const parseMsgParts = (text: string): MsgPart[] => {
-	// Insert newline before text, to simple match
-	text = '\n' + text.trim();
-	const parts: MsgPart[] = [];
-	// Check if the answer starts with <Think> tag
-	if (text.startsWith('\n<think>')) {
-		const thinkEnd = text.indexOf('\n</think>');
-		if (thinkEnd >= 0) {
-			parts.push({
-				type: MSG_PART_TYPE_THINK,
-				content: text.slice(8, thinkEnd).trim(),
-			});
-			text = text.slice(thinkEnd + 9);
-		}
-	}
-
-	for (let i = 0; i < text.length; ) {
-		const blockStart = text.indexOf('\n```', i);
-		if (blockStart < 0) {
-			// The rest is text
-			parts.push({
-				type: MSG_PART_TYPE_TEXT,
-				content: text.slice(i).trim(),
-			});
-			break;
-		}
-
-		let blockStartLineEnd = text.indexOf('\n', blockStart + 4);
-		if (blockStartLineEnd < 0) blockStartLineEnd = text.length;
-
-		let blockEnd = text.indexOf('\n```', blockStart + 1);
-		if (blockEnd < 0) blockEnd = text.length;
-
-		const prevBlockContent = text.slice(i, blockStart).trim();
-		if (prevBlockContent.length > 0) {
-			parts.push({
-				type: MSG_PART_TYPE_TEXT,
-				content: prevBlockContent,
-			});
-		}
-
-		const blockType = text.slice(blockStart + 4, blockStartLineEnd).trim();
-		const blockContent = text.slice(blockStartLineEnd + 1, blockEnd).trim();
-		parts.push({
-			type: blockType,
-			content: blockContent,
-		});
-
-		i = blockEnd + 4;
-	}
-
-	return parts;
-};
+export const msgToText = (msg: Msg): Message =>
+	new Message(msg.role, msg.parts.map(msgPartToText).join('\n\n'));
 
 /**
  * Convert chat history to LLM message history.
  */
-export const chatHistoryToLLMHistory = (history: ChatHistory): LLMMessages => {
+export const convertChatHistoryForLLM = (history: ChatHistory): LLMMessages => {
 	return history.msgPairs.reduce<LLMMessages>((acc, pair) => {
 		if (pair.user) {
 			acc.push(msgToText(pair.user));

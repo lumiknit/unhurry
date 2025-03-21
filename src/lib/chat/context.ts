@@ -13,6 +13,8 @@ export interface ChatMeta {
 	createdAt: number;
 	lastUsedAt?: number;
 }
+
+/** Key of the fields */
 const chatMetaFields: (keyof ChatMeta)[] = [
 	'_id',
 	'title',
@@ -20,11 +22,14 @@ const chatMetaFields: (keyof ChatMeta)[] = [
 	'lastUsedAt',
 ];
 
-export type ChatContext = ChatMeta & {
-	history: ChatHistory;
-
+export interface RunContext {
 	jsContext: JSContext;
-};
+}
+
+export type ChatContext = ChatMeta &
+	RunContext & {
+		history: ChatHistory;
+	};
 
 /**
  * Generate random Chat ID.

@@ -77,10 +77,7 @@ export class OpenAIClient implements ILLMService {
 		}
 		const respBody = (await resp.json()) as ChatCompletionResponse;
 		const lastMessage = respBody.choices[0].message;
-		return {
-			role: 'assistant',
-			content: lastMessage.content,
-		};
+		return Message.assistant(lastMessage.content);
 	}
 
 	async chatStream(
@@ -131,10 +128,7 @@ export class OpenAIClient implements ILLMService {
 				reader.cancel();
 			}
 		});
-		return {
-			role: 'assistant',
-			content: acc,
-		};
+		return Message.assistant(acc);
 	}
 
 	async listModels(): Promise<Model[]> {
