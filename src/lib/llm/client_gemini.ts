@@ -225,6 +225,14 @@ export class GeminiClient implements ILLMService {
 		if (this.functions.length > 0) {
 			tools = [{ function_declarations: this.functions }];
 		}
+		if (this.config.model.includes('image-generation')) {
+			return JSON.stringify({
+				contents: this.convertMessagesForGemini(history),
+				generationConfig: {
+					responseModalities: ['Text', 'Image'],
+				}
+			});
+		}
 		return JSON.stringify({
 			contents: this.convertMessagesForGemini(history),
 			system_instruction: {
