@@ -1,5 +1,6 @@
 /// Global store
 
+import { createEffect } from 'solid-js';
 import { createStore, StoreSetter, unwrap } from 'solid-js/store';
 import { toast } from 'solid-toast';
 
@@ -54,6 +55,16 @@ export const setUserConfig = (setter: StoreSetter<UserConfig>) => {
 	// Save to IDB
 	saveUserConfig(unwrap(getUserConfig()));
 };
+
+createEffect(() => {
+	const c = getUserConfig();
+	if (!c) return;
+	if (c.fontFamily === 'sans-serif') {
+		document.querySelector(':root')?.classList.remove('font-serif');
+	} else {
+		document.querySelector(':root')?.classList.add('font-serif');
+	}
+});
 
 // Chat Context
 

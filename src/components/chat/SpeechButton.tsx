@@ -124,8 +124,10 @@ const SpeechButton: Component<Props> = (props_) => {
 	};
 
 	const restartSpeechRecognition = () => {
-		stopSpeechRecognition();
-		startSpeechRecognition();
+		if (sr) {
+			stopSpeechRecognition();
+			startSpeechRecognition();
+		}
 	};
 
 	const handleClick = (e: MouseEvent) => {

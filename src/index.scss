@@ -11,6 +11,13 @@
 	font-display: swap;
 }
 
+@font-face {
+	font-family: 'Source Han Serif';
+	src: url('/SourceHanSerif-VF.otf.woff2') format('woff2');
+	font-weight: 100 900;
+	font-display: swap;
+}
+
 // Common helpers
 
 .flex-split {
@@ -47,14 +54,26 @@
 	--bulma-primary-l: 27%;
 	--bulma-primary-invert-l: 95%;
 
-	--bulma-family-primary:
+	--sans-serif-family:
 		Pretendard, Inter, SF Pro, Segoe UI, Roboto, Oxygen, Ubuntu,
 		Helvetica Neue, Helvetica, Arial, sans-serif !important;
+	--serif-family: 'Source Han Serif', 'Noto Serif', 'Times New Roman', serif;
+
+	--bulma-family-primary: var(--sans-serif-family);
+
 	--uh-blur: blur(3px);
 	--uh-blur-opacity: 0.8;
 
 	--uh-bottom-input-border: 1px solid hsl(0, 0%, 85%);
 	--uh-navbar-l: 100%;
+}
+
+:root.font-serif {
+	--bulma-family-primary: var(--serif-family);
+	--bulma-body-weight: 500;
+	--bulma-strong-weight: 800;
+	--bulma-weight-semibold: 700;
+	--bulma-weight-bold: 900;
 }
 
 @media (prefers-color-scheme: dark) {

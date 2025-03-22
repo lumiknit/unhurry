@@ -1,104 +1,12 @@
-import {
-	Component,
-	createEffect,
-	createSignal,
-	For,
-	Match,
-	Switch,
-} from 'solid-js';
+import { Component, createSignal, For, Match, Switch } from 'solid-js';
 import { toast } from 'solid-toast';
 
-import { UserConfig } from '@lib/config';
-
-import { getUserConfig, setUserConfig } from '@store';
-
+import CheckboxConfig from './form/CheckboxConfig';
+import NumConfig from './form/NumConfig';
+import SelectConfig from './form/SelectConfig';
 import ModelList from './ModelList';
 import TagList from './TagList';
 import Xxport from './Xxport';
-
-interface NumConfigProps {
-	key: keyof UserConfig;
-	label: string;
-	desc: string;
-}
-
-const NumConfig: Component<NumConfigProps> = (props) => {
-	let inputRef: HTMLInputElement;
-	const handleChange = () => {
-		const value = Number(inputRef!.value);
-		setUserConfig((c) => ({
-			...c,
-			[props.key]: value,
-		}));
-	};
-
-	createEffect(() => {
-		const c = getUserConfig();
-		if (c) {
-			const v = Number(c[props.key]);
-			if (isNaN(v)) return;
-			inputRef!.value = String(v);
-		}
-	});
-
-	return (
-		<div class="field">
-			<label class="label">{props.label}</label>
-			<div class="control">
-				<input
-					ref={inputRef!}
-					class="input"
-					type="number"
-					placeholder={props.label}
-					onChange={handleChange}
-				/>
-			</div>
-			<p class="help">{props.desc}</p>
-		</div>
-	);
-};
-
-interface CheckboxConfigProps {
-	key: keyof UserConfig;
-	label: string;
-	desc: string;
-}
-
-const CheckboxConfig: Component<CheckboxConfigProps> = (props) => {
-	const [checked, setChecked] = createSignal(false);
-
-	const handleChange = () => {
-		const newValue = !checked();
-		setChecked(newValue);
-		setUserConfig((c) => ({
-			...c,
-			[props.key]: newValue,
-		}));
-	};
-
-	createEffect(() => {
-		const c = getUserConfig();
-		if (c) {
-			const v = Boolean(c[props.key]);
-			setChecked(v);
-		}
-	});
-
-	return (
-		<div class="field">
-			<label class="label">{props.label}</label>
-			<label class="checkbox">
-				<input
-					type="checkbox"
-					checked={checked()}
-					onChange={handleChange}
-				/>
-				{props.label}
-			</label>
-			<p class="help">{props.desc}</p>
-		</div>
-	);
-};
 
 type Tab = 'General' | 'Models' | 'Prompt Tags' | 'Im/Export';
 const tabs: Tab[] = ['General', 'Models', 'Prompt Tags', 'Im/Export'];
@@ -158,6 +66,16 @@ const SettingsPage: Component = () => {
 							key="enableVibration"
 							label="Enable device vibration"
 							desc="Enable vibration feedback for buttons. Only works on Android."
+						/>
+
+						<SelectConfig
+							key="fontFamily"
+							label="Font Family"
+							desc="Font family of the chat messages"
+							options={[
+								{ value: 'sans-serif', label: 'Sans-serif' },
+								{ value: 'serif', label: 'Serif' },
+							]}
 						/>
 
 						<h2 class="title is-4">Remove service workers</h2>

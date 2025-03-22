@@ -89,6 +89,16 @@ export interface UserConfig {
 	enableVibration: boolean;
 
 	/**
+	 * Font family
+	 */
+	fontFamily: 'sans-serif' | 'serif';
+
+	/**
+	 * Font size
+	 */
+	fontSize: number;
+
+	/**
 	 * Prompt tags
 	 */
 	promptTags: PromptTag[];
@@ -104,6 +114,8 @@ export const defaultConfig = (): UserConfig => ({
 	enableTools: true,
 	enableAutoSend: false,
 	enableVibration: true,
+	fontFamily: 'sans-serif',
+	fontSize: 16,
 	autoSendMillis: 2000,
 	promptTags: [],
 });
@@ -134,6 +146,16 @@ export const sanitizeConfig = (config: UserConfig): UserConfig => {
 				delete merged[key];
 			}
 		});
+
+		// Font size should be one of the following
+		merged.fontSize = Math.max(10, Math.min(merged.fontSize, 24));
+
+		// Font family
+		const fontFamilies = new Set(['sans-serif', 'serif']);
+		if (!fontFamilies.has(merged.fontFamily)) {
+			merged.fontFamily = 'sans-serif';
+		}
+
 		return merged as unknown as UserConfig;
 	} catch {
 		return defaultConfig();
