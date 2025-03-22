@@ -1,7 +1,7 @@
 import { A, useNavigate } from '@solidjs/router';
 import {
 	BiRegularCog,
-	BiRegularLibrary,
+	BiRegularHistory,
 	BiRegularQuestionMark,
 	BiSolidFilePlus,
 } from 'solid-icons/bi';
@@ -65,7 +65,7 @@ const NavBar: Component = () => {
 				</a>
 
 				<A class="navbar-item" href="/chat-list">
-					<BiRegularLibrary />
+					<BiRegularHistory />
 					<span class="is-hidden-mobile">Open</span>
 				</A>
 

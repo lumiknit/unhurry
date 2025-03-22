@@ -1,5 +1,5 @@
 import { TbPlus } from 'solid-icons/tb';
-import { Component, For, Setter } from 'solid-js';
+import { batch, Component, createSignal, For, Setter } from 'solid-js';
 import { toast } from 'solid-toast';
 
 import { emptyModelConfig, ModelConfig } from '@lib/llm';
@@ -11,6 +11,7 @@ import { openConfirm } from '../modal-confirm';
 
 const ModelList: Component = () => {
 	const models = () => getUserConfig()?.models || [];
+	const [editings, setEditings] = createSignal<boolean[]>([]);
 
 	const addModel = () => {
 		setUserConfig((c) => ({
@@ -45,10 +46,20 @@ const ModelList: Component = () => {
 
 	const handleMove = (idx: number, dir: number) => {
 		if (idx + dir < 0 || idx + dir >= models().length) return;
-		setUserConfig((c) => {
-			const models = [...c.models];
-			[models[idx], models[idx + dir]] = [models[idx + dir], models[idx]];
-			return { ...c, models };
+		batch(() => {
+			setUserConfig((c) => {
+				const models = [...c.models];
+				[models[idx], models[idx + dir]] = [
+					models[idx + dir],
+					models[idx],
+				];
+				return { ...c, models };
+			});
+			setEditings((es) => {
+				const newEs = [...es];
+				[newEs[idx], newEs[idx + dir]] = [newEs[idx + dir], newEs[idx]];
+				return newEs;
+			});
 		});
 	};
 
@@ -77,6 +88,14 @@ const ModelList: Component = () => {
 						<div class="column is-4">
 							<ModelEditor
 								model={m}
+								editing={editings()[i()]}
+								setEditing={(v) =>
+									setEditings((es) => {
+										const newEs = [...es];
+										newEs[i()] = v;
+										return newEs;
+									})
+								}
 								updateModel={updateModel(i())}
 								idx={i()}
 								onMoveUp={() => handleMove(i(), -1)}

@@ -21,6 +21,8 @@ import {
 
 interface Props {
 	model: ModelConfig;
+	editing: boolean;
+	setEditing: (v: boolean) => void;
 	updateModel: Setter<ModelConfig>;
 	idx: number;
 	onMoveUp: () => void;
@@ -36,7 +38,6 @@ const ModelEditor: Component<Props> = (props) => {
 	let clientTypeRef: HTMLInputElement;
 	let systemPromptRef: HTMLTextAreaElement;
 
-	const [editing, setEditing] = createSignal(false);
 	const [models, setModels] = createSignal<Model[] | undefined>();
 	const [showAllModels, setShowAllModels] = createSignal(false);
 
@@ -125,7 +126,7 @@ const ModelEditor: Component<Props> = (props) => {
 		<div class="card">
 			<div class="card-content">
 				<Switch>
-					<Match when={editing()}>
+					<Match when={props.editing}>
 						<div class="field">
 							<label class="label">Endpoint</label>
 							<div class="mb-1">
@@ -271,7 +272,9 @@ const ModelEditor: Component<Props> = (props) => {
 					</Match>
 					<Match when>
 						<div>
-							<p class="title is-4">{props.model.name}</p>
+							<p class="title is-4">
+								{props.idx + 1}. {props.model.name}
+							</p>
 							<ul>
 								<li class="text-ellipsis">
 									{props.model.endpoint}
@@ -283,7 +286,7 @@ const ModelEditor: Component<Props> = (props) => {
 							<div class="has-text-right">
 								<button
 									class="button is-small"
-									onClick={() => setEditing(true)}
+									onClick={() => props.setEditing(true)}
 								>
 									Edit
 								</button>
