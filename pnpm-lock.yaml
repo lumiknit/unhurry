@@ -43,6 +43,9 @@ importers:
             highlight.js:
                 specifier: ^11.11.1
                 version: 11.11.1
+            jsonschema:
+                specifier: ^1.5.0
+                version: 1.5.0
             marked:
                 specifier: ^15.0.7
                 version: 15.0.7
@@ -3168,6 +3171,12 @@ packages:
         engines: { node: '>=6' }
         hasBin: true
 
+    jsonschema@1.5.0:
+        resolution:
+            {
+                integrity: sha512-K+A9hhqbn0f3pJX17Q/7H6yQfD/5OXgdrR5UE12gMXCiN9D5Xq2o5mddV2QEcX/bjla99ASsAAQUyMCCRWAEhw==,
+            }
+
     katex@0.16.21:
         resolution:
             {
@@ -6220,6 +6229,8 @@ snapshots:
         optional: true
 
     json5@2.2.3: {}
+
+    jsonschema@1.5.0: {}
 
     katex@0.16.21:
         dependencies:

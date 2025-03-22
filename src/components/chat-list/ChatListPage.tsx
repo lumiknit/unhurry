@@ -14,6 +14,8 @@ import { openConfirm } from '../modal-confirm';
 const ChatListPage: Component = () => {
 	const [chatList, setChatList] = createSignal<ChatMeta[] | undefined>();
 	const [filteredList, setFilteredList] = createSignal<ChatMeta[]>([]);
+
+	let clearLeftRef: HTMLInputElement;
 	let filterRef: HTMLInputElement;
 
 	const navigate = useNavigate();
@@ -37,13 +39,23 @@ const ChatListPage: Component = () => {
 	};
 
 	const handleClearAll = async () => {
-		if (!(await openConfirm('Are you sure to clear all chat history?')))
+		let left = parseInt(clearLeftRef!.value);
+		if (isNaN(left)) left = 0;
+		left = Math.max(0, left);
+
+		const msg = left > 0 ? ` except ${left} latest ones` : '';
+		if (!(await openConfirm(`Are you sure to delete all chats${msg}?`)))
 			return;
-		toast.promise(clearAllChats(), {
-			loading: 'Clearing...',
-			success: 'Cleared',
-			error: 'Failed to clear',
-		});
+		await toast.promise(
+			clearAllChats({
+				left,
+			}),
+			{
+				loading: 'Clearing...',
+				success: 'Cleared',
+				error: 'Failed to clear',
+			}
+		);
 		loadChatMeta();
 	};
 
@@ -84,14 +96,26 @@ const ChatListPage: Component = () => {
 				<nav class="panel is-primary">
 					<p class="panel-heading"> Chats </p>
 					<div class="panel-block">
-						<p class="control">
-							<button
-								class="button is-danger is-outlined is-fullwidth"
-								onClick={handleClearAll}
-							>
-								Clear All
-							</button>
-						</p>
+						<div>
+							<p class="control">
+								<button
+									class="button is-danger is-outlined is-fullwidth"
+									onClick={handleClearAll}
+								>
+									Clear All
+								</button>
+							</p>
+							<p class="control">
+								Keep
+								<input
+									ref={clearLeftRef!}
+									class="input"
+									type="number"
+									placeholder="Except"
+									value="5"
+								/>
+							</p>
+						</div>
 					</div>
 					<div class="panel-block">
 						<p class="control">

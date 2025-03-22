@@ -17,7 +17,7 @@ const FnCallMessage: Component<ItemProps> = (props) => {
 					class="msg-code msg-code-fold flex-split"
 					onClick={() => setFold(false)}
 				>
-					<span>
+					<span class="text-ellipsis">
 						@ <b>{fnCall.name}</b> {fnCall.args}
 					</span>
 					<button>

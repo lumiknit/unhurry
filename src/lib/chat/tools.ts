@@ -1,3 +1,4 @@
+import { Validator } from 'jsonschema';
 import TurndownService from 'turndown';
 
 import { getBEService } from '../be';
@@ -5,6 +6,7 @@ import { FunctionTool } from '../llm/function';
 import { JSContext } from '../run-js';
 
 const turndownService = new TurndownService();
+const jsonValidator = new Validator();
 const jsContext = new JSContext();
 
 export const fnTools: FunctionTool[] = [];
@@ -13,7 +15,13 @@ export const fnImpls: Record<string, Impl> = {};
 
 const addFunc = (tool: FunctionTool, fn: Impl) => {
 	fnTools.push(tool);
-	fnImpls[tool.name] = fn;
+	fnImpls[tool.name] = async (args) => {
+		const result = jsonValidator.validate(args, tool.parameters);
+		if (result.valid) return await fn(args);
+		return (
+			'Argument Error:\n' + result.errors.map((e) => e.stack).join('\n')
+		);
+	};
 };
 
 // Run JS
@@ -120,6 +128,7 @@ addFunc(
 				query: {
 					type: 'string',
 					description: 'The search query.',
+					minLength: 1,
 				},
 			},
 			required: ['query'],
@@ -154,9 +163,9 @@ addFunc(
 
 addFunc(
 	{
-		name: 'searchStartpage',
+		name: 'searchBrave',
 		description: [
-			'Search the given query from StartPage web search engine.',
+			'Search the given query from Brave web search engine.',
 			'The result is a HTML.',
 			'When you rephrase the result, you should show link and image using markdown grammar. (e.g. [link](url), ![image](url))',
 		].join('\n'),
@@ -180,7 +189,7 @@ addFunc(
 			return doc.body.innerHTML.replace(/>\s+</g, '><');
 		};
 		const content = await fetchDocFromURL(
-			`https://www.startpage.com/sp/search?q=${encodeURIComponent(args.query)}`,
+			`https://search.brave.com/search?q=${encodeURI(args.query)}`,
 			onHTML
 		);
 		return content;
@@ -233,7 +242,13 @@ addFunc(
 			// Remove unnecessary whitespaces
 			return doc.body.innerHTML.replace(/>\s+</g, '><');
 		};
-		const content = await fetchDocFromURL(args.url, onHTML);
+
+		let url = args.url;
+		if (!url.startsWith('http://') && !url.startsWith('https://')) {
+			url = 'https://' + url;
+		}
+
+		const content = await fetchDocFromURL(url, onHTML);
 		return content;
 	}
 );
