@@ -31,20 +31,31 @@ export class BrowserService implements IBEService {
 		headers?: [string, string][],
 		body?: string
 	): Promise<FetchResult> {
-		const result = await fetch(url, {
-			method,
-			headers: new Headers(headers),
-			body,
-		});
-		const respBody = await result.text();
-		return {
-			status: result.status,
-			headers: Array.from(result.headers.entries()),
-			body: respBody,
-		} as FetchResult;
+		try {
+			const result = await fetch(url, {
+				method,
+				headers: new Headers(headers),
+				body,
+			});
+			const respBody = await result.text();
+			return {
+				status: result.status,
+				headers: Array.from(result.headers.entries()),
+				body: respBody,
+			} as FetchResult;
+		} catch (e) {
+			return {
+				status: 500,
+				headers: [],
+				body: `Failed to fetch: ${e}`,
+			} as FetchResult;
+		}
 	}
 
 	async vibrate(pattern: VibrationPattern): Promise<void> {
+		if (!navigator.vibrate) {
+			return;
+		}
 		if (typeof pattern === 'number') {
 			navigator.vibrate(pattern);
 		} else {

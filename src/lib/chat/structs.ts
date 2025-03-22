@@ -111,17 +111,25 @@ export const convertMsgForLLM = (msg: Msg): LLMMessage => {
 	const content: TypedContent[] = [];
 	let textContent = '';
 	for (const part of msg.parts) {
-		if (part.type === MSG_PART_TYPE_FUNCTION_CALL) {
-			if (textContent) {
-				content.push({ type: 'text', text: textContent });
-				textContent = '';
+		switch (part.type) {
+			case MSG_PART_TYPE_THINK:
+				// Ignore for tokens
+				break;
+			case MSG_PART_TYPE_FUNCTION_CALL:
+				{
+					if (textContent) {
+						content.push({ type: 'text', text: textContent });
+						textContent = '';
+					}
+					content.push(JSON.parse(part.content));
+				}
+				break;
+			default: {
+				if (textContent) {
+					textContent += '\n\n';
+				}
+				textContent += part.content;
 			}
-			content.push(JSON.parse(part.content));
-		} else {
-			if (textContent) {
-				textContent += '\n\n';
-			}
-			textContent += part.content;
 		}
 	}
 	if (content.length === 0) {

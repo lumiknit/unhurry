@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "unhurry",
+        "title": "Unhurry",
         "width": 540,
         "height": 720
       }
@@ -30,6 +30,9 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "macOS": {
+      "entitlements": "src-tauri/entitlements.mac.plist"
+    }
   }
 }

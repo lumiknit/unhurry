@@ -14,6 +14,7 @@ import {
 	LLMMsgContent,
 } from './message';
 import { ModelConfig } from './model_config';
+import { logr } from '../logr';
 
 // OpenAI Message
 
@@ -301,7 +302,8 @@ export class OpenAIClient implements ILLMService {
 		const toolCalls: PartialFunctionCall[] = [];
 
 		await readSSEJSONStream<ChatStreamChunk>(reader, (chunk) => {
-			if (chunk.choices.length === 0) {
+			if (!chunk.choices || chunk.choices.length === 0) {
+				logr.warn('No choices in chunk', JSON.stringify(chunk));
 				return;
 			}
 			const delta = chunk.choices[0].delta;

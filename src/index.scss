@@ -266,12 +266,14 @@ span[aria-hidden='true'] {
 }
 
 // Bottom input
-.bottom-input {
+.bottom-fixed {
 	position: fixed;
 	bottom: 0;
 	left: 0;
 	right: 0;
+}
 
+.bottom-input {
 	border: var(--uh-bottom-input-border);
 	border-radius: 1rem;
 	margin: 0.5rem;
@@ -289,8 +291,10 @@ span[aria-hidden='true'] {
 		border: none;
 		background-color: transparent;
 		width: 100%;
+		max-height: 40dvh;
 		resize: none;
-		overflow: hidden;
+		overflow-x: hidden;
+		overflow-y: auto;
 		font-size: 1rem;
 		font-family: var(--bulma-family-primary);
 		color: var(--bulma-text-bold);

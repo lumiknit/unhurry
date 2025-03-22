@@ -64,11 +64,13 @@ const ChatPage: Component = () => {
 			<div class="container p-1">
 				<ChatHistoryView />
 			</div>
-			<BottomInput
-				progressing={progressing()}
-				send={handleSend}
-				cancel={handleCancel}
-			/>
+			<div class="bottom-fixed container">
+				<BottomInput
+					progressing={progressing()}
+					send={handleSend}
+					cancel={handleCancel}
+				/>
+			</div>
 		</>
 	);
 };

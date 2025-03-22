@@ -1,5 +1,5 @@
 import { BiRegularSend } from 'solid-icons/bi';
-import { Component, onMount } from 'solid-js';
+import { Component, createSignal, onMount } from 'solid-js';
 import { toast } from 'solid-toast';
 
 import { vibrate } from '@/store/actions';
@@ -7,6 +7,7 @@ import { vibrate } from '@/store/actions';
 import { getUserConfig } from '@store';
 
 import InputTags from './PromptTags';
+import SpeechButton from './SpeechButton';
 
 interface Props {
 	progressing?: boolean;
@@ -23,6 +24,8 @@ const BottomInput: Component<Props> = (props) => {
 
 	let composing = false;
 	let lastSent = 0;
+
+	const [sendCnt, setSendCnt] = createSignal(0);
 
 	const insertText = (text: string) => {
 		const ta = taRef!;
@@ -62,6 +65,7 @@ const BottomInput: Component<Props> = (props) => {
 			// Otherwise, some composing left.
 			// Just ignore the send
 		}
+		setSendCnt((c) => c + 1);
 		try {
 			await props.send?.(v);
 		} catch (e) {
@@ -99,6 +103,13 @@ const BottomInput: Component<Props> = (props) => {
 		autoSendAt = Date.now() + as;
 		if (autoSendTimeoutId === undefined) {
 			autoSendTimeoutId = window.setTimeout(autoSend, as);
+		}
+	};
+
+	const unsetAutoSend = () => {
+		if (autoSendTimeoutId) {
+			clearTimeout(autoSendTimeoutId);
+			autoSendTimeoutId = undefined;
 		}
 	};
 
@@ -152,6 +163,31 @@ const BottomInput: Component<Props> = (props) => {
 		}
 	};
 
+	const handleSpeech = (
+		transcript: string,
+		isFinal: boolean,
+		lastTranscript: string
+	) => {
+		// Remove if the last transcript is exists
+		if (lastTranscript) {
+			const v = taRef!.value;
+			const selStart = taRef!.selectionStart;
+			const part = v.slice(0, selStart);
+			if (v.endsWith(lastTranscript)) {
+				taRef!.value =
+					part.slice(0, -lastTranscript.length) + v.slice(selStart);
+				taRef!.setSelectionRange(selStart, selStart);
+			}
+		}
+		// Insert the transcript
+		insertText(transcript);
+		if (isFinal) {
+			setAutoSend();
+		} else {
+			unsetAutoSend();
+		}
+	};
+
 	const autosizeTextarea = () => {
 		if (taRef!) {
 			taRef.style.height = '1px';
@@ -170,11 +206,7 @@ const BottomInput: Component<Props> = (props) => {
 	});
 
 	return (
-		<div
-			ref={topRef!}
-			class="bottom-fixed bottom-input"
-			onClick={handleClickMargin}
-		>
+		<div ref={topRef!} class="bottom-input" onClick={handleClickMargin}>
 			<textarea
 				ref={taRef!}
 				onBeforeInput={handleBeforeInput}
@@ -185,6 +217,14 @@ const BottomInput: Component<Props> = (props) => {
 				placeholder="Type your message here..."
 			/>
 			<div class="buttons no-user-select">
+				<SpeechButton
+					class="control is-size-6 py-1 button-mic"
+					onSpeech={handleSpeech}
+					onSRError={(e, msg) => {
+						toast.error(`Failed to STT: ${e}, ${msg}`);
+					}}
+					cnt={sendCnt()}
+				/>
 				<InputTags
 					onInsertText={insertText}
 					onReplaceText={replaceText}

@@ -3,6 +3,7 @@ import TurndownService from 'turndown';
 
 import { getBEService } from '../be';
 import { FunctionTool } from '../llm/function';
+import { logr } from '../logr';
 import { JSContext } from '../run-js';
 
 const turndownService = new TurndownService();
@@ -109,16 +110,16 @@ const fetchDocFromURL = async (
 		const doc = parser.parseFromString(result.body, 'text/html');
 		return await onHTML(doc);
 	} catch (e) {
-		console.error(e);
+		logr.error(e);
 		return 'HTTP fetch error: ' + e;
 	}
 };
 
 addFunc(
 	{
-		name: 'search',
+		name: 'searchDuckDuckGo',
 		description: [
-			'Search the given query from DuckDuckGo web search engine.',
+			'Search the given query from DuckDuckGo web search engine. (Fast and precise)',
 			'If user request "search", "find", "invest", etc., you may used this function first.',
 			'When you rephrase the result, show source. you should show link as markdown grammar. (e.g. [link](url))',
 		].join('\n'),
