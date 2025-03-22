@@ -7,9 +7,14 @@ import {
 	Show,
 	Switch,
 } from 'solid-js';
+import { toast } from 'solid-toast';
+
+import { resetAllData } from '@/lib/reset';
+
+import { openConfirm } from './modal-confirm';
+import { getBEService, IBEService } from '../lib/be';
 
 import './About.scss';
-import { getBEService, IBEService } from '../lib/be';
 
 /**
  * Compare two version strings.
@@ -73,6 +78,13 @@ const About: Component = () => {
 	onMount(() => {
 		getLatestRelease().then(setLatestRelease);
 	});
+
+	const handleReset = async () => {
+		if (await openConfirm('Are you sure to reset all data?')) {
+			await resetAllData();
+			toast.success('All data has been reset.');
+		}
+	};
 
 	return (
 		<div class="container">
@@ -139,6 +151,16 @@ const About: Component = () => {
 				<a target="_blank" href={latestReleaseURL}>
 					Visit the latest release page
 				</a>
+
+				<br />
+
+				<p>
+					If your data is corrupted or you want to reset all data, you
+					can reset all data here.
+				</p>
+				<button class="button is-danger" onClick={handleReset}>
+					Reset All Data
+				</button>
 			</div>
 		</div>
 	);
