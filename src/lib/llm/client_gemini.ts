@@ -28,8 +28,10 @@ interface GeminiTextPart {
  * (e.g. image)
  */
 interface GeminiInlineDataPart {
-	mime_type: string;
-	data: string;
+	inline_data: {
+		mime_type: string;
+		data: string;
+	};
 }
 
 /**
@@ -157,10 +159,26 @@ export class GeminiClient implements ILLMService {
 							});
 							break;
 						case 'image_url':
-							last.parts.push({
-								mime_type: 'image',
-								data: item.url,
-							});
+							{
+								const [data, b64] = item.image_url.url.split(
+									',',
+									2
+								);
+								const m = data.match(/^data:([^;]+)(;base64)?/);
+								if (!m) {
+									throw new Error('Invalid data URL');
+								}
+								const mime = m[1];
+								const isBase64 = m[2] === ';base64';
+								last.parts.push({
+									inline_data: {
+										mime_type: mime,
+										data: isBase64
+											? b64
+											: item.image_url.url,
+									},
+								});
+							}
 							break;
 						case 'function_call':
 							last.parts.push({
@@ -248,7 +266,9 @@ export class GeminiClient implements ILLMService {
 			} else if ('data' in part) {
 				content.push({
 					type: 'image_url',
-					url: part.data,
+					image_url: {
+						url: part.data as string,
+					},
 				});
 			} else if ('functionCall' in part) {
 				content.push({

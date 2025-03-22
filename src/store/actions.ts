@@ -19,6 +19,7 @@ import {
 	extractChatMeta,
 	MsgPair,
 	MsgPartsParser,
+	MSG_PART_TYPE_FILE,
 } from '../lib/chat';
 import { chatListTx, chatTx } from '../lib/idb';
 import { LLMMessage, newClientFromConfig } from '../lib/llm';
@@ -59,7 +60,7 @@ Based on the following conversation, please generate a title for this chat.
 `.trim();
 
 	// Generate response
-	const llmHistory = getLLMHistory();
+	const llmHistory = await getLLMHistory();
 	llmHistory.push(
 		LLMMessage.user('[Give me a title for the above conversation]')
 	);
@@ -84,9 +85,9 @@ export const resetChatMessages = () => {
 /**
  * Insert multiple messages to the chat history
  */
-const getLLMHistory = () => {
+const getLLMHistory = async () => {
 	const context = getChatContext();
-	return convertChatHistoryForLLM(context.history);
+	return await convertChatHistoryForLLM(context.history);
 };
 
 export const saveCurrentChatToDB = async () => {
@@ -117,7 +118,7 @@ export const saveCurrentChatToDB = async () => {
 
 export let actions: SingleChatAction[] = [];
 
-export const chat = async (text: string) => {
+export const chat = async (text: string, fileIDs?: string[]) => {
 	const config = getUserConfig();
 	if (!config) {
 		throw new Error('No user config');
@@ -129,6 +130,15 @@ export const chat = async (text: string) => {
 	}
 
 	const parts = MsgPartsParser.parse(text);
+
+	if (fileIDs) {
+		for (const id of fileIDs) {
+			parts.push({
+				type: MSG_PART_TYPE_FILE,
+				content: id,
+			});
+		}
+	}
 
 	const history = unwrap(chatContext.history);
 
@@ -146,7 +156,13 @@ export const chat = async (text: string) => {
 		});
 	};
 	action.onLLMFallback = (_idx, mc) => {
-		toast(`Model '${mc.name}' failed, trying next model`);
+		if (getUserConfig()?.enableLLMFallback) {
+			toast(`Model '${mc.name}' failed, trying next model`);
+			return true;
+		} else {
+			toast.error('Failed to generate');
+			return false;
+		}
 	};
 	action.onUpdate = (idx) => {
 		console.log('Update', idx, history);

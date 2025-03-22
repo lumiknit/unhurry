@@ -1,3 +1,4 @@
+import { getFile, getFileDataURL } from '../idb/file_storage';
 import { LLMMessages, LLMMessage, Role, TypedContent } from '../llm';
 
 /*
@@ -33,7 +34,17 @@ export type MsgPartType = string;
  */
 export const MSG_PART_TYPE_TEXT = '';
 
+/**
+ * Function call.
+ * The content type is FunctionCallInfo.
+ */
 export const MSG_PART_TYPE_FUNCTION_CALL = '*fn:call';
+
+/**
+ * MSG_PART_TYPE_FILE is a file.
+ * The content type is ID, which is used for IndexedDB.
+ */
+export const MSG_PART_TYPE_FILE = '*file';
 
 /**
  * MSG_PART_TYPE_THINK is a think block.
@@ -107,13 +118,27 @@ export const msgPartToText = (msg: MsgPart): string => {
  * Convert Msg to string.
  * This can be used as an input of any LLM.
  */
-export const convertMsgForLLM = (msg: Msg): LLMMessage => {
+export const convertMsgForLLM = async (msg: Msg): Promise<LLMMessage> => {
 	const content: TypedContent[] = [];
 	let textContent = '';
 	for (const part of msg.parts) {
 		switch (part.type) {
 			case MSG_PART_TYPE_THINK:
 				// Ignore for tokens
+				break;
+			case MSG_PART_TYPE_FILE:
+				{
+					const f = await getFile(part.content);
+					if (f && f.mimeType.startsWith('image/')) {
+						const dataURL = await getFileDataURL(part.content);
+						if (dataURL) {
+							content.push({
+								type: 'image_url',
+								image_url: { url: dataURL },
+							});
+						}
+					}
+				}
 				break;
 			case MSG_PART_TYPE_FUNCTION_CALL:
 				{
@@ -144,14 +169,17 @@ export const convertMsgForLLM = (msg: Msg): LLMMessage => {
 /**
  * Convert chat history to LLM message history.
  */
-export const convertChatHistoryForLLM = (history: ChatHistory): LLMMessages => {
-	return history.msgPairs.reduce<LLMMessages>((acc, pair) => {
+export const convertChatHistoryForLLM = async (
+	history: ChatHistory
+): Promise<LLMMessages> => {
+	const messages: LLMMessages = [];
+	for (const pair of history.msgPairs) {
 		if (pair.user) {
-			acc.push(convertMsgForLLM(pair.user));
+			messages.push(await convertMsgForLLM(pair.user));
 		}
 		if (pair.assistant) {
-			acc.push(convertMsgForLLM(pair.assistant));
+			messages.push(await convertMsgForLLM(pair.assistant));
 		}
-		return acc;
-	}, []);
+	}
+	return messages;
 };

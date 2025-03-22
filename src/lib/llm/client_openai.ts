@@ -144,10 +144,14 @@ export class OpenAIClient implements ILLMService {
 			const fc: FunctionCallContent[] = [];
 			for (const c of msg.content) {
 				// Function call should be separated
-				if (c.type === 'function_call') {
-					fc.push(c);
-				} else {
-					content.push(c);
+				switch (c.type) {
+					case 'function_call':
+						fc.push(c);
+						break;
+					case 'image_url':
+					default:
+						content.push(c);
+						break;
 				}
 			}
 			let c: string | TypedContent[] = content;
@@ -278,7 +282,7 @@ export class OpenAIClient implements ILLMService {
 			'Content-Type': 'application/json',
 			Authorization: `Bearer ${this.config.apiKey}`,
 		};
-		console.log('OopenAI History', this.convertHistory(history));
+		console.log('OpenAI History', this.convertHistory(history));
 		// Use SSE
 		const resp = await fetch(url, {
 			method: 'POST',

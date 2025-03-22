@@ -1,5 +1,5 @@
 import { BiRegularSend } from 'solid-icons/bi';
-import { Component, createSignal, onMount } from 'solid-js';
+import { Component, createSignal, onMount, Show } from 'solid-js';
 import { toast } from 'solid-toast';
 
 import { logr } from '@/lib/logr';
@@ -19,14 +19,15 @@ import {
 
 import InputTags from './PromptTags';
 import SpeechButton from './SpeechButton';
+import UploadedFiles from './UploadedFiles';
 import UploadFileButton from './UploadFileButton';
 
-interface Props {
-	send?: (value: string) => void;
-	cancel?: () => void;
+interface FileInput {
+	name: string;
+	id: string;
 }
 
-const BottomInput: Component<Props> = (props) => {
+const BottomInput: Component = () => {
 	let topRef: HTMLDivElement;
 	let taRef: HTMLTextAreaElement;
 
@@ -36,6 +37,7 @@ const BottomInput: Component<Props> = (props) => {
 	let composing = false;
 	let lastSent = 0;
 
+	const [files, setFiles] = createSignal<FileInput[]>([]);
 	const [sendCnt, setSendCnt] = createSignal(0);
 
 	const insertText = (text: string) => {
@@ -68,6 +70,9 @@ const BottomInput: Component<Props> = (props) => {
 			// Do nothing for empty string
 			return;
 		}
+
+		const fs = files();
+
 		// Dispatch right arrow event
 		if (!composing) {
 			taRef!.value = '';
@@ -76,6 +81,8 @@ const BottomInput: Component<Props> = (props) => {
 			// Otherwise, some composing left.
 			// Just ignore the send
 		}
+		setFiles([]);
+
 		setSendCnt((c) => c + 1);
 		const isFirst = getChatContext().history.msgPairs.length === 0;
 		try {
@@ -96,10 +103,14 @@ const BottomInput: Component<Props> = (props) => {
 					});
 				}
 			}, 33);
-			await chat(v);
+			await chat(
+				v,
+				fs.map((f) => f.id)
+			);
 		} catch (e) {
 			toast.error('Failed to send: ' + e);
 			taRef!.value = v;
+			setFiles(fs);
 			lastSent = 0;
 		}
 		setChatContext((c) => ({ ...c, progressing: false }));
@@ -253,6 +264,14 @@ const BottomInput: Component<Props> = (props) => {
 				onKeyUp={handleKeyUp}
 				placeholder="Type your message here..."
 			/>
+			<Show when={files().length > 0}>
+				<UploadedFiles
+					files={files()}
+					onDelete={(id) =>
+						setFiles((fs) => fs.filter((v) => v.id !== id))
+					}
+				/>
+			</Show>
 			<div class="buttons no-user-select">
 				<SpeechButton
 					class="control is-size-6 py-1 button-mic"
@@ -262,7 +281,11 @@ const BottomInput: Component<Props> = (props) => {
 					}}
 					cnt={sendCnt()}
 				/>
-				<UploadFileButton />
+				<UploadFileButton
+					onFile={(name, id) =>
+						setFiles((fs) => [...fs, { name, id }])
+					}
+				/>
 				<InputTags
 					onInsertText={insertText}
 					onReplaceText={replaceText}

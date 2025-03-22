@@ -7,6 +7,11 @@ interface FileItem {
 	_id: string;
 
 	/**
+	 * Original file name.
+	 */
+	name: string;
+
+	/**
 	 * Created timestamp.
 	 */
 	createdAt: number;
@@ -44,6 +49,7 @@ export const genFileID = () => {
  * Create a file for storage.
  */
 export const createFile = async (
+	name: string,
 	mimeType: string,
 	data: string | Uint8Array
 ): Promise<string> => {
@@ -51,6 +57,7 @@ export const createFile = async (
 	const tx = await fileTx();
 	await tx.put({
 		_id: id,
+		name,
 		createdAt: Date.now(),
 		mimeType,
 		data,
@@ -82,13 +89,15 @@ export const getFileDataURL = async (
 ): Promise<string | undefined> => {
 	const file = await getFile(id);
 	if (!file) return;
-	if (typeof file.data === 'string') {
-		const blob = new Blob([file.data], { type: file.mimeType });
-		return URL.createObjectURL(blob);
-	} else {
-		const blob = new Blob([file.data], { type: file.mimeType });
-		return URL.createObjectURL(blob);
-	}
+	const blob = new Blob([file.data], { type: file.mimeType });
+	return await new Promise((resolve, reject) => {
+		const fileReader = new FileReader();
+		fileReader.onload = (e) => {
+			resolve(e.target?.result as string);
+		};
+		fileReader.onerror = reject;
+		fileReader.readAsDataURL(blob);
+	});
 };
 
 /**

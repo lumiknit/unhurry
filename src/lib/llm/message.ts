@@ -17,7 +17,9 @@ export interface TextTypeContent {
  */
 export interface ImageURLTypeContent {
 	type: 'image_url';
-	url: string;
+	image_url: {
+		url: string;
+	};
 }
 
 export interface FunctionCallContent {

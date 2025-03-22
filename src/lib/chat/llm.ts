@@ -51,7 +51,7 @@ export class SingleChatAction {
 	 */
 	onUpdate?: (index: number) => void;
 
-	onLLMFallback?: (index: number, modelConfig: ModelConfig) => void;
+	onLLMFallback?: (index: number, modelConfig: ModelConfig) => boolean;
 
 	constructor(modelConfigs: ModelConfig[], history: ChatHistory) {
 		this.modelConfigs = modelConfigs;
@@ -115,7 +115,7 @@ export class SingleChatAction {
 		const parser = new MsgPartsParser();
 
 		// History for LLM
-		const llmHistory = convertChatHistoryForLLM(this.history);
+		const llmHistory = await convertChatHistoryForLLM(this.history);
 		console.log('history', llmHistory);
 		logr.info('[chat/SingleChatAction/generate] Stream Start');
 		const result = await llm.chatStream(sys, llmHistory, {
@@ -193,7 +193,13 @@ export class SingleChatAction {
 					`[chat/SingleChatAction/run] Failed to chat completion with model '${mc.name}', use fallback`,
 					e
 				);
-				this.onLLMFallback?.(idx, mc);
+				const v = this.onLLMFallback?.(idx, mc);
+				if (v === false) {
+					logr.info(
+						'[chat/SingleChatAction/run] Fallback is disabled'
+					);
+					break;
+				}
 			}
 		}
 

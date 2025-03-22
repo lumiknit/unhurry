@@ -1,11 +1,15 @@
 import { BiRegularFile, BiRegularImage, BiRegularUpload } from 'solid-icons/bi';
-import { createSignal } from 'solid-js';
+import { Component, createSignal } from 'solid-js';
 import toast from 'solid-toast';
 
 import { createFile } from '@/lib/idb/file_storage';
 import { logr } from '@/lib/logr';
 
-const UploadFileButton = () => {
+interface Props {
+	onFile: (name: string, id: string) => void;
+}
+
+const UploadFileButton: Component<Props> = (props) => {
 	const [isOpen, setIsOpen] = createSignal(false);
 
 	const toggleDropdown = () => setIsOpen(!isOpen());
@@ -20,10 +24,11 @@ const UploadFileButton = () => {
 			);
 
 			// Upload to IDB
-			createFile(mimeType, data)
+			createFile(file.name, mimeType, data)
 				.then((id) => {
 					logr.info('File uploaded:', id);
 					toast.success('File uploaded: ' + id);
+					props.onFile(file.name, id);
 				})
 				.catch((err) => {
 					logr.error('Failed to upload file:', err);
