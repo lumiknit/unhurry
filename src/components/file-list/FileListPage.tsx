@@ -1,5 +1,13 @@
 import { TbTrash } from 'solid-icons/tb';
-import { Component, createSignal, For, Match, onMount, Switch } from 'solid-js';
+import {
+	Component,
+	createSignal,
+	For,
+	Match,
+	onMount,
+	Show,
+	Switch,
+} from 'solid-js';
 import { toast } from 'solid-toast';
 
 import {
@@ -7,8 +15,10 @@ import {
 	FileMeta,
 	listFiles,
 	deleteFile,
+	getFile,
 } from '@/lib/idb/file_storage';
 
+import FilePreviewModal from './FilePreviewModal';
 import { openConfirm } from '../modal-confirm';
 
 const FileListPage: Component = () => {
@@ -59,20 +69,37 @@ const FileListPage: Component = () => {
 		loadFileMeta();
 	};
 
+	const [openedFileMeta, setOpenedFileMeta] = createSignal<FileMeta | null>(
+		null
+	);
+
 	const openFile = (id: string) => async () => {
-		toast.error('Not implemented');
+		const meta = await getFile(id);
+		if (!meta) {
+			toast.error('File not found');
+			return;
+		}
+		setOpenedFileMeta(meta);
+	};
+
+	const handleCloseFile = () => {
+		setOpenedFileMeta(null);
 	};
 
 	onMount(() => loadFileMeta());
 
 	return (
 		<div class="container">
+			<Show when={openedFileMeta()}>
+				<FilePreviewModal
+					meta={openedFileMeta()!}
+					onClose={handleCloseFile}
+				/>
+			</Show>
 			<div class="m-2">
 				<nav class="panel is-primary">
 					<p class="panel-heading">
-						{' '}
-						Files ({filteredList().length} / {fileList()?.length}
-						){' '}
+						Files ({filteredList().length} / {fileList()?.length})
 					</p>
 					<div class="panel-block">
 						<p class="control">
