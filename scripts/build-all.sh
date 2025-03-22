@@ -25,12 +25,12 @@ mkdir -p releases
 # Build for Android
 pnpm tauri android build
 cp ./src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release.apk \
-  ./releases/tauri-v$VERSION.apk
+  ./releases/unhurry-v$VERSION.apk
 
 # Build for MacOS
 pnpm tauri build --target aarch64-apple-darwin
 cp ./src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/unhurry_${VERSION}_aarch64.dmg \
-  ./releases/tauri-v$VERSION-macos-aarch64.dmg
+  ./releases/unhurry-v$VERSION-macos-aarch64.dmg
 
 # Build for Windows
 # pnpm tauri build --target i686-pc-windows-msvc
