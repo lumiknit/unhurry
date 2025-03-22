@@ -2,6 +2,7 @@
 import { unwrap } from 'solid-js/store';
 import { toast } from 'solid-toast';
 
+import { getBEService, VibrationPattern } from '@/lib/be';
 import { SingleChatAction } from '@/lib/chat/llm';
 import { logr } from '@/lib/logr';
 
@@ -21,6 +22,16 @@ import {
 } from '../lib/chat';
 import { chatListTx, chatTx } from '../lib/idb';
 import { LLMMessage, newClientFromConfig } from '../lib/llm';
+
+/**
+ * Vibration
+ */
+export const vibrate = async (pattern: VibrationPattern) => {
+	const be = await getBEService();
+	if (getUserConfig()?.enableVibration) {
+		be.vibrate(pattern);
+	}
+};
 
 /**
  * Generate title from the chat context
@@ -127,13 +138,14 @@ export const chat = async (text: string) => {
 	);
 	actions.push(action);
 
-	action.onChunk = (chunk, parts, rest) => {
+	action.onChunk = (_chunk, parts, rest) => {
+		vibrate(4);
 		setStreamingMessage({
 			parts: [...parts],
 			rest,
 		});
 	};
-	action.onLLMFallback = (idx, mc) => {
+	action.onLLMFallback = (_idx, mc) => {
 		toast(`Model '${mc.name}' failed, trying next model`);
 	};
 	action.onUpdate = (idx) => {

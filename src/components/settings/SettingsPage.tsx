@@ -154,6 +154,12 @@ const SettingsPage: Component = () => {
 							desc="When LLM failed (e.g. 429 Too Many Requests), use the next model"
 						/>
 
+						<CheckboxConfig
+							key="enableVibration"
+							label="Enable device vibration"
+							desc="Enable vibration feedback for buttons. Only works on Android."
+						/>
+
 						<h2 class="title is-4">Remove service workers</h2>
 						<p>
 							If your webpage does not work properly, clear

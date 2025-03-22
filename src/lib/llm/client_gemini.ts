@@ -198,6 +198,24 @@ export class GeminiClient implements ILLMService {
 		return out.filter((c) => c.parts.length > 0);
 	}
 
+	private chatCompletionBody(system: string, history: LLMMessages): string {
+		let tools = undefined;
+		if (this.functions.length > 0) {
+			tools = [{ function_declarations: this.functions }];
+		}
+		return JSON.stringify({
+			contents: this.convertMessagesForGemini(history),
+			system_instruction: {
+				parts: [
+					{
+						text: system,
+					},
+				],
+			},
+			tools,
+		});
+	}
+
 	async chat(
 		systemPrompt: string,
 		history: LLMMessages
@@ -208,28 +226,10 @@ export class GeminiClient implements ILLMService {
 			'Content-Type': 'application/json',
 		};
 
-		const contents = this.convertMessagesForGemini(history);
-
-		let tools = undefined;
-		if (this.functions.length > 0) {
-			tools = [{ function_declarations: this.functions }];
-		}
-
-		const reqBody = JSON.stringify({
-			contents,
-			system_instruction: {
-				parts: [
-					{
-						text: systemPrompt,
-					},
-				],
-			},
-			tools,
-		});
 		const resp = await fetch(url, {
 			method: 'POST',
 			headers,
-			body: reqBody,
+			body: this.chatCompletionBody(systemPrompt, history),
 		});
 		if (!resp.ok) {
 			throw new Error(
@@ -250,6 +250,13 @@ export class GeminiClient implements ILLMService {
 					type: 'image_url',
 					url: part.data,
 				});
+			} else if ('functionCall' in part) {
+				content.push({
+					type: 'function_call',
+					id: part.functionCall.name,
+					name: part.functionCall.name,
+					args: JSON.stringify(part.functionCall.args),
+				});
 			}
 		}
 		if (content.length === 1 && content[0].type === 'text') {
@@ -269,28 +276,10 @@ export class GeminiClient implements ILLMService {
 			'Content-Type': 'application/json',
 		};
 
-		const contents = this.convertMessagesForGemini(history);
-
-		let tools = undefined;
-		if (this.functions.length > 0) {
-			tools = [{ function_declarations: this.functions }];
-		}
-
-		const reqBody = JSON.stringify({
-			contents,
-			system_instruction: {
-				parts: [
-					{
-						text: systemPrompt,
-					},
-				],
-			},
-			tools,
-		});
 		const resp = await fetch(url, {
 			method: 'POST',
 			headers,
-			body: reqBody,
+			body: this.chatCompletionBody(systemPrompt, history),
 		});
 		if (!resp.ok) {
 			throw new Error(

@@ -20,6 +20,7 @@ import { logr } from '@/lib/logr';
 
 import {
 	Msg,
+	MSG_PART_TYPE_FUNCTION_CALL,
 	MSG_PART_TYPE_MERMAID,
 	MSG_PART_TYPE_RUN_JS,
 	MSG_PART_TYPE_SVG,
@@ -27,8 +28,9 @@ import {
 	MSG_PART_TYPE_THINK,
 } from '@lib/chat';
 
-import JSONLikeMessage from '../JSONLikeMessage';
-import { ItemProps } from '../message_types';
+import JSONLikeMessage from './JSONLikeMessage';
+import { ItemProps } from './message_types';
+import FnCallMessage from './FnCallMessage';
 
 marked.use(
 	markedKatex({
@@ -212,6 +214,7 @@ const MermaidMessage: Component<ItemProps> = (props) => {
 
 const compMap = new Map([
 	[MSG_PART_TYPE_TEXT, TextMessage],
+	[MSG_PART_TYPE_FUNCTION_CALL, FnCallMessage],
 	[MSG_PART_TYPE_RUN_JS, BlockMessage],
 	[MSG_PART_TYPE_SVG, SvgMessage],
 	[MSG_PART_TYPE_MERMAID, MermaidMessage],

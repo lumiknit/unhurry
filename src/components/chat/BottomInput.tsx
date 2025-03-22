@@ -2,6 +2,8 @@ import { BiRegularSend } from 'solid-icons/bi';
 import { Component, onMount } from 'solid-js';
 import { toast } from 'solid-toast';
 
+import { vibrate } from '@/store/actions';
+
 import { getUserConfig } from '@store';
 
 import InputTags from './PromptTags';
@@ -141,6 +143,7 @@ const BottomInput: Component<Props> = (props) => {
 
 	const handleButtonClick = (e: MouseEvent) => {
 		e.stopPropagation();
+		vibrate('medium');
 		if (props.progressing) {
 			toast('Canceling the current operation...');
 			props.cancel?.();

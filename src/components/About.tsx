@@ -86,7 +86,7 @@ const About: Component = () => {
 				<ul>
 					<li>
 						<b>Author</b>:{' '}
-						<a href="https://github.com/lumiknit">
+						<a target="_blank" href="https://github.com/lumiknit">
 							lumiknit (aasr4r4@gmail.com)
 						</a>
 					</li>
@@ -136,7 +136,7 @@ const About: Component = () => {
 					</p>
 				</Show>
 
-				<a href={latestReleaseURL}>Visit the latest release page</a>
+				<a target="_blank" href={latestReleaseURL}>Visit the latest release page</a>
 			</div>
 		</div>
 	);

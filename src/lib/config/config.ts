@@ -68,9 +68,9 @@ export interface UserConfig {
 	enableLLMFallback: boolean;
 
 	/**
-	 * Enable run code
+	 * Enable tools
 	 */
-	enableRunCode: boolean;
+	enableTools: boolean;
 
 	/**
 	 * Enable auto send
@@ -83,9 +83,10 @@ export interface UserConfig {
 	autoSendMillis: number;
 
 	/**
-	 * Use Javascript for the code execution
+	 * Enable vibration feedback.
+	 * This is only available on mobile devices. (Android)
 	 */
-	useJavascript: boolean;
+	enableVibration: boolean;
 
 	/**
 	 * Prompt tags
@@ -100,10 +101,10 @@ export const defaultConfig = (): UserConfig => ({
 	models: [],
 	currentModelIdx: 0,
 	enableLLMFallback: true,
-	enableRunCode: true,
+	enableTools: true,
 	enableAutoSend: false,
+	enableVibration: true,
 	autoSendMillis: 2000,
-	useJavascript: true,
 	promptTags: [],
 });
 

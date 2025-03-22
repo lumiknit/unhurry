@@ -1,6 +1,8 @@
 import { Component, For, JSX, Match, splitProps, Switch } from 'solid-js';
 import { toast } from 'solid-toast';
 
+import { vibrate } from '@/store/actions';
+
 import { PromptTag } from '@lib/config';
 
 import { getUserConfig, setUserConfig } from '@store';
@@ -8,12 +10,24 @@ import { getUserConfig, setUserConfig } from '@store';
 type TagProps = JSX.HTMLAttributes<HTMLButtonElement> & {
 	class?: string;
 	children: JSX.Element;
+	onClick?: (e: MouseEvent) => void;
 };
 
 const Tag: Component<TagProps> = (props) => {
-	const [tagProps, btnProps] = splitProps(props, ['children', 'class']);
+	const [tagProps, btnProps] = splitProps(props, [
+		'children',
+		'class',
+		'onClick',
+	]);
 	return (
-		<button {...btnProps} class={'tag mr-1 ' + (tagProps.class || '')}>
+		<button
+			{...btnProps}
+			class={'tag mr-1 ' + (tagProps.class || '')}
+			onClick={(e) => {
+				vibrate('medium');
+				tagProps.onClick?.(e);
+			}}
+		>
 			{tagProps.children}
 		</button>
 	);
@@ -50,22 +64,22 @@ const AutoSendTag: Component = () => {
 	);
 };
 
-const RunCodeTag: Component = () => {
-	const toggleRunCode = (e: MouseEvent) => {
+const EnableToolsTag: Component = () => {
+	const toggle = (e: MouseEvent) => {
 		e.stopPropagation();
 		setUserConfig((c) => ({
 			...c,
-			enableRunCode: !c.enableRunCode,
+			enableTools: !c.enableTools,
 		}));
 	};
 
 	return (
 		<Tag
-			class={getUserConfig()?.enableRunCode ? 'is-primary' : ''}
-			onClick={toggleRunCode}
+			class={getUserConfig()?.enableTools ? 'is-primary' : ''}
+			onClick={toggle}
 		>
 			<Switch>
-				<Match when={getUserConfig()?.enableRunCode}>Run</Match>
+				<Match when={getUserConfig()?.enableTools}>Run</Match>
 				<Match when>No Run</Match>
 			</Switch>
 		</Tag>
@@ -96,13 +110,15 @@ const PromptTags: Component<Props> = (props) => {
 
 	return (
 		<div class="input-tags">
-			<RunCodeTag />
+			<EnableToolsTag />
 			<AutoSendTag />
 			<For each={promptTags()}>
 				{(tag) => (
 					<Tag
 						class={'is-' + tag.color}
-						onClick={(e) => handlePromptTagClick(e, tag)}
+						onClick={(e: MouseEvent) =>
+							handlePromptTagClick(e, tag)
+						}
 					>
 						{tag.tag}
 					</Tag>
