@@ -9,6 +9,8 @@ import {
 } from 'solid-js';
 import { toast } from 'solid-toast';
 
+import { logr } from '@/lib/logr';
+
 import {
 	LLMClientType,
 	llmPresets,
@@ -19,6 +21,8 @@ import {
 
 interface Props {
 	model: ModelConfig;
+	editing: boolean;
+	setEditing: (v: boolean) => void;
 	updateModel: Setter<ModelConfig>;
 	idx: number;
 	onMoveUp: () => void;
@@ -34,7 +38,6 @@ const ModelEditor: Component<Props> = (props) => {
 	let clientTypeRef: HTMLInputElement;
 	let systemPromptRef: HTMLTextAreaElement;
 
-	const [editing, setEditing] = createSignal(false);
 	const [models, setModels] = createSignal<Model[] | undefined>();
 	const [showAllModels, setShowAllModels] = createSignal(false);
 
@@ -52,7 +55,7 @@ const ModelEditor: Component<Props> = (props) => {
 				loading: `Loading models of ${props.model.endpoint}...`,
 				success: `Models of ${props.model.endpoint} loaded`,
 				error: (e) => {
-					console.error(e);
+					logr.error(e);
 					return 'Failed to load models';
 				},
 			},
@@ -123,7 +126,7 @@ const ModelEditor: Component<Props> = (props) => {
 		<div class="card">
 			<div class="card-content">
 				<Switch>
-					<Match when={editing()}>
+					<Match when={props.editing}>
 						<div class="field">
 							<label class="label">Endpoint</label>
 							<div class="mb-1">
@@ -269,15 +272,21 @@ const ModelEditor: Component<Props> = (props) => {
 					</Match>
 					<Match when>
 						<div>
-							<p class="title is-4">{props.model.name}</p>
+							<p class="title is-4">
+								{props.idx + 1}. {props.model.name}
+							</p>
 							<ul>
-								<li>{props.model.endpoint}</li>
-								<li>{props.model.model}</li>
+								<li class="text-ellipsis">
+									{props.model.endpoint}
+								</li>
+								<li class="text-ellipsis">
+									{props.model.model}
+								</li>
 							</ul>
 							<div class="has-text-right">
 								<button
 									class="button is-small"
-									onClick={() => setEditing(true)}
+									onClick={() => props.setEditing(true)}
 								>
 									Edit
 								</button>

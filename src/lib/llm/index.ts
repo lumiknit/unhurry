@@ -1,3 +1,9 @@
+/**
+ * @module lib/llm
+ *
+ * This module provides the interfaces and utilities for the LLM / other models.
+ */
+
 export * from './message';
 export * from './client_interface';
 export * from './client_openai';

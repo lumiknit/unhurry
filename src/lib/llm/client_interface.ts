@@ -1,4 +1,5 @@
-import { History, Message } from './message';
+import { FunctionTool } from './function';
+import { LLMMessages, LLMMessage } from './message';
 
 export interface Model {
 	id: string;
@@ -7,12 +8,30 @@ export interface Model {
 	created: number;
 }
 
+export interface StreamCallbacks {
+	isCancelled?: () => boolean;
+	onText?: (text: string) => void;
+	onFunctionCall?: (
+		index: number,
+		id?: string | null,
+		name?: string | null,
+		args?: string | null
+	) => void;
+}
+
+/**
+ * LLM Service Interface
+ */
 export interface ILLMService {
-	chat(systemPrompt: string, history: History): Promise<Message>;
+	setFunctions(functions: FunctionTool[]): void;
+
+	chat(systemPrompt: string, history: LLMMessages): Promise<LLMMessage>;
+
 	chatStream(
 		systemPrompt: string,
-		history: History,
-		messageCallback: (s: string, acc: string) => boolean
-	): Promise<Message>;
+		history: LLMMessages,
+		callbacks: StreamCallbacks
+	): Promise<LLMMessage>;
+
 	listModels(): Promise<Model[]>;
 }

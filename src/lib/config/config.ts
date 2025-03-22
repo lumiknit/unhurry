@@ -1,5 +1,8 @@
 import { ModelConfig } from '../llm';
 
+/**
+ * Display color. Used for the prompt tags.
+ */
 export type Color =
 	| 'none'
 	| 'primary'
@@ -7,6 +10,10 @@ export type Color =
 	| 'success'
 	| 'warning'
 	| 'danger';
+
+/**
+ * Array of all options for the color.
+ */
 export const colors = [
 	'none',
 	'primary',
@@ -15,6 +22,10 @@ export const colors = [
 	'warning',
 	'danger',
 ] as const;
+
+/**
+ * Set of all options for the color.
+ */
 export const colorSet = new Set(colors);
 
 export type PromptTagAction = 'insert' | 'replace';
@@ -57,9 +68,9 @@ export interface UserConfig {
 	enableLLMFallback: boolean;
 
 	/**
-	 * Enable run code
+	 * Enable tools
 	 */
-	enableRunCode: boolean;
+	enableTools: boolean;
 
 	/**
 	 * Enable auto send
@@ -72,9 +83,20 @@ export interface UserConfig {
 	autoSendMillis: number;
 
 	/**
-	 * Use Javascript for the code execution
+	 * Enable vibration feedback.
+	 * This is only available on mobile devices. (Android)
 	 */
-	useJavascript: boolean;
+	enableVibration: boolean;
+
+	/**
+	 * Font family
+	 */
+	fontFamily: 'sans-serif' | 'serif';
+
+	/**
+	 * Font size
+	 */
+	fontSize: number;
 
 	/**
 	 * Prompt tags
@@ -89,10 +111,12 @@ export const defaultConfig = (): UserConfig => ({
 	models: [],
 	currentModelIdx: 0,
 	enableLLMFallback: true,
-	enableRunCode: true,
+	enableTools: true,
 	enableAutoSend: false,
+	enableVibration: true,
+	fontFamily: 'sans-serif',
+	fontSize: 16,
 	autoSendMillis: 2000,
-	useJavascript: true,
 	promptTags: [],
 });
 
@@ -122,6 +146,16 @@ export const sanitizeConfig = (config: UserConfig): UserConfig => {
 				delete merged[key];
 			}
 		});
+
+		// Font size should be one of the following
+		merged.fontSize = Math.max(10, Math.min(merged.fontSize, 24));
+
+		// Font family
+		const fontFamilies = new Set(['sans-serif', 'serif']);
+		if (!fontFamilies.has(merged.fontFamily)) {
+			merged.fontFamily = 'sans-serif';
+		}
+
 		return merged as unknown as UserConfig;
 	} catch {
 		return defaultConfig();

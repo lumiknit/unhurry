@@ -1,5 +1,30 @@
-import { History, Message, Role } from '../llm';
+import { getFile, getFileDataURL } from '../idb/file_storage';
+import { LLMMessages, LLMMessage, Role, TypedContent } from '../llm';
 
+/*
+ * Message parts.
+ * Message parts are used to represent the various types of content
+ * that can be included in a message.
+ *
+ * The message parts has 'type' and 'content', both are strings.
+ * The 'type' is used to identify the kind of content.
+ * The 'content' is the actual content.
+ *
+ * Empty type '' is used for plain text, which will be shown as markdown.
+ * All other types may be safe to be shown as markdown code blocks.
+ *
+ * Some special types may be displayed to the user in a special way.
+ * - '*fn:call', '*fn:ret': LLM function calling
+ * - '*think': Think block, which is used for reasoning model.
+ * - 'run-js': JavaScript code block
+ * - 'svg: Show the SVG tag as an image
+ * - 'mermaid': Show the Mermaid diagram
+ * Asterisk prefix is used when the type is not a real markdown block.
+ */
+
+/**
+ * Message part type.
+ */
 export type MsgPartType = string;
 
 // Special message part types
@@ -10,9 +35,21 @@ export type MsgPartType = string;
 export const MSG_PART_TYPE_TEXT = '';
 
 /**
+ * Function call.
+ * The content type is FunctionCallInfo.
+ */
+export const MSG_PART_TYPE_FUNCTION_CALL = '*fn:call';
+
+/**
+ * MSG_PART_TYPE_FILE is a file.
+ * The content type is ID, which is used for IndexedDB.
+ */
+export const MSG_PART_TYPE_FILE = '*file';
+
+/**
  * MSG_PART_TYPE_THINK is a think block.
  */
-export const MSG_PART_TYPE_THINK = 'think';
+export const MSG_PART_TYPE_THINK = '*think';
 
 /**
  * MSG_PART_TYPE_RUN_JS is a javascript code which should be executed.
@@ -50,6 +87,11 @@ export interface Msg<R = Role> {
 	timestamp: number;
 }
 
+/**
+ * Group of message pair, user than assistant (Order is important).
+ * They are grouped for
+ * - More convenient to display in UI
+ */
 export interface MsgPair {
 	user?: Msg<'user'>;
 	assistant?: Msg<'assistant'>;
@@ -58,17 +100,6 @@ export interface MsgPair {
 export interface ChatHistory {
 	msgPairs: MsgPair[];
 }
-
-export const textMsg = (role: Role, text: string): Msg => ({
-	role,
-	parts: [
-		{
-			type: MSG_PART_TYPE_TEXT,
-			content: text,
-		},
-	],
-	timestamp: Date.now(),
-});
 
 /**
  * Convert MsgPart to string.
@@ -87,73 +118,68 @@ export const msgPartToText = (msg: MsgPart): string => {
  * Convert Msg to string.
  * This can be used as an input of any LLM.
  */
-export const msgToText = (msg: Msg): Message => ({
-	role: msg.role,
-	content: msg.parts.map(msgPartToText).join('\n\n'),
-});
-
-export const parseMsgParts = (text: string): MsgPart[] => {
-	// Insert newline before text, to simple match
-	text = '\n' + text.trim();
-	const parts: MsgPart[] = [];
-	// Check if the answer starts with <Think> tag
-	if (text.startsWith('\n<think>')) {
-		const thinkEnd = text.indexOf('\n</think>');
-		if (thinkEnd >= 0) {
-			parts.push({
-				type: MSG_PART_TYPE_THINK,
-				content: text.slice(8, thinkEnd).trim(),
-			});
-			text = text.slice(thinkEnd + 9);
+export const convertMsgForLLM = async (msg: Msg): Promise<LLMMessage> => {
+	const content: TypedContent[] = [];
+	let textContent = '';
+	for (const part of msg.parts) {
+		switch (part.type) {
+			case MSG_PART_TYPE_THINK:
+				// Ignore for tokens
+				break;
+			case MSG_PART_TYPE_FILE:
+				{
+					const f = await getFile(part.content);
+					if (f && f.mimeType.startsWith('image/')) {
+						const dataURL = await getFileDataURL(part.content);
+						if (dataURL) {
+							content.push({
+								type: 'image_url',
+								image_url: { url: dataURL },
+							});
+						}
+					}
+				}
+				break;
+			case MSG_PART_TYPE_FUNCTION_CALL:
+				{
+					if (textContent) {
+						content.push({ type: 'text', text: textContent });
+						textContent = '';
+					}
+					content.push(JSON.parse(part.content));
+				}
+				break;
+			default: {
+				if (textContent) {
+					textContent += '\n\n';
+				}
+				textContent += part.content;
+			}
 		}
 	}
-
-	for (let i = 0; i < text.length; ) {
-		const blockStart = text.indexOf('\n```', i);
-		if (blockStart < 0) {
-			// The rest is text
-			parts.push({
-				type: MSG_PART_TYPE_TEXT,
-				content: text.slice(i).trim(),
-			});
-			break;
-		}
-
-		let blockStartLineEnd = text.indexOf('\n', blockStart + 4);
-		if (blockStartLineEnd < 0) blockStartLineEnd = text.length;
-
-		let blockEnd = text.indexOf('\n```', blockStart + 1);
-		if (blockEnd < 0) blockEnd = text.length;
-
-		const prevBlockContent = text.slice(i, blockStart).trim();
-		if (prevBlockContent.length > 0) {
-			parts.push({
-				type: MSG_PART_TYPE_TEXT,
-				content: prevBlockContent,
-			});
-		}
-
-		const blockType = text.slice(blockStart + 4, blockStartLineEnd).trim();
-		const blockContent = text.slice(blockStartLineEnd + 1, blockEnd).trim();
-		parts.push({
-			type: blockType,
-			content: blockContent,
-		});
-
-		i = blockEnd + 4;
+	if (content.length === 0) {
+		return new LLMMessage(msg.role, textContent);
 	}
-
-	return parts;
+	if (textContent) {
+		content.push({ type: 'text', text: textContent });
+	}
+	return new LLMMessage(msg.role, content);
 };
 
-export const chatHistoryToLLMHistory = (history: ChatHistory): History => {
-	return history.msgPairs.reduce<History>((acc, pair) => {
+/**
+ * Convert chat history to LLM message history.
+ */
+export const convertChatHistoryForLLM = async (
+	history: ChatHistory
+): Promise<LLMMessages> => {
+	const messages: LLMMessages = [];
+	for (const pair of history.msgPairs) {
 		if (pair.user) {
-			acc.push(msgToText(pair.user));
+			messages.push(await convertMsgForLLM(pair.user));
 		}
 		if (pair.assistant) {
-			acc.push(msgToText(pair.assistant));
+			messages.push(await convertMsgForLLM(pair.assistant));
 		}
-		return acc;
-	}, []);
+	}
+	return messages;
 };

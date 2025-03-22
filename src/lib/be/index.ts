@@ -1,3 +1,4 @@
+import { BrowserService } from './browser';
 import { IBEService } from './interface';
 
 export * from './interface';
@@ -8,7 +9,7 @@ let beService: IBEService | null = null;
  * Get an instance of the backend service.
  * If the backend service is not available, it'll return `undefined`.
  */
-export const getBEService = async (): Promise<IBEService | void> => {
+export const getBEService = async (): Promise<IBEService> => {
 	if (beService) return beService;
 
 	type TauriWindow = typeof window & {
@@ -20,4 +21,7 @@ export const getBEService = async (): Promise<IBEService | void> => {
 		beService = new cls();
 		return beService;
 	}
+
+	beService = new BrowserService();
+	return beService;
 };

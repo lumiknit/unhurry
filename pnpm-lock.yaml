@@ -16,6 +16,9 @@ importers:
             '@tauri-apps/api':
                 specifier: ^2.3.0
                 version: 2.3.0
+            '@tauri-apps/plugin-haptics':
+                specifier: ^2.2.4
+                version: 2.2.4
             '@tauri-apps/plugin-http':
                 specifier: ~2.4.2
                 version: 2.4.2
@@ -40,6 +43,9 @@ importers:
             highlight.js:
                 specifier: ^11.11.1
                 version: 11.11.1
+            jsonschema:
+                specifier: ^1.5.0
+                version: 1.5.0
             marked:
                 specifier: ^15.0.7
                 version: 15.0.7
@@ -1231,6 +1237,12 @@ packages:
             }
         engines: { node: '>= 10' }
         hasBin: true
+
+    '@tauri-apps/plugin-haptics@2.2.4':
+        resolution:
+            {
+                integrity: sha512-h+YapjI0o6B1daj4gL7j8qKZUoxuZ09RWq+W8C62TXO5GHxc4YaywzGNGqq/3kJTYwv/3fw5o/pWO3AsN58RuQ==,
+            }
 
     '@tauri-apps/plugin-http@2.4.2':
         resolution:
@@ -3159,6 +3171,12 @@ packages:
         engines: { node: '>=6' }
         hasBin: true
 
+    jsonschema@1.5.0:
+        resolution:
+            {
+                integrity: sha512-K+A9hhqbn0f3pJX17Q/7H6yQfD/5OXgdrR5UE12gMXCiN9D5Xq2o5mddV2QEcX/bjla99ASsAAQUyMCCRWAEhw==,
+            }
+
     katex@0.16.21:
         resolution:
             {
@@ -4816,6 +4834,10 @@ snapshots:
             '@tauri-apps/cli-win32-ia32-msvc': 2.3.1
             '@tauri-apps/cli-win32-x64-msvc': 2.3.1
 
+    '@tauri-apps/plugin-haptics@2.2.4':
+        dependencies:
+            '@tauri-apps/api': 2.3.0
+
     '@tauri-apps/plugin-http@2.4.2':
         dependencies:
             '@tauri-apps/api': 2.3.0
@@ -6207,6 +6229,8 @@ snapshots:
         optional: true
 
     json5@2.2.3: {}
+
+    jsonschema@1.5.0: {}
 
     katex@0.16.21:
         dependencies:

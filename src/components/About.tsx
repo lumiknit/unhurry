@@ -7,9 +7,14 @@ import {
 	Show,
 	Switch,
 } from 'solid-js';
+import { toast } from 'solid-toast';
+
+import { resetAllData } from '@/lib/reset';
+
+import { openConfirm } from './modal-confirm';
+import { getBEService, IBEService } from '../lib/be';
 
 import './About.scss';
-import { getBEService, IBEService } from '../lib/be';
 
 /**
  * Compare two version strings.
@@ -74,6 +79,13 @@ const About: Component = () => {
 		getLatestRelease().then(setLatestRelease);
 	});
 
+	const handleReset = async () => {
+		if (await openConfirm('Are you sure to reset all data?')) {
+			await resetAllData();
+			toast.success('All data has been reset.');
+		}
+	};
+
 	return (
 		<div class="container">
 			<div class="text-center">
@@ -86,7 +98,7 @@ const About: Component = () => {
 				<ul>
 					<li>
 						<b>Author</b>:{' '}
-						<a href="https://github.com/lumiknit">
+						<a target="_blank" href="https://github.com/lumiknit">
 							lumiknit (aasr4r4@gmail.com)
 						</a>
 					</li>
@@ -136,7 +148,19 @@ const About: Component = () => {
 					</p>
 				</Show>
 
-				<a href={latestReleaseURL}>Visit the latest release page</a>
+				<a target="_blank" href={latestReleaseURL}>
+					Visit the latest release page
+				</a>
+
+				<br />
+
+				<p>
+					If your data is corrupted or you want to reset all data, you
+					can reset all data here.
+				</p>
+				<button class="button is-danger" onClick={handleReset}>
+					Reset All Data
+				</button>
 			</div>
 		</div>
 	);

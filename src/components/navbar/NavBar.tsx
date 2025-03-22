@@ -1,7 +1,8 @@
 import { A, useNavigate } from '@solidjs/router';
 import {
 	BiRegularCog,
-	BiRegularLibrary,
+	BiRegularFolder,
+	BiRegularHistory,
 	BiRegularQuestionMark,
 	BiSolidFilePlus,
 } from 'solid-icons/bi';
@@ -65,7 +66,7 @@ const NavBar: Component = () => {
 				</a>
 
 				<A class="navbar-item" href="/chat-list">
-					<BiRegularLibrary />
+					<BiRegularHistory />
 					<span class="is-hidden-mobile">Open</span>
 				</A>
 
@@ -95,6 +96,13 @@ const NavBar: Component = () => {
 						<div class="navbar-dropdown">
 							<A
 								class="navbar-item"
+								href={`${rootPath}/file-list`}
+							>
+								<BiRegularFolder />
+								Files
+							</A>
+							<A
+								class="navbar-item"
 								href={`${rootPath}/settings`}
 							>
 								<BiRegularCog />
@@ -103,6 +111,9 @@ const NavBar: Component = () => {
 							<A class="navbar-item" href={`${rootPath}/about`}>
 								<BiRegularQuestionMark />
 								About
+							</A>
+							<A class="navbar-item" href={`${rootPath}/logs`}>
+								Logs
 							</A>
 						</div>
 					</div>

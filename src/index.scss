@@ -11,11 +11,26 @@
 	font-display: swap;
 }
 
+@font-face {
+	font-family: 'Source Han Serif';
+	src: url('/SourceHanSerif-VF.otf.woff2') format('woff2');
+	font-weight: 100 900;
+	font-display: swap;
+}
+
 // Common helpers
+
+.w-full {
+	width: 100%;
+}
+
+.h-full {
+	height: 100%;
+}
 
 .flex-split {
 	display: flex;
-	flex-wrap: wrap;
+	flex-wrap: none;
 	justify-content: space-between;
 }
 
@@ -23,6 +38,17 @@
 	user-select: none;
 	-webkit-user-drag: none;
 	-webkit-user-select: none;
+}
+
+.thin-hr {
+	height: 1px;
+	opacity: 0.1;
+}
+
+.text-ellipsis {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 // Root Styles
@@ -36,14 +62,26 @@
 	--bulma-primary-l: 27%;
 	--bulma-primary-invert-l: 95%;
 
-	--bulma-family-primary:
+	--sans-serif-family:
 		Pretendard, Inter, SF Pro, Segoe UI, Roboto, Oxygen, Ubuntu,
 		Helvetica Neue, Helvetica, Arial, sans-serif !important;
+	--serif-family: 'Source Han Serif', 'Noto Serif', 'Times New Roman', serif;
+
+	--bulma-family-primary: var(--sans-serif-family);
+
 	--uh-blur: blur(3px);
 	--uh-blur-opacity: 0.8;
 
 	--uh-bottom-input-border: 1px solid hsl(0, 0%, 85%);
 	--uh-navbar-l: 100%;
+}
+
+:root.font-serif {
+	--bulma-family-primary: var(--serif-family);
+	--bulma-body-weight: 500;
+	--bulma-strong-weight: 800;
+	--bulma-weight-semibold: 700;
+	--bulma-weight-bold: 900;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -232,6 +270,10 @@ span[aria-hidden='true'] {
 	margin: 0.25rem 0;
 }
 
+.gap-1 {
+	gap: 0.25rem !important;
+}
+
 .input-tags {
 	white-space: nowrap;
 	overflow-x: scroll;
@@ -240,12 +282,10 @@ span[aria-hidden='true'] {
 .streaming-msg {
 	white-space: pre-wrap;
 	word-break: break-all;
-	margin: 0.5rem;
-	padding: 0.5rem;
 
-	font-family: monospace;
+	padding: 0 0.75rem;
+
 	color: var(--bulma-text-soft-invert);
-	background-color: var(--bulma-text-soft);
 	border-radius: 0.5rem;
 
 	margin-bottom: 100dvh;
@@ -257,12 +297,14 @@ span[aria-hidden='true'] {
 }
 
 // Bottom input
-.bottom-input {
+.bottom-fixed {
 	position: fixed;
 	bottom: 0;
 	left: 0;
 	right: 0;
+}
 
+.bottom-input {
 	border: var(--uh-bottom-input-border);
 	border-radius: 1rem;
 	margin: 0.5rem;
@@ -280,8 +322,10 @@ span[aria-hidden='true'] {
 		border: none;
 		background-color: transparent;
 		width: 100%;
+		max-height: 40dvh;
 		resize: none;
-		overflow: hidden;
+		overflow-x: hidden;
+		overflow-y: auto;
 		font-size: 1rem;
 		font-family: var(--bulma-family-primary);
 		color: var(--bulma-text-bold);

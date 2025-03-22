@@ -1,6 +1,19 @@
 import { invoke } from '@tauri-apps/api/core';
+import {
+	vibrate,
+	impactFeedback,
+	notificationFeedback,
+} from '@tauri-apps/plugin-haptics';
 
-import { FetchResult, IBEService } from './interface';
+import {
+	FetchResult,
+	IBEService,
+	ImpactVibePattern,
+	impactVibes,
+	NotiVibePattern,
+	notiVibes,
+	VibrationPattern,
+} from './interface';
 
 /**
  * Use Tauri (Rust code) as backend service.
@@ -31,5 +44,15 @@ export class TauriService implements IBEService {
 			body,
 		});
 		return result as FetchResult;
+	}
+
+	async vibrate(pattern: VibrationPattern): Promise<void> {
+		if (typeof pattern === 'number') {
+			vibrate(pattern);
+		} else if (notiVibes.has(pattern)) {
+			notificationFeedback(pattern as NotiVibePattern);
+		} else if (impactVibes.has(pattern)) {
+			impactFeedback(pattern as ImpactVibePattern);
+		}
 	}
 }

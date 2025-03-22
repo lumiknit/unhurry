@@ -42,15 +42,33 @@ export const chatTx = async <T>(id: string) => {
 	return await chatIDB(id).transaction<T>('readwrite');
 };
 
-export const clearAllChats = async () => {
-	const tx = await chatListTx();
-	tx.clear();
+export const clearAllChats = async (options?: { left?: number }) => {
+	if ((options?.left || 0) <= 0) {
+		const tx = await chatListTx();
+		tx.clear();
 
-	const dbList = await indexedDB.databases();
-	for (const db of dbList) {
-		if (!db.name) continue;
-		if (db.name.startsWith('chat:')) {
-			indexedDB.deleteDatabase(db.name);
+		const dbList = await indexedDB.databases();
+		for (const db of dbList) {
+			if (!db.name) continue;
+			if (db.name.startsWith('chat:')) {
+				indexedDB.deleteDatabase(db.name);
+			}
+		}
+	} else {
+		// Keep n latest chats
+		const n = options!.left!;
+		type T = {
+			_id: string;
+			lastUsedAt?: number;
+		};
+		const tx = await chatListTx<T>();
+		const all = await tx.getAll();
+		const sorted = all.sort(
+			(a, b) => (b.lastUsedAt || 0) - (a.lastUsedAt || 0)
+		);
+		const toDelete = sorted.slice(n);
+		for (const chat of toDelete) {
+			await deleteChatByID(chat._id);
 		}
 	}
 };

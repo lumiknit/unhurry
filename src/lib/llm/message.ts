@@ -1,34 +1,93 @@
+/**
+ * Role of a message.
+ * Based on OpenAI.
+ */
 export type Role = 'system' | 'user' | 'assistant';
 
-export interface TextMessage {
-	role: Role;
-	content: string;
+/**
+ * Text-type content.
+ */
+export interface TextTypeContent {
+	type: 'text';
+	text: string;
 }
 
-export type Message = TextMessage;
+/**
+ * Image-type content.
+ */
+export interface ImageURLTypeContent {
+	type: 'image_url';
+	image_url: {
+		url: string;
+	};
+}
 
-export type History = Message[];
+export interface FunctionCallContent {
+	type: 'function_call';
+	id: string;
+	name: string;
+	args: string;
+	result?: string;
+}
 
 /**
- * Create a history in order of system, user, assistant, user, assistant, ...
+ * Typed content.
  */
-export const easyTextHistory = (
-	systemPrompt: string,
-	...messages: string[]
-): History => {
-	const history: History = [
-		{
-			role: 'system',
-			content: systemPrompt,
-		},
-	];
+export type TypedContent =
+	| TextTypeContent
+	| ImageURLTypeContent
+	| FunctionCallContent;
 
-	for (let i = 0; i < messages.length; i++) {
-		history.push({
-			role: i % 2 === 0 ? 'user' : 'assistant',
-			content: messages[i],
-		});
+export type LLMMsgContent = string | TypedContent[];
+
+/**
+ * Message for LLM.
+ * Basically for OpenAI.
+ */
+export class LLMMessage {
+	role: Role;
+	content: LLMMsgContent;
+
+	constructor(role: Role, content: LLMMsgContent) {
+		this.role = role;
+		this.content = content;
 	}
 
-	return history;
-};
+	/**
+	 * Create an assistant message.
+	 */
+	static assistant(content: LLMMsgContent): LLMMessage {
+		return new LLMMessage('assistant', content);
+	}
+
+	/**
+	 * Create a user message.
+	 */
+	static user(content: LLMMsgContent): LLMMessage {
+		return new LLMMessage('user', content);
+	}
+
+	/** Extract only text contents */
+	extractText(): string {
+		if (typeof this.content === 'string') {
+			return this.content;
+		}
+		const t: string[] = [];
+		for (const x of this.content) {
+			if (x.type === 'text') {
+				t.push(x.text);
+			}
+		}
+		return t.join('\n\n');
+	}
+
+	/** Function calls */
+	functionCalls(): FunctionCallContent[] {
+		if (typeof this.content === 'string') {
+			return [];
+		}
+		return this.content.filter((x) => x.type === 'function_call');
+	}
+}
+
+export type LLMMessages = LLMMessage[];

@@ -1,22 +1,31 @@
 /// Global store
 
+import { createEffect } from 'solid-js';
 import { createStore, StoreSetter, unwrap } from 'solid-js/store';
 import { toast } from 'solid-toast';
+
+import { logr } from '@/lib/logr';
 
 import {
 	ChatContext,
 	ChatMeta,
 	emptyChatContext,
-	getChatMeta,
+	extractChatMeta,
 	MsgPair,
+	MsgPart,
 } from '../lib/chat';
 import { sanitizeConfig, UserConfig } from '../lib/config';
 import { chatListTx, chatTx, loadUserConfig, saveUserConfig } from '../lib/idb';
 import { JSContext } from '../lib/run-js';
 
+interface StreamingMessage {
+	parts: MsgPart[];
+	rest: string;
+}
+
 interface GlobalStore {
 	chatContext: ChatContext;
-	streamingMessage?: string;
+	streamingMessage?: StreamingMessage;
 
 	userConfig?: UserConfig;
 }
@@ -25,7 +34,8 @@ export const [store, setStore] = createStore<GlobalStore>({
 	chatContext: emptyChatContext(),
 });
 
-// Load user config
+// Config
+
 (async () => {
 	const c = await loadUserConfig<UserConfig>();
 	const userConfig = sanitizeConfig(c);
@@ -37,7 +47,7 @@ export const setUserConfig = (setter: StoreSetter<UserConfig>) => {
 	toast('Config updated', {
 		duration: 500,
 	});
-	console.log('Set user config');
+	logr.info('[store/config] User config updated, will save persistently');
 	setStore(
 		'userConfig',
 		setter as StoreSetter<UserConfig | undefined, ['userConfig']>
@@ -45,6 +55,18 @@ export const setUserConfig = (setter: StoreSetter<UserConfig>) => {
 	// Save to IDB
 	saveUserConfig(unwrap(getUserConfig()));
 };
+
+createEffect(() => {
+	const c = getUserConfig();
+	if (!c) return;
+	if (c.fontFamily === 'sans-serif') {
+		document.querySelector(':root')?.classList.remove('font-serif');
+	} else {
+		document.querySelector(':root')?.classList.add('font-serif');
+	}
+});
+
+// Chat Context
 
 export const getChatContext = () => store.chatContext;
 export const setChatContext = (setter: StoreSetter<ChatContext>) => {
@@ -57,7 +79,7 @@ export const setChatContext = (setter: StoreSetter<ChatContext>) => {
 export const saveChatContextMeta = async () => {
 	const ctx = getChatContext();
 	const chatList = await chatListTx<ChatMeta>();
-	await chatList.put(getChatMeta(unwrap(ctx)));
+	await chatList.put(extractChatMeta(unwrap(ctx)));
 };
 
 export const loadChatContext = async (id: string) => {
@@ -80,12 +102,17 @@ export const loadChatContext = async (id: string) => {
 	}));
 };
 
+// Streaming message
+
 export const getStreamingMessage = () => store.streamingMessage;
 export const setStreamingMessage = (
-	setter: StoreSetter<string | undefined>
+	setter: StoreSetter<StreamingMessage | void>
 ) => {
 	setStore(
 		'streamingMessage',
-		setter as StoreSetter<string | undefined, ['streamingMessage']>
+		setter as StoreSetter<
+			StreamingMessage | undefined,
+			['streamingMessage']
+		>
 	);
 };

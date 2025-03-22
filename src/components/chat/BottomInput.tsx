@@ -1,18 +1,33 @@
 import { BiRegularSend } from 'solid-icons/bi';
-import { Component, onMount } from 'solid-js';
+import { Component, createSignal, onMount, Show } from 'solid-js';
 import { toast } from 'solid-toast';
 
-import { getUserConfig } from '@store';
+import { logr } from '@/lib/logr';
+import {
+	cancelAllChats,
+	chat,
+	generateChatTitle,
+	vibrate,
+} from '@/store/actions';
+
+import {
+	getChatContext,
+	getUserConfig,
+	saveChatContextMeta,
+	setChatContext,
+} from '@store';
 
 import InputTags from './PromptTags';
+import SpeechButton from './SpeechButton';
+import UploadedFiles from './UploadedFiles';
+import UploadFileButton from './UploadFileButton';
 
-interface Props {
-	progressing?: boolean;
-	send?: (value: string) => void;
-	cancel?: () => void;
+interface FileInput {
+	name: string;
+	id: string;
 }
 
-const BottomInput: Component<Props> = (props) => {
+const BottomInput: Component = () => {
 	let topRef: HTMLDivElement;
 	let taRef: HTMLTextAreaElement;
 
@@ -21,6 +36,9 @@ const BottomInput: Component<Props> = (props) => {
 
 	let composing = false;
 	let lastSent = 0;
+
+	const [files, setFiles] = createSignal<FileInput[]>([]);
+	const [sendCnt, setSendCnt] = createSignal(0);
 
 	const insertText = (text: string) => {
 		const ta = taRef!;
@@ -52,6 +70,9 @@ const BottomInput: Component<Props> = (props) => {
 			// Do nothing for empty string
 			return;
 		}
+
+		const fs = files();
+
 		// Dispatch right arrow event
 		if (!composing) {
 			taRef!.value = '';
@@ -60,12 +81,45 @@ const BottomInput: Component<Props> = (props) => {
 			// Otherwise, some composing left.
 			// Just ignore the send
 		}
+		setFiles([]);
+
+		setSendCnt((c) => c + 1);
+		const isFirst = getChatContext().history.msgPairs.length === 0;
 		try {
-			await props.send?.(v);
+			logr.info('LLM Input: ', v);
+			setChatContext((c) => ({ ...c, progressing: true }));
+
+			// Pick the last user message and scroll to top.
+			setTimeout(() => {
+				const elems = document.getElementsByClassName('msg-user');
+				if (elems.length > 0) {
+					const last = elems[elems.length - 1];
+					const rect = last.getBoundingClientRect();
+					const top = window.scrollY + rect.top - 54;
+					// current scroll position
+					window.scrollTo({
+						top,
+						behavior: 'smooth',
+					});
+				}
+			}, 33);
+			await chat(
+				v,
+				fs.map((f) => f.id)
+			);
 		} catch (e) {
 			toast.error('Failed to send: ' + e);
 			taRef!.value = v;
+			setFiles(fs);
 			lastSent = 0;
+		}
+		setChatContext((c) => ({ ...c, progressing: false }));
+		if (isFirst) {
+			// Generate a title
+			const title = await generateChatTitle();
+			logr.info('Generated title: ', title);
+			setChatContext((c) => ({ ...c, title }));
+			saveChatContextMeta();
 		}
 		autosizeTextarea();
 	};
@@ -97,6 +151,13 @@ const BottomInput: Component<Props> = (props) => {
 		autoSendAt = Date.now() + as;
 		if (autoSendTimeoutId === undefined) {
 			autoSendTimeoutId = window.setTimeout(autoSend, as);
+		}
+	};
+
+	const unsetAutoSend = () => {
+		if (autoSendTimeoutId) {
+			clearTimeout(autoSendTimeoutId);
+			autoSendTimeoutId = undefined;
 		}
 	};
 
@@ -141,11 +202,37 @@ const BottomInput: Component<Props> = (props) => {
 
 	const handleButtonClick = (e: MouseEvent) => {
 		e.stopPropagation();
-		if (props.progressing) {
+		vibrate('medium');
+		if (getChatContext().progressing) {
 			toast('Canceling the current operation...');
-			props.cancel?.();
+			cancelAllChats();
 		} else {
 			send();
+		}
+	};
+
+	const handleSpeech = (
+		transcript: string,
+		isFinal: boolean,
+		lastTranscript: string
+	) => {
+		// Remove if the last transcript is exists
+		if (lastTranscript) {
+			const v = taRef!.value;
+			const selStart = taRef!.selectionStart;
+			const part = v.slice(0, selStart);
+			if (v.endsWith(lastTranscript)) {
+				taRef!.value =
+					part.slice(0, -lastTranscript.length) + v.slice(selStart);
+				taRef!.setSelectionRange(selStart, selStart);
+			}
+		}
+		// Insert the transcript
+		insertText(transcript);
+		if (isFinal) {
+			setAutoSend();
+		} else {
+			unsetAutoSend();
 		}
 	};
 
@@ -167,11 +254,7 @@ const BottomInput: Component<Props> = (props) => {
 	});
 
 	return (
-		<div
-			ref={topRef!}
-			class="bottom-fixed bottom-input"
-			onClick={handleClickMargin}
-		>
+		<div ref={topRef!} class="bottom-input" onClick={handleClickMargin}>
 			<textarea
 				ref={taRef!}
 				onBeforeInput={handleBeforeInput}
@@ -181,7 +264,28 @@ const BottomInput: Component<Props> = (props) => {
 				onKeyUp={handleKeyUp}
 				placeholder="Type your message here..."
 			/>
-			<div class="buttons no-user-select">
+			<Show when={files().length > 0}>
+				<UploadedFiles
+					files={files()}
+					onDelete={(id) =>
+						setFiles((fs) => fs.filter((v) => v.id !== id))
+					}
+				/>
+			</Show>
+			<div class="buttons gap-1 no-user-select">
+				<SpeechButton
+					class="control is-size-6 py-1 button-mic"
+					onSpeech={handleSpeech}
+					onSRError={(e, msg) => {
+						toast.error(`Failed to STT: ${e}, ${msg}`);
+					}}
+					cnt={sendCnt()}
+				/>
+				<UploadFileButton
+					onFile={(name, id) =>
+						setFiles((fs) => [...fs, { name, id }])
+					}
+				/>
 				<InputTags
 					onInsertText={insertText}
 					onReplaceText={replaceText}
@@ -190,7 +294,7 @@ const BottomInput: Component<Props> = (props) => {
 					<button
 						class={
 							'button button-send p-3 ' +
-							(props.progressing
+							(getChatContext().progressing
 								? ' is-loading is-warning'
 								: 'is-primary')
 						}

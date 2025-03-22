@@ -81,16 +81,16 @@ type UpgradeCallback = (db: IDBDatabase) => void;
  */
 export class SimpleIDB {
 	name: string;
-	store: string;
+	stores: string[];
 	version: number;
 
 	upgradeCallback?: UpgradeCallback;
 
 	db: IDBDatabase | null = null;
 
-	constructor(name: string, store: string, version = 1) {
+	constructor(name: string, store: string | string[], version = 1) {
 		this.name = name;
-		this.store = store;
+		this.stores = typeof store === 'string' ? [store] : store;
 		this.version = version;
 	}
 
@@ -106,14 +106,16 @@ export class SimpleIDB {
 			const req = indexedDB.open(this.name);
 			req.onupgradeneeded = () => {
 				const db = req.result;
-				if (!db.objectStoreNames.contains(this.store)) {
-					db.createObjectStore(this.store, {
-						keyPath: '_id',
-						autoIncrement: true,
-					});
-					//store.createIndex('_id', '_id', { unique: true });
-					if (this.upgradeCallback) {
-						this.upgradeCallback(db);
+				for (const store of this.stores) {
+					if (!db.objectStoreNames.contains(store)) {
+						db.createObjectStore(store, {
+							keyPath: '_id',
+							autoIncrement: true,
+						});
+						//store.createIndex('_id', '_id', { unique: true });
+						if (this.upgradeCallback) {
+							this.upgradeCallback(db);
+						}
 					}
 				}
 			};
@@ -129,14 +131,18 @@ export class SimpleIDB {
 
 	async transaction<T>(
 		mode: IDBTransactionMode = 'readonly',
-		options?: IDBTransactionOptions
+		options?: IDBTransactionOptions,
+		store?: string
 	): Promise<SimpleTransaction<T>> {
 		if (!this.db) {
 			await this.open();
 		}
+		if (!store) {
+			store = this.stores[0];
+		}
 		return new SimpleTransaction<T>(
-			this.db!.transaction(this.store, mode, options),
-			this.store
+			this.db!.transaction(store, mode, options),
+			store
 		);
 	}
 }

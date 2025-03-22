@@ -16,8 +16,12 @@ import {
 import { Dynamic } from 'solid-js/web';
 import { toast } from 'solid-toast';
 
+import { logr } from '@/lib/logr';
+
 import {
 	Msg,
+	MSG_PART_TYPE_FILE,
+	MSG_PART_TYPE_FUNCTION_CALL,
 	MSG_PART_TYPE_MERMAID,
 	MSG_PART_TYPE_RUN_JS,
 	MSG_PART_TYPE_SVG,
@@ -25,8 +29,10 @@ import {
 	MSG_PART_TYPE_THINK,
 } from '@lib/chat';
 
-import JSONLikeMessage from '../JSONLikeMessage';
-import { ItemProps } from '../message_types';
+import FileMessage from './FileMessage';
+import FnCallMessage from './FnCallMessage';
+import JSONLikeMessage from './JSONLikeMessage';
+import { ItemProps } from './message_types';
 
 marked.use(
 	markedKatex({
@@ -45,10 +51,14 @@ mermaid.initialize({
 const TextMessage: Component<ItemProps> = (props) => {
 	const [html, setHtml] = createSignal('');
 
-	onMount(async () => {
-		const html = await marked(props.content, { async: true });
+	const setMD = async (v: string) => {
+		const html = await marked(v, { async: true });
 		const sanitized = html; //DOMPurify.sanitize(html);
 		setHtml(sanitized.replace(/<a href/g, '<a target="_blank" href'));
+	};
+
+	onMount(async () => {
+		await setMD(props.content);
 	});
 
 	return <div class="content" innerHTML={html()} />;
@@ -184,7 +194,7 @@ const MermaidMessage: Component<ItemProps> = (props) => {
 			setSvg(DOMPurify.sanitize(svg));
 			setErr('');
 		} catch (error) {
-			console.error('Error rendering Mermaid diagram:', error);
+			logr.error('Error rendering Mermaid diagram:', error);
 			setErr(`${error}`);
 		}
 	});
@@ -206,6 +216,8 @@ const MermaidMessage: Component<ItemProps> = (props) => {
 
 const compMap = new Map([
 	[MSG_PART_TYPE_TEXT, TextMessage],
+	[MSG_PART_TYPE_FUNCTION_CALL, FnCallMessage],
+	[MSG_PART_TYPE_FILE, FileMessage],
 	[MSG_PART_TYPE_RUN_JS, BlockMessage],
 	[MSG_PART_TYPE_SVG, SvgMessage],
 	[MSG_PART_TYPE_MERMAID, MermaidMessage],

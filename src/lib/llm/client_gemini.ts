@@ -1,15 +1,88 @@
-import { ILLMService, Model } from './client_interface';
-import { RateLimitError } from './errors';
+import { ILLMService, Model, StreamCallbacks } from './client_interface';
+import {
+	BadRequestError,
+	RateLimitError,
+	RequestEntityTooLargeError,
+} from './errors';
+import { FunctionTool } from './function';
 import { readSSEJSONStream } from './json_stream_reader';
-import { History, Message, Role } from './message';
+import {
+	LLMMessages,
+	LLMMessage,
+	LLMMsgContent,
+	Role,
+	FunctionCallContent,
+} from './message';
 import { ModelConfig } from './model_config';
+import { JSONValue } from '../json';
 
+/**
+ * Gemini LLM Message Role
+ */
 type GeminiRole = 'model' | 'user';
 
+/**
+ * Gemini text content part
+ */
+interface GeminiTextPart {
+	text: string;
+}
+
+/**
+ * Gemini inline data content part
+ * (e.g. image)
+ */
+interface GeminiInlineDataPart {
+	inline_data: {
+		mime_type: string;
+		data: string;
+	};
+}
+
+/**
+ * Gemini inline data content part
+ * (e.g. image)
+ */
+interface GeminiFileDataPart {
+	mime_type: string;
+	file_uri: string;
+}
+
+/**
+ * Gemini functionCall part
+ */
+interface GeminiFunctionCallPart {
+	functionCall: {
+		name: string;
+		args: Record<string, JSONValue>;
+	};
+}
+
+/**
+ * Gemini functionResponse part
+ */
+interface GeminiFunctionResponsePart {
+	functionResponse: {
+		name: string;
+		response: {
+			name: string;
+			content: JSONValue;
+		};
+	};
+}
+
+type GeminiPart =
+	| GeminiTextPart
+	| GeminiInlineDataPart
+	| GeminiFileDataPart
+	| GeminiFunctionCallPart
+	| GeminiFunctionResponsePart;
+
+/**
+ * Gemini LLM Content
+ */
 interface GeminiContent {
-	parts: {
-		text: string;
-	}[];
+	parts: GeminiPart[];
 	role: GeminiRole;
 }
 
@@ -40,6 +113,7 @@ interface GeminiStreamChunk {
 
 export class GeminiClient implements ILLMService {
 	config: ModelConfig;
+	functions: FunctionTool[] = [];
 
 	constructor(config: ModelConfig) {
 		if (config.clientType !== 'Gemini') {
@@ -49,65 +123,144 @@ export class GeminiClient implements ILLMService {
 		this.config = config;
 	}
 
-	textContent(role: GeminiRole, text: string): GeminiContent {
-		return {
-			parts: [
-				{
-					text,
-				},
-			],
-			role,
-		};
+	setFunctions(functions: FunctionTool[]): void {
+		this.functions = functions;
 	}
 
-	convertHistoryForGemini(history: History): GeminiContent[] {
+	/**
+	 * Convert LLM messages (openai format) to Gemini format.
+	 */
+	convertMessagesForGemini(messages: LLMMessages): GeminiContent[] {
 		const roleMap: Record<Role, GeminiRole> = {
 			system: 'user',
 			user: 'user',
 			assistant: 'model',
 		};
-		const mapped = history.map((msg) => {
-			return this.textContent(roleMap[msg.role], msg.content);
-		});
-		for (let i = mapped.length - 2; i >= 0; i--) {
-			if (mapped[i].role === mapped[i + 1].role) {
-				const mergedMsg =
-					mapped[i].parts[0].text +
-					'\n' +
-					mapped[i + 1].parts[0].text;
-				mapped.splice(
-					i,
-					2,
-					this.textContent(mapped[i].role, mergedMsg)
-				);
+		const out: GeminiContent[] = [];
+		for (const msg of messages) {
+			// Check role first
+			if (
+				out.length === 0 ||
+				out[out.length - 1].role !== roleMap[msg.role]
+			) {
+				out.push({
+					parts: [],
+					role: roleMap[msg.role],
+				});
+			}
+			const last = out[out.length - 1];
+			const fnResults: GeminiFunctionResponsePart[] = [];
+			if (typeof msg.content === 'string') {
+				if (msg.content.length === 0) continue;
+				last.parts.push({
+					text: msg.content,
+				});
+			} else {
+				for (const item of msg.content) {
+					switch (item.type) {
+						case 'text':
+							last.parts.push({
+								text: item.text,
+							});
+							break;
+						case 'image_url':
+							{
+								const [data, b64] = item.image_url.url.split(
+									',',
+									2
+								);
+								const m = data.match(/^data:([^;]+)(;base64)?/);
+								if (!m) {
+									throw new Error('Invalid data URL');
+								}
+								const mime = m[1];
+								const isBase64 = m[2] === ';base64';
+								last.parts.push({
+									inline_data: {
+										mime_type: mime,
+										data: isBase64
+											? b64
+											: item.image_url.url,
+									},
+								});
+							}
+							break;
+						case 'function_call':
+							last.parts.push({
+								functionCall: {
+									name: item.name,
+									args: JSON.parse(item.args),
+								},
+							});
+							if (item.result !== undefined) {
+								fnResults.push({
+									functionResponse: {
+										name: item.name,
+										response: {
+											name: item.name,
+											content: item.result,
+										},
+									},
+								});
+							}
+							break;
+					}
+				}
+			}
+			if (fnResults.length > 0) {
+				// Function results should be pushed as user message
+				if (out.length === 0 || out[out.length - 1].role !== 'user') {
+					out.push({
+						parts: [],
+						role: 'user',
+					});
+				}
+				out[out.length - 1].parts.push(...fnResults);
 			}
 		}
-		return mapped;
+		return out.filter((c) => c.parts.length > 0);
 	}
 
-	async chat(systemPrompt: string, history: History): Promise<Message> {
+	private chatCompletionBody(system: string, history: LLMMessages): string {
+		let tools = undefined;
+		if (this.functions.length > 0) {
+			tools = [{ function_declarations: this.functions }];
+		}
+		if (this.config.model.includes('image-generation')) {
+			return JSON.stringify({
+				contents: this.convertMessagesForGemini(history),
+				generationConfig: {
+					responseModalities: ['Text', 'Image'],
+				},
+			});
+		}
+		return JSON.stringify({
+			contents: this.convertMessagesForGemini(history),
+			system_instruction: {
+				parts: [
+					{
+						text: system,
+					},
+				],
+			},
+			tools,
+		});
+	}
+
+	async chat(
+		systemPrompt: string,
+		history: LLMMessages
+	): Promise<LLMMessage> {
 		const url = `${this.config.endpoint}/models/${this.config.model}:generateContent?key=${this.config.apiKey}`;
 
 		const headers = {
 			'Content-Type': 'application/json',
 		};
 
-		const contents = this.convertHistoryForGemini(history);
-
-		const reqBody = JSON.stringify({
-			contents,
-			system_instruction: {
-				parts: [
-					{
-						text: systemPrompt,
-					},
-				],
-			},
-		});
 		const resp = await fetch(url, {
 			method: 'POST',
 			headers,
-			body: reqBody,
+			body: this.chatCompletionBody(systemPrompt, history),
 		});
 		if (!resp.ok) {
 			throw new Error(
@@ -116,46 +269,63 @@ export class GeminiClient implements ILLMService {
 		}
 		const respBody = (await resp.json()) as GeminiGeneateContentResponse;
 		const lastMessage = respBody.candidates[0].content;
-		return {
-			role: 'assistant',
-			content: lastMessage.parts.reduce(
-				(acc, part) => acc + part.text,
-				''
-			),
-		};
+		let content: LLMMsgContent = [];
+		for (const part of lastMessage.parts) {
+			if ('text' in part) {
+				content.push({
+					type: 'text',
+					text: part.text,
+				});
+			} else if ('data' in part) {
+				content.push({
+					type: 'image_url',
+					image_url: {
+						url: part.data as string,
+					},
+				});
+			} else if ('functionCall' in part) {
+				content.push({
+					type: 'function_call',
+					id: part.functionCall.name,
+					name: part.functionCall.name,
+					args: JSON.stringify(part.functionCall.args),
+				});
+			}
+		}
+		if (content.length === 1 && content[0].type === 'text') {
+			content = content[0].text;
+		}
+		return LLMMessage.assistant(content);
 	}
 
 	async chatStream(
 		systemPrompt: string,
-		history: History,
-		messageCallback: (s: string, acc: string) => boolean
-	): Promise<Message> {
+		history: LLMMessages,
+		callbacks: StreamCallbacks
+	): Promise<LLMMessage> {
 		const url = `${this.config.endpoint}/models/${this.config.model}:streamGenerateContent?alt=sse&key=${this.config.apiKey}`;
 
 		const headers = {
 			'Content-Type': 'application/json',
 		};
 
-		const contents = this.convertHistoryForGemini(history);
-
-		const reqBody = JSON.stringify({
-			contents,
-			system_instruction: {
-				parts: [
-					{
-						text: systemPrompt,
-					},
-				],
-			},
-		});
 		const resp = await fetch(url, {
 			method: 'POST',
 			headers,
-			body: reqBody,
+			body: this.chatCompletionBody(systemPrompt, history),
 		});
 		if (!resp.ok) {
+			const body = await resp.text();
+			switch (resp.status) {
+				case 400:
+					throw new BadRequestError(body);
+				case 413:
+					throw new RequestEntityTooLargeError(body);
+				case 429:
+					throw new RateLimitError(body);
+			}
 			throw new Error(
-				`Failed to chat: ${resp.status} ${resp.statusText}\n${await resp.text()}`
+				`Failed to chat stream: ${resp.status} ${resp.statusText}\n${body}`
 			);
 		}
 
@@ -164,24 +334,50 @@ export class GeminiClient implements ILLMService {
 		if (!reader) {
 			throw new Error('Failed to get reader');
 		}
-		let acc = '';
+		let content: LLMMsgContent = '';
+		const fc: FunctionCallContent[] = [];
 		await readSSEJSONStream<GeminiStreamChunk>(reader, (chunk) => {
 			const lastMessage = chunk.candidates[0].content;
-			acc += lastMessage.parts.reduce((acc, part) => acc + part.text, '');
-			const cont = messageCallback(
-				lastMessage.parts.reduce((acc, part) => acc + part.text, ''),
-				acc
-			);
-			if (!cont) {
+
+			let gen = '';
+			for (const part of lastMessage.parts) {
+				if ('text' in part) {
+					gen += part.text;
+				} else if ('functionCall' in part) {
+					fc.push({
+						type: 'function_call',
+						id: part.functionCall.name,
+						name: part.functionCall.name,
+						args: JSON.stringify(part.functionCall.args),
+					});
+					callbacks.onFunctionCall?.(
+						0,
+						part.functionCall.name,
+						JSON.stringify(part.functionCall.args)
+					);
+				}
+			}
+			content += gen;
+
+			callbacks.onText?.(gen);
+
+			if (callbacks.isCancelled?.()) {
 				reader.cancel();
 				console.log('Cancelled');
 			}
 		});
 
-		return {
-			role: 'assistant',
-			content: acc,
-		};
+		if (fc.length > 0) {
+			content = [
+				{
+					type: 'text',
+					text: content,
+				},
+				...fc,
+			];
+		}
+
+		return LLMMessage.assistant(content);
 	}
 
 	async listModels(): Promise<Model[]> {
@@ -204,11 +400,17 @@ export class GeminiClient implements ILLMService {
 			headers,
 		});
 		if (!resp.ok) {
-			if (resp.status === 429) {
-				throw new RateLimitError(await resp.text());
+			const body = await resp.text();
+			switch (resp.status) {
+				case 400:
+					throw new BadRequestError(body);
+				case 413:
+					throw new RequestEntityTooLargeError(body);
+				case 429:
+					throw new RateLimitError(body);
 			}
 			throw new Error(
-				`Failed to list models: ${resp.status} ${resp.statusText}\n${await resp.text()}`
+				`Failed to chat stream: ${resp.status} ${resp.statusText}\n${body}`
 			);
 		}
 		const respBody = (await resp.json()) as { models: ModelRespItem[] };
