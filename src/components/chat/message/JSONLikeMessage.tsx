@@ -92,7 +92,7 @@ const analyzeJSON = (json: JSONValue): JSONAnalysis => {
 
 interface PlotProps {
 	analysis: JSONAnalysis;
-	data: JSON;
+	data: JSONValue;
 }
 
 const Plot: Component<PlotProps> = (props) => {
@@ -320,7 +320,7 @@ const JSONLikeMessage: Component<ItemProps> = (props) => {
 							</thead>
 							<tbody>
 								<For
-									each={(parsed() as JSON[]).map(
+									each={(parsed() as JSONArray).map(
 										(value, index) => ({ index, value })
 									)}
 								>
