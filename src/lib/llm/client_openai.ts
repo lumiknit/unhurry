@@ -1,5 +1,9 @@
 import { ILLMService, Model, StreamCallbacks } from './client_interface';
-import { RateLimitError } from './errors';
+import {
+	BadRequestError,
+	RateLimitError,
+	RequestEntityTooLargeError,
+} from './errors';
 import {
 	appendPartialFunctionCall,
 	FunctionTool,
@@ -255,8 +259,17 @@ export class OpenAIClient implements ILLMService {
 			body: this.chatCompletionBody(systemPrompt, history),
 		});
 		if (!resp.ok) {
+			const body = await resp.text();
+			switch (resp.status) {
+				case 400:
+					throw new BadRequestError(body);
+				case 413:
+					throw new RequestEntityTooLargeError(body);
+				case 429:
+					throw new RateLimitError(body);
+			}
 			throw new Error(
-				`Failed to chat: ${resp.status} ${resp.statusText}\n${await resp.text()}`
+				`Failed to chat stream: ${resp.status} ${resp.statusText}\n${body}`
 			);
 		}
 		const respBody = (await resp.json()) as ChatCompletionResponse;
@@ -290,11 +303,17 @@ export class OpenAIClient implements ILLMService {
 			body: this.chatCompletionBody(systemPrompt, history, true),
 		});
 		if (!resp.ok) {
-			if (resp.status === 429) {
-				throw new RateLimitError(await resp.text());
+			const body = await resp.text();
+			switch (resp.status) {
+				case 400:
+					throw new BadRequestError(body);
+				case 413:
+					throw new RequestEntityTooLargeError(body);
+				case 429:
+					throw new RateLimitError(body);
 			}
 			throw new Error(
-				`Failed to chat stream: ${resp.status} ${resp.statusText}\n${await resp.text()}`
+				`Failed to chat stream: ${resp.status} ${resp.statusText}\n${body}`
 			);
 		}
 		const reader = resp.body?.getReader();

@@ -22,7 +22,13 @@ import {
 	MSG_PART_TYPE_FILE,
 } from '../lib/chat';
 import { chatListTx, chatTx } from '../lib/idb';
-import { LLMMessage, newClientFromConfig } from '../lib/llm';
+import {
+	BadRequestError,
+	LLMMessage,
+	newClientFromConfig,
+	RateLimitError,
+	RequestEntityTooLargeError,
+} from '../lib/llm';
 
 /**
  * Vibration
@@ -155,12 +161,23 @@ export const chat = async (text: string, fileIDs?: string[]) => {
 			rest,
 		});
 	};
-	action.onLLMFallback = (_idx, mc) => {
+	action.onLLMFallback = (err, _idx, mc) => {
+		let reason = `'${mc.name}' failed. `;
+		if (err instanceof BadRequestError) {
+			reason +=
+				'(400) Maybe the input is invalid, or some inputs are not supported. (e.g. Image)';
+		} else if (err instanceof RequestEntityTooLargeError) {
+			reason += '(413) Maybe chat history is too long.';
+		} else if (err instanceof RateLimitError) {
+			reason += '(429) Rate limit.';
+		} else {
+			reason += `(${err.message})`;
+		}
 		if (getUserConfig()?.enableLLMFallback) {
-			toast(`Model '${mc.name}' failed, trying next model`);
+			toast(`${reason} Trying another model...`);
 			return true;
 		} else {
-			toast.error('Failed to generate');
+			toast.error(reason);
 			return false;
 		}
 	};

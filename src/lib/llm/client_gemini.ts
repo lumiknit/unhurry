@@ -1,5 +1,9 @@
 import { ILLMService, Model, StreamCallbacks } from './client_interface';
-import { RateLimitError } from './errors';
+import {
+	BadRequestError,
+	RateLimitError,
+	RequestEntityTooLargeError,
+} from './errors';
 import { FunctionTool } from './function';
 import { readSSEJSONStream } from './json_stream_reader';
 import {
@@ -302,8 +306,17 @@ export class GeminiClient implements ILLMService {
 			body: this.chatCompletionBody(systemPrompt, history),
 		});
 		if (!resp.ok) {
+			const body = await resp.text();
+			switch (resp.status) {
+				case 400:
+					throw new BadRequestError(body);
+				case 413:
+					throw new RequestEntityTooLargeError(body);
+				case 429:
+					throw new RateLimitError(body);
+			}
 			throw new Error(
-				`Failed to chat: ${resp.status} ${resp.statusText}\n${await resp.text()}`
+				`Failed to chat stream: ${resp.status} ${resp.statusText}\n${body}`
 			);
 		}
 
@@ -378,11 +391,17 @@ export class GeminiClient implements ILLMService {
 			headers,
 		});
 		if (!resp.ok) {
-			if (resp.status === 429) {
-				throw new RateLimitError(await resp.text());
+			const body = await resp.text();
+			switch (resp.status) {
+				case 400:
+					throw new BadRequestError(body);
+				case 413:
+					throw new RequestEntityTooLargeError(body);
+				case 429:
+					throw new RateLimitError(body);
 			}
 			throw new Error(
-				`Failed to list models: ${resp.status} ${resp.statusText}\n${await resp.text()}`
+				`Failed to chat stream: ${resp.status} ${resp.statusText}\n${body}`
 			);
 		}
 		const respBody = (await resp.json()) as { models: ModelRespItem[] };

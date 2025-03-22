@@ -51,7 +51,11 @@ export class SingleChatAction {
 	 */
 	onUpdate?: (index: number) => void;
 
-	onLLMFallback?: (index: number, modelConfig: ModelConfig) => boolean;
+	onLLMFallback?: (
+		err: Error,
+		index: number,
+		modelConfig: ModelConfig
+	) => boolean;
 
 	constructor(modelConfigs: ModelConfig[], history: ChatHistory) {
 		this.modelConfigs = modelConfigs;
@@ -189,11 +193,12 @@ export class SingleChatAction {
 				await this.generate(mc);
 				return;
 			} catch (e) {
+				const err: Error = e instanceof Error ? e : new Error(`${e}`);
 				logr.warn(
 					`[chat/SingleChatAction/run] Failed to chat completion with model '${mc.name}', use fallback`,
 					e
 				);
-				const v = this.onLLMFallback?.(idx, mc);
+				const v = this.onLLMFallback?.(err, idx, mc);
 				if (v === false) {
 					logr.info(
 						'[chat/SingleChatAction/run] Fallback is disabled'
