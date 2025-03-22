@@ -1,6 +1,7 @@
 import { A, useNavigate } from '@solidjs/router';
 import {
 	BiRegularCog,
+	BiRegularFolder,
 	BiRegularHistory,
 	BiRegularQuestionMark,
 	BiSolidFilePlus,
@@ -93,6 +94,13 @@ const NavBar: Component = () => {
 					<div class="navbar-item has-dropdown is-hoverable">
 						<a class="navbar-link">Menu</a>
 						<div class="navbar-dropdown">
+							<A
+								class="navbar-item"
+								href={`${rootPath}/file-list`}
+							>
+								<BiRegularFolder />
+								Files
+							</A>
 							<A
 								class="navbar-item"
 								href={`${rootPath}/settings`}

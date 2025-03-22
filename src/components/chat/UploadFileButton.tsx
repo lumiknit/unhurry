@@ -64,7 +64,7 @@ const UploadFileButton: Component<Props> = (props) => {
 		<div class={`dropdown ${isOpen() ? 'is-active' : ''} is-up`}>
 			<div class="dropdown-trigger">
 				<button
-					class="button is-small"
+					class="tag h-full"
 					aria-haspopup="true"
 					aria-controls="dropdown-menu"
 					onClick={toggleDropdown}

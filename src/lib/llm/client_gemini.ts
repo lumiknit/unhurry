@@ -230,7 +230,7 @@ export class GeminiClient implements ILLMService {
 				contents: this.convertMessagesForGemini(history),
 				generationConfig: {
 					responseModalities: ['Text', 'Image'],
-				}
+				},
 			});
 		}
 		return JSON.stringify({

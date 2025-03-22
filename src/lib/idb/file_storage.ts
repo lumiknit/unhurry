@@ -1,42 +1,34 @@
 import { SimpleIDB } from './client';
 
 /**
- * File Item.
+ * File Meta
  */
-interface FileItem {
+export interface FileMeta {
 	_id: string;
-
-	/**
-	 * Original file name.
-	 */
 	name: string;
-
-	/**
-	 * Created timestamp.
-	 */
 	createdAt: number;
-
-	/**
-	 * MIME Type for the file.
-	 */
 	mimeType: string;
+}
 
-	/**
-	 * Raw data.
-	 */
+/**
+ * File Data
+ */
+export interface FileData {
+	_id: string;
 	data: string | Uint8Array;
 }
 
 /**
  * IDB for file storage
  */
-const fileIDB = new SimpleIDB('file-i', 'files', 1);
+const fileIDB = new SimpleIDB('file-i', ['meta', 'data'], 2);
 
-/**
- * Transaction for file storage
- */
-export const fileTx = async () => {
-	return await fileIDB.transaction<FileItem>('readwrite');
+const metaTx = async () => {
+	return await fileIDB.transaction<FileMeta>('readwrite', undefined, 'meta');
+};
+
+const dataTx = async () => {
+	return await fileIDB.transaction<FileData>('readwrite', undefined, 'data');
 };
 
 export const genFileID = () => {
@@ -51,34 +43,59 @@ export const genFileID = () => {
 export const createFile = async (
 	name: string,
 	mimeType: string,
-	data: string | Uint8Array
+	fileData: string | Uint8Array
 ): Promise<string> => {
 	const id = genFileID();
-	const tx = await fileTx();
-	await tx.put({
+	const meta = {
 		_id: id,
 		name,
 		createdAt: Date.now(),
 		mimeType,
-		data,
-	});
+	};
+	const data = {
+		_id: id,
+		data: fileData,
+	};
+	await Promise.all([
+		(async () => {
+			const tx = await metaTx();
+			console.log('putting meta', meta);
+			await tx.put(meta);
+			console.log('put meta done');
+		})(),
+		(async () => {
+			const tx = await dataTx();
+			console.log('putting data', data);
+			await tx.put(data);
+			console.log('put data done');
+		})(),
+	]);
 	return id;
 };
 
 /**
  * List all files in storage.
  */
-export const listFiles = async (): Promise<FileItem[]> => {
-	const tx = await fileTx();
+export const listFiles = async (): Promise<FileMeta[]> => {
+	const tx = await metaTx();
 	return await tx.getAll();
 };
 
 /**
  * Get a file from storage.
  */
-export const getFile = async (id: string): Promise<FileItem | undefined> => {
-	const tx = await fileTx();
+export const getFile = async (id: string): Promise<FileMeta | undefined> => {
+	const tx = await metaTx();
 	return await tx.get(id);
+};
+
+export const getFileBlob = async (id: string): Promise<Blob | undefined> => {
+	const file = await getFile(id);
+	if (!file) return;
+	const tx = await dataTx();
+	const data = await tx.get(id);
+	if (!data) return;
+	return new Blob([data.data], { type: file.mimeType });
 };
 
 /**
@@ -89,7 +106,11 @@ export const getFileDataURL = async (
 ): Promise<string | undefined> => {
 	const file = await getFile(id);
 	if (!file) return;
-	const blob = new Blob([file.data], { type: file.mimeType });
+	const tx = await dataTx();
+	const data = await tx.get(id);
+	if (!data) return;
+
+	const blob = new Blob([data.data], { type: file.mimeType });
 	return await new Promise((resolve, reject) => {
 		const fileReader = new FileReader();
 		fileReader.onload = (e) => {
@@ -104,6 +125,27 @@ export const getFileDataURL = async (
  * Delete a file from storage.
  */
 export const deleteFile = async (id: string) => {
-	const tx = await fileTx();
-	await tx.delete(id);
+	await Promise.all([
+		(async () => {
+			const tx = await metaTx();
+			await tx.delete(id);
+		})(),
+		(async () => {
+			const tx = await dataTx();
+			await tx.delete(id);
+		})(),
+	]);
+};
+
+export const deleteAllFiles = async () => {
+	await Promise.all([
+		(async () => {
+			const tx = await metaTx();
+			await tx.clear();
+		})(),
+		(async () => {
+			const tx = await dataTx();
+			await tx.clear();
+		})(),
+	]);
 };

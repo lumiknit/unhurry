@@ -272,7 +272,7 @@ const BottomInput: Component = () => {
 					}
 				/>
 			</Show>
-			<div class="buttons no-user-select">
+			<div class="buttons gap-1 no-user-select">
 				<SpeechButton
 					class="control is-size-6 py-1 button-mic"
 					onSpeech={handleSpeech}

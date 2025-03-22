@@ -87,6 +87,7 @@ const EnableToolsTag: Component = () => {
 };
 
 interface Props {
+	children?: JSX.Element | JSX.Element[];
 	onInsertText: (text: string) => void;
 	onReplaceText: (text: string) => void;
 }
@@ -110,6 +111,7 @@ const PromptTags: Component<Props> = (props) => {
 
 	return (
 		<div class="input-tags">
+			{props.children}
 			<EnableToolsTag />
 			<AutoSendTag />
 			<For each={promptTags()}>

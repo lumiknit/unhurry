@@ -20,6 +20,14 @@
 
 // Common helpers
 
+.w-full {
+	width: 100%;
+}
+
+.h-full {
+	height: 100%;
+}
+
 .flex-split {
 	display: flex;
 	flex-wrap: none;
@@ -260,6 +268,10 @@ span[aria-hidden='true'] {
 	//word-wrap: break-word;
 	overflow-wrap: break-word;
 	margin: 0.25rem 0;
+}
+
+.gap-1 {
+	gap: 0.25rem !important;
 }
 
 .input-tags {

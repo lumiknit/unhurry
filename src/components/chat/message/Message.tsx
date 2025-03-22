@@ -20,6 +20,7 @@ import { logr } from '@/lib/logr';
 
 import {
 	Msg,
+	MSG_PART_TYPE_FILE,
 	MSG_PART_TYPE_FUNCTION_CALL,
 	MSG_PART_TYPE_MERMAID,
 	MSG_PART_TYPE_RUN_JS,
@@ -28,6 +29,7 @@ import {
 	MSG_PART_TYPE_THINK,
 } from '@lib/chat';
 
+import FileMessage from './FileMessage';
 import FnCallMessage from './FnCallMessage';
 import JSONLikeMessage from './JSONLikeMessage';
 import { ItemProps } from './message_types';
@@ -215,6 +217,7 @@ const MermaidMessage: Component<ItemProps> = (props) => {
 const compMap = new Map([
 	[MSG_PART_TYPE_TEXT, TextMessage],
 	[MSG_PART_TYPE_FUNCTION_CALL, FnCallMessage],
+	[MSG_PART_TYPE_FILE, FileMessage],
 	[MSG_PART_TYPE_RUN_JS, BlockMessage],
 	[MSG_PART_TYPE_SVG, SvgMessage],
 	[MSG_PART_TYPE_MERMAID, MermaidMessage],
