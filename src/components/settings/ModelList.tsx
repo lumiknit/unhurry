@@ -7,6 +7,7 @@ import { emptyModelConfig, ModelConfig } from '@lib/llm';
 import { getUserConfig, setUserConfig } from '@store';
 
 import ModelEditor from './ModelItem';
+import { openConfirm } from '../modal-confirm';
 
 const ModelList: Component = () => {
 	const models = () => getUserConfig()?.models || [];
@@ -30,10 +31,10 @@ const ModelList: Component = () => {
 			});
 		};
 
-	const deleteModel = (idx: number) => {
+	const deleteModel = async (idx: number) => {
 		const name = models()[idx].name;
 		// Confirm
-		if (!confirm(`Delete model ${name}?`)) return;
+		if (!(await openConfirm(`Delete model ${name}?`))) return;
 		setUserConfig((c) => {
 			const models = [...c.models];
 			models.splice(idx, 1);

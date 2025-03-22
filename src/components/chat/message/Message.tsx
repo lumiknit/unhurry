@@ -28,9 +28,9 @@ import {
 	MSG_PART_TYPE_THINK,
 } from '@lib/chat';
 
+import FnCallMessage from './FnCallMessage';
 import JSONLikeMessage from './JSONLikeMessage';
 import { ItemProps } from './message_types';
-import FnCallMessage from './FnCallMessage';
 
 marked.use(
 	markedKatex({

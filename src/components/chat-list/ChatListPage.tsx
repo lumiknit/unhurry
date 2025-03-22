@@ -9,6 +9,7 @@ import { chatListTx, clearAllChats, deleteChatByID } from '@lib/idb';
 import { loadChatContext } from '@store/index';
 
 import { rootPath } from '../../env';
+import { openConfirm } from '../modal-confirm';
 
 const ChatListPage: Component = () => {
 	const [chatList, setChatList] = createSignal<ChatMeta[] | undefined>();
@@ -36,7 +37,8 @@ const ChatListPage: Component = () => {
 	};
 
 	const handleClearAll = async () => {
-		if (!confirm('Are you sure to clear all chat history?')) return;
+		if (!(await openConfirm('Are you sure to clear all chat history?')))
+			return;
 		toast.promise(clearAllChats(), {
 			loading: 'Clearing...',
 			success: 'Cleared',
@@ -51,7 +53,7 @@ const ChatListPage: Component = () => {
 
 	const deleteChat = (id: string) => async (e: MouseEvent) => {
 		e.stopPropagation();
-		if (!confirm('Are you sure to delete this chat?')) return;
+		if (!(await openConfirm('Are you sure to delete this chat?'))) return;
 		toast.promise(deleteChatByID(id), {
 			loading: 'Deleting...',
 			success: 'Deleted',

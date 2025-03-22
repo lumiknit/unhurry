@@ -18,7 +18,7 @@ const FnCallMessage: Component<ItemProps> = (props) => {
 					onClick={() => setFold(false)}
 				>
 					<span>
-						@ {fnCall.name} {fnCall.args}
+						@ <b>{fnCall.name}</b> {fnCall.args}
 					</span>
 					<button>
 						<VsChevronDown />
@@ -28,7 +28,9 @@ const FnCallMessage: Component<ItemProps> = (props) => {
 			<Match when>
 				<div class="msg-code">
 					<header class="flex-split" onClick={() => setFold(true)}>
-						<span>@ {fnCall.name}</span>
+						<span>
+							@ <b>{fnCall.name}</b>
+						</span>
 						<span>
 							<button>
 								<VsChevronUp />

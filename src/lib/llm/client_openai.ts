@@ -301,6 +301,9 @@ export class OpenAIClient implements ILLMService {
 		const toolCalls: PartialFunctionCall[] = [];
 
 		await readSSEJSONStream<ChatStreamChunk>(reader, (chunk) => {
+			if (chunk.choices.length === 0) {
+				return;
+			}
 			const delta = chunk.choices[0].delta;
 			if (delta.content) {
 				content += delta.content;

@@ -1,6 +1,7 @@
 import { Component, JSX } from 'solid-js';
 import { Toaster } from 'solid-toast';
 
+import { ConfirmModal } from './components/modal-confirm';
 import NavBar from './components/navbar/NavBar';
 
 interface Props {
@@ -17,6 +18,7 @@ const App: Component<Props> = (props) => {
 				containerClassName="toaster"
 				position="top-center"
 			/>
+			<ConfirmModal />
 
 			<NavBar />
 

@@ -136,7 +136,9 @@ const About: Component = () => {
 					</p>
 				</Show>
 
-				<a target="_blank" href={latestReleaseURL}>Visit the latest release page</a>
+				<a target="_blank" href={latestReleaseURL}>
+					Visit the latest release page
+				</a>
 			</div>
 		</div>
 	);

@@ -13,6 +13,8 @@ import {
 
 import { getUserConfig, setUserConfig } from '@store';
 
+import { openConfirm } from '../modal-confirm';
+
 interface TagProps {
 	idx: number;
 	promptTag: PromptTag;
@@ -167,8 +169,12 @@ const TagList: Component = () => {
 		});
 	};
 
-	const handleDeleteTag = (idx: number) => {
-		if (!confirm(`Delete tag ${getUserConfig()?.promptTags[idx].tag}?`))
+	const handleDeleteTag = async (idx: number) => {
+		if (
+			!(await openConfirm(
+				`Delete tag ${getUserConfig()?.promptTags[idx].tag}?`
+			))
+		)
 			return;
 		setUserConfig((c) => ({
 			...c,
