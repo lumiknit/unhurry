@@ -64,7 +64,7 @@ export const clearAllChats = async (options?: { left?: number }) => {
 		const tx = await chatListTx<T>();
 		const all = await tx.getAll();
 		const sorted = all.sort(
-			(a, b) => (a.lastUsedAt || 0) - (b.lastUsedAt || 0)
+			(a, b) => (b.lastUsedAt || 0) - (a.lastUsedAt || 0)
 		);
 		const toDelete = sorted.slice(n);
 		for (const chat of toDelete) {
