@@ -30,6 +30,12 @@
 	opacity: 0.1;
 }
 
+.text-ellipsis {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
 // Root Styles
 
 :root {

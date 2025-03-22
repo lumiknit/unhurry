@@ -273,8 +273,12 @@ const ModelEditor: Component<Props> = (props) => {
 						<div>
 							<p class="title is-4">{props.model.name}</p>
 							<ul>
-								<li>{props.model.endpoint}</li>
-								<li>{props.model.model}</li>
+								<li class="text-ellipsis">
+									{props.model.endpoint}
+								</li>
+								<li class="text-ellipsis">
+									{props.model.model}
+								</li>
 							</ul>
 							<div class="has-text-right">
 								<button
