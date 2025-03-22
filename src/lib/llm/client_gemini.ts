@@ -14,6 +14,7 @@ import {
 	FunctionCallContent,
 } from './message';
 import { ModelConfig } from './model_config';
+import { JSONValue } from '../json';
 
 /**
  * Gemini LLM Message Role
@@ -53,7 +54,7 @@ interface GeminiFileDataPart {
 interface GeminiFunctionCallPart {
 	functionCall: {
 		name: string;
-		args: Record<string, any>;
+		args: Record<string, JSONValue>;
 	};
 }
 
@@ -65,7 +66,7 @@ interface GeminiFunctionResponsePart {
 		name: string;
 		response: {
 			name: string;
-			content: any;
+			content: JSONValue;
 		};
 	};
 }

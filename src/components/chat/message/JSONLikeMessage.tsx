@@ -6,14 +6,11 @@ import { toast } from 'solid-toast';
 import 'billboard.js/dist/billboard.min.css';
 import 'billboard.js/dist/theme/dark.min.css';
 
+import { JSONArray, JSONObject, JSONValue } from '@/lib/json';
+
 import { copyToClipboard } from '@lib/clipboard';
 
 import { ItemProps } from './message_types';
-
-type JSON = null | boolean | number | string | JSON[] | JSONObject;
-interface JSONObject {
-	[key: string]: JSON;
-}
 
 type DisplayType =
 	| 'fold'
@@ -40,7 +37,7 @@ interface JSONAnalysis {
 	displayTypes: DisplayType[];
 }
 
-const analyzeJSON = (json: JSON): JSONAnalysis => {
+const analyzeJSON = (json: JSONValue): JSONAnalysis => {
 	const analysis: JSONAnalysis = {
 		isArray: Array.isArray(json),
 		isObject: typeof json === 'object' && !Array.isArray(json),
@@ -52,7 +49,7 @@ const analyzeJSON = (json: JSON): JSONAnalysis => {
 	};
 
 	if (analysis.isArray) {
-		const array = json as JSON[];
+		const array = json as JSONArray;
 		if (array.length > 0) {
 			array.forEach((item) => {
 				const t = typeof item;
@@ -117,10 +114,10 @@ const Plot: Component<PlotProps> = (props) => {
 
 		if (props.analysis.isArrayOfNumbers) {
 			// The only way is index & value
-			y = props.data as number[];
+			y = props.data as unknown as number[];
 			x = y.map((_, i) => i);
 		} else if (props.analysis.isArrayOfObjects) {
-			const array = props.data as JSONObject[];
+			const array = props.data as unknown as JSONObject[];
 			if (xField() === undefined) {
 				x = Array.from(array.keys());
 			} else {
@@ -225,7 +222,7 @@ const Plot: Component<PlotProps> = (props) => {
 
 const JSONLikeMessage: Component<ItemProps> = (props) => {
 	/** parsed is parsed json object/array. */
-	const [parsed, setParsed] = createSignal<JSON>(null);
+	const [parsed, setParsed] = createSignal<JSONValue>(null);
 	const [analysis, setAnalysis] = createSignal<JSONAnalysis | undefined>();
 	const [displayType, setDisplayType] = createSignal<DisplayType>('fold');
 
@@ -234,7 +231,7 @@ const JSONLikeMessage: Component<ItemProps> = (props) => {
 
 	onMount(async () => {
 		let language = props.type;
-		let j: JSON = null;
+		let j: JSONValue = null;
 		switch (props.type) {
 			case 'json':
 				try {

@@ -1,6 +1,6 @@
 import { BiRegularFile, BiRegularImage, BiRegularUpload } from 'solid-icons/bi';
 import { Component, createSignal } from 'solid-js';
-import toast from 'solid-toast';
+import { toast } from 'solid-toast';
 
 import { createFile } from '@/lib/idb/file_storage';
 import { logr } from '@/lib/logr';
