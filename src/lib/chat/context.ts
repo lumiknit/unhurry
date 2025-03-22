@@ -1,5 +1,4 @@
 import { ChatHistory } from './structs';
-import { JSContext } from '../run-js';
 
 /**
  * Metadata of the chat context.
@@ -23,7 +22,7 @@ const chatMetaFields: (keyof ChatMeta)[] = [
 ];
 
 export interface RunContext {
-	jsContext: JSContext;
+	progressing: boolean;
 }
 
 export type ChatContext = ChatMeta &
@@ -50,7 +49,7 @@ export const emptyChatContext = (): ChatContext => ({
 	history: {
 		msgPairs: [],
 	},
-	jsContext: new JSContext(),
+	progressing: false,
 });
 
 /**

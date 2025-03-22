@@ -2,15 +2,26 @@ import { BiRegularSend } from 'solid-icons/bi';
 import { Component, createSignal, onMount } from 'solid-js';
 import { toast } from 'solid-toast';
 
-import { vibrate } from '@/store/actions';
+import { logr } from '@/lib/logr';
+import {
+	cancelAllChats,
+	chat,
+	generateChatTitle,
+	vibrate,
+} from '@/store/actions';
 
-import { getUserConfig } from '@store';
+import {
+	getChatContext,
+	getUserConfig,
+	saveChatContextMeta,
+	setChatContext,
+} from '@store';
 
 import InputTags from './PromptTags';
 import SpeechButton from './SpeechButton';
+import UploadFileButton from './UploadFileButton';
 
 interface Props {
-	progressing?: boolean;
 	send?: (value: string) => void;
 	cancel?: () => void;
 }
@@ -66,12 +77,38 @@ const BottomInput: Component<Props> = (props) => {
 			// Just ignore the send
 		}
 		setSendCnt((c) => c + 1);
+		const isFirst = getChatContext().history.msgPairs.length === 0;
 		try {
-			await props.send?.(v);
+			logr.info('LLM Input: ', v);
+			setChatContext((c) => ({ ...c, progressing: true }));
+
+			// Pick the last user message and scroll to top.
+			setTimeout(() => {
+				const elems = document.getElementsByClassName('msg-user');
+				if (elems.length > 0) {
+					const last = elems[elems.length - 1];
+					const rect = last.getBoundingClientRect();
+					const top = window.scrollY + rect.top - 54;
+					// current scroll position
+					window.scrollTo({
+						top,
+						behavior: 'smooth',
+					});
+				}
+			}, 33);
+			await chat(v);
 		} catch (e) {
 			toast.error('Failed to send: ' + e);
 			taRef!.value = v;
 			lastSent = 0;
+		}
+		setChatContext((c) => ({ ...c, progressing: false }));
+		if (isFirst) {
+			// Generate a title
+			const title = await generateChatTitle();
+			logr.info('Generated title: ', title);
+			setChatContext((c) => ({ ...c, title }));
+			saveChatContextMeta();
 		}
 		autosizeTextarea();
 	};
@@ -155,9 +192,9 @@ const BottomInput: Component<Props> = (props) => {
 	const handleButtonClick = (e: MouseEvent) => {
 		e.stopPropagation();
 		vibrate('medium');
-		if (props.progressing) {
+		if (getChatContext().progressing) {
 			toast('Canceling the current operation...');
-			props.cancel?.();
+			cancelAllChats();
 		} else {
 			send();
 		}
@@ -225,6 +262,7 @@ const BottomInput: Component<Props> = (props) => {
 					}}
 					cnt={sendCnt()}
 				/>
+				<UploadFileButton />
 				<InputTags
 					onInsertText={insertText}
 					onReplaceText={replaceText}
@@ -233,7 +271,7 @@ const BottomInput: Component<Props> = (props) => {
 					<button
 						class={
 							'button button-send p-3 ' +
-							(props.progressing
+							(getChatContext().progressing
 								? ' is-loading is-warning'
 								: 'is-primary')
 						}

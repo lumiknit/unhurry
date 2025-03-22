@@ -23,7 +23,7 @@ const LogsPage: Component = () => {
 	return (
 		<div class="container">
 			<h1 class="title">Logs</h1>
-			<ul>
+			<ul class="is-family-monospace">
 				<For each={logs()}>
 					{(log) => (
 						<li>
