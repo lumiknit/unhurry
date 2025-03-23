@@ -1,4 +1,4 @@
-import { BiRegularFile, BiRegularImage, BiRegularUpload } from 'solid-icons/bi';
+import { BiRegularCamera, BiRegularFile, BiRegularImage, BiRegularUpload } from 'solid-icons/bi';
 import { Component, createSignal } from 'solid-js';
 import { toast } from 'solid-toast';
 
@@ -58,6 +58,7 @@ const UploadFileButton: Component<Props> = (props) => {
 	};
 
 	const uploadImage = () => upload('image/*');
+	const uploadCamera = () => upload('image/*;capture=camera');
 	const uploadFile = () => upload('*/*');
 
 	return (
@@ -77,6 +78,10 @@ const UploadFileButton: Component<Props> = (props) => {
 			</div>
 			<div class="dropdown-menu" id="dropdown-menu" role="menu">
 				<div class="dropdown-content">
+					<a class="dropdown-item" href="#" onClick={uploadCamera}>
+						<BiRegularCamera />
+						Camera
+					</a>
 					<a class="dropdown-item" href="#" onClick={uploadImage}>
 						<BiRegularImage />
 						Image
