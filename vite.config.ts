@@ -62,6 +62,7 @@ export default ({ mode }: { mode: string }) => {
 				// 3. tell vite to ignore watching `src-tauri`
 				ignored: ['**/src-tauri/**'],
 			},
+			allowedHosts: ['localhost', 'host.docker.internal'],
 		},
 	});
 };

@@ -51,6 +51,12 @@
 	white-space: nowrap;
 }
 
+@media (max-width: 768px) {
+	.hide-mobile {
+		display: none;
+	}
+}
+
 // Root Styles
 
 :root {
@@ -175,7 +181,7 @@ div.msg-user .message-body {
 
 div.message-body {
 	padding: 0.5rem 0.75rem;
-	overflow-x: scroll;
+	overflow: hidden;
 }
 
 .msg-code-bottom-btns > span {
@@ -277,6 +283,10 @@ span[aria-hidden='true'] {
 .input-tags {
 	white-space: nowrap;
 	overflow-x: scroll;
+
+	&::-webkit-scrollbar {
+		display: none;
+	}
 }
 
 .streaming-msg {
