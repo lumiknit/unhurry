@@ -1,52 +1,5 @@
+import { PromptTag } from './prompt_tag';
 import { ModelConfig } from '../llm';
-
-/**
- * Display color. Used for the prompt tags.
- */
-export type Color =
-	| 'none'
-	| 'primary'
-	| 'info'
-	| 'success'
-	| 'warning'
-	| 'danger';
-
-/**
- * Array of all options for the color.
- */
-export const colors = [
-	'none',
-	'primary',
-	'info',
-	'success',
-	'warning',
-	'danger',
-] as const;
-
-/**
- * Set of all options for the color.
- */
-export const colorSet = new Set(colors);
-
-export type PromptTagAction = 'insert' | 'replace';
-export const promptTagActions = ['insert', 'replace'] as const;
-
-/**
- * Prompt preset tags.
- */
-export interface PromptTag {
-	/** Label of tag */
-	tag: string;
-
-	/** Color of tag */
-	color: Color;
-
-	/** How the tag works */
-	action: PromptTagAction;
-
-	/** Values */
-	prompt: string;
-}
 
 /**
  * Configuration for the user

@@ -1,6 +1,13 @@
 // bulma
 
-@use 'bulma/bulma.scss';
+$theme-color: #0b7f4e;
+
+@use 'bulma/sass' with (
+	$family-primary:
+		'Pretendard, Inter, SF Pro, Segoe UI, Roboto, Oxygen, Ubuntu, Helvetica Neue, Helvetica, Arial, sans-serif',
+	$primary: $theme-color
+);
+@use './switch.scss';
 
 // Fonts
 
@@ -49,6 +56,12 @@
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+	.hide-mobile {
+		display: none;
+	}
 }
 
 // Root Styles
@@ -175,7 +188,7 @@ div.msg-user .message-body {
 
 div.message-body {
 	padding: 0.5rem 0.75rem;
-	overflow-x: scroll;
+	overflow: hidden;
 }
 
 .msg-code-bottom-btns > span {
@@ -274,9 +287,25 @@ span[aria-hidden='true'] {
 	gap: 0.25rem !important;
 }
 
+.gap-2 {
+	gap: 0.5rem !important;
+}
+
+.flex-1 {
+	flex: 1 !important;
+}
+
+.maxw-75 {
+	max-width: 75% !important;
+}
+
 .input-tags {
 	white-space: nowrap;
 	overflow-x: scroll;
+
+	&::-webkit-scrollbar {
+		display: none;
+	}
 }
 
 .streaming-msg {
@@ -315,6 +344,10 @@ span[aria-hidden='true'] {
 
 	&:has(textarea:focus) {
 		outline: 1px solid var(--bulma-primary);
+	}
+
+	&:has(.mic-recording) {
+		outline: 1px solid var(--bulma-warning);
 	}
 
 	& textarea {

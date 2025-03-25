@@ -29,8 +29,12 @@ const NumConfig: Component<NumConfigProps> = (props) => {
 	});
 
 	return (
-		<div class="field">
-			<label class="label">{props.label}</label>
+		<label class="is-flex flex-split mb-4">
+			<div>
+				<div class="label mb-0">{props.label}</div>
+				<p class="help">{props.desc}</p>
+			</div>
+
 			<div class="control">
 				<input
 					ref={inputRef!}
@@ -40,8 +44,7 @@ const NumConfig: Component<NumConfigProps> = (props) => {
 					onChange={handleChange}
 				/>
 			</div>
-			<p class="help">{props.desc}</p>
-		</div>
+		</label>
 	);
 };
 

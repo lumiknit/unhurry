@@ -236,7 +236,8 @@ export class OpenAIClient implements ILLMService {
 				},
 				...this.convertHistory(history),
 			],
-			tools: tools.length > 0 ? tools : undefined,
+			tools:
+				this.config.useToolCall && tools.length > 0 ? tools : undefined,
 			stream: stream,
 		});
 	}

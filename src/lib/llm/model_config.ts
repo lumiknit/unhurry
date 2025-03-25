@@ -45,6 +45,9 @@ export interface ModelConfig {
 
 	/** Additional system prompt */
 	systemPrompt: string;
+
+	/** Tool Call is supported */
+	useToolCall?: boolean;
 }
 
 /**
@@ -57,6 +60,7 @@ export const emptyModelConfig = (): ModelConfig => ({
 	apiKey: '',
 	model: '',
 	systemPrompt: '',
+	useToolCall: true,
 });
 
 /**

@@ -8,7 +8,7 @@
   },
   "license": "AGPL-3.0-only",
   "private": true,
-  "version": "0.3.2",
+  "version": "0.3.3",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -29,6 +29,7 @@
     "@types/turndown": "^5.0.5",
     "billboard.js": "^3.14.3",
     "bulma": "^1.0.3",
+    "bulma-switch-control": "^1.2.2",
     "codemirror": "^6.0.1",
     "dompurify": "^3.2.4",
     "highlight.js": "^11.11.1",

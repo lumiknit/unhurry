@@ -3,18 +3,19 @@ import { Component } from 'solid-js';
 import { UserConfig } from '@/lib/config';
 import { getUserConfig, setUserConfig } from '@/store';
 
-import SelectForm from './SelectForm';
+import TextForm, { Option } from './TextForm';
 
 interface Props {
 	key: keyof UserConfig;
 	label: string;
 	desc: string;
-	options: { value: string; label: string }[];
+	options?: false | Option[];
+	onLoadOptions?: () => void;
 }
 
-const SelectConfig: Component<Props> = (props) => {
+const TextConfig: Component<Props> = (props) => {
 	return (
-		<SelectForm
+		<TextForm
 			{...props}
 			get={() => String(getUserConfig()?.[props.key] || '')}
 			set={(v) => {
@@ -27,4 +28,4 @@ const SelectConfig: Component<Props> = (props) => {
 	);
 };
 
-export default SelectConfig;
+export default TextConfig;

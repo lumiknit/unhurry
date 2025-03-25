@@ -1,23 +1,19 @@
-import { BiRegularSend } from 'solid-icons/bi';
 import { Component, createSignal, onMount, Show } from 'solid-js';
 import { toast } from 'solid-toast';
 
 import { logr } from '@/lib/logr';
-import {
-	cancelAllChats,
-	chat,
-	generateChatTitle,
-	vibrate,
-} from '@/store/actions';
+import { cancelAllChats, chat, generateChatTitle } from '@/store/actions';
 
 import {
 	getChatContext,
 	getUserConfig,
 	saveChatContextMeta,
 	setChatContext,
+	setStore,
 } from '@store';
 
 import InputTags from './PromptTags';
+import SendButton from './SendButton';
 import SpeechButton from './SpeechButton';
 import UploadedFiles from './UploadedFiles';
 import UploadFileButton from './UploadFileButton';
@@ -40,16 +36,44 @@ const BottomInput: Component = () => {
 	const [files, setFiles] = createSignal<FileInput[]>([]);
 	const [sendCnt, setSendCnt] = createSignal(0);
 
-	const insertText = (text: string) => {
+	const [inputTriple, setInputTriple] = createSignal<
+		[string, string, string]
+	>(['', '', '']);
+
+	const updateInputTriple = () => {
+		const t = taRef!.value;
+		const selStart = taRef!.selectionStart;
+		const selEnd = taRef!.selectionEnd;
+		setInputTriple([
+			t.slice(0, selStart),
+			t.slice(selStart, selEnd),
+			t.slice(selEnd),
+		]);
+	};
+
+	const insertText = (text: string, idx?: number) => {
 		const ta = taRef!;
-		const selStart = ta.selectionStart;
+		let selStart = ta.selectionStart;
 		const selEnd = ta.selectionEnd;
-		const v = ta.value;
-		const newV = v.slice(0, selStart) + text + v.slice(selEnd);
+		let v = ta.value;
+
+		if (idx === undefined) {
+			idx = selStart;
+			v = v.slice(0, selStart) + v.slice(selEnd);
+		} else if (idx < 0) {
+			idx = selEnd;
+		}
+
+		if (selStart <= idx) {
+			selStart += text.length;
+		}
+
+		const newV = v.slice(0, idx) + text + v.slice(idx);
 		ta.value = newV;
-		ta.setSelectionRange(selStart + text.length, selStart + text.length);
+		ta.setSelectionRange(selStart, selStart);
 		ta.focus();
 		autosizeTextarea();
+		updateInputTriple();
 	};
 
 	const replaceText = (text: string) => {
@@ -139,26 +163,44 @@ const BottomInput: Component = () => {
 				autoSendAt - Date.now()
 			);
 		} else {
-			autoSendTimeoutId = undefined;
+			clearAutoSend();
 			send();
 		}
 	};
 
+	/**
+	 * Clear all auto send related states
+	 */
+	const clearAutoSend = () => {
+		autoSendTimeoutId = undefined;
+		setStore('autoSendSetAt', undefined);
+		setStore('autoSendLaunchAt', undefined);
+	};
+
+	/**
+	 * Set auto send timeout
+	 */
 	const setAutoSend = () => {
 		const as = autoSendTimeout();
 		if (!getUserConfig()?.enableAutoSend || !as) return;
 
-		autoSendAt = Date.now() + as;
+		const now = Date.now();
+		setStore('autoSendSetAt', now);
+		setStore('autoSendLaunchAt', now + as);
+		autoSendAt = now + as;
 		if (autoSendTimeoutId === undefined) {
 			autoSendTimeoutId = window.setTimeout(autoSend, as);
 		}
 	};
 
+	/**
+	 * Unset auto send timeout
+	 */
 	const unsetAutoSend = () => {
 		if (autoSendTimeoutId) {
 			clearTimeout(autoSendTimeoutId);
-			autoSendTimeoutId = undefined;
 		}
+		clearAutoSend();
 	};
 
 	const cleanSent = () => {
@@ -186,28 +228,34 @@ const BottomInput: Component = () => {
 	};
 
 	const handleInput = (e: InputEvent) => {
+		updateInputTriple();
+
 		composing = e.isComposing;
 		autosizeTextarea();
 		setAutoSend();
 	};
 
 	const handleKeyUp = (e: KeyboardEvent) => {
+		updateInputTriple();
 		if (e.isComposing) return;
-		if (e.key === 'Enter' && (e.shiftKey || e.ctrlKey || e.metaKey)) {
-			e.preventDefault();
-			setTimeout(send, 10);
-		}
-		setAutoSend();
-	};
-
-	const handleButtonClick = (e: MouseEvent) => {
-		e.stopPropagation();
-		vibrate('medium');
-		if (getChatContext().progressing) {
-			toast('Canceling the current operation...');
-			cancelAllChats();
-		} else {
-			send();
+		switch (e.key) {
+			case 'Enter':
+				{
+					if (e.shiftKey || e.ctrlKey || e.metaKey) {
+						e.preventDefault();
+						send();
+					}
+				}
+				break;
+			case 'Escape':
+			case 'Backspace':
+				{
+					unsetAutoSend();
+				}
+				break;
+			default: {
+				setAutoSend();
+			}
 		}
 	};
 
@@ -243,8 +291,15 @@ const BottomInput: Component = () => {
 		}
 	};
 
-	const handleClickMargin = () => {
-		taRef!.focus();
+	const handleClickMargin = (e: MouseEvent) => {
+		let tagName = '';
+		// If event target is 'div' tag
+		if (e.target instanceof HTMLElement) {
+			tagName = e.target.tagName;
+		}
+		if (tagName === 'DIV') {
+			taRef!.focus();
+		}
 	};
 
 	// When mounted, focus
@@ -287,21 +342,33 @@ const BottomInput: Component = () => {
 					}
 				/>
 				<InputTags
-					onInsertText={insertText}
+					textState={inputTriple()}
+					onInsertText={(text, toSend) => {
+						insertText(text);
+						if (toSend) {
+							send();
+						}
+					}}
+					onInsertStartText={(text, toSend) => {
+						insertText(text, 0);
+						if (toSend) {
+							send();
+						}
+					}}
+					onInsertEndText={(text, toSend) => {
+						insertText(text, -1);
+						if (toSend) {
+							send();
+						}
+					}}
 					onReplaceText={replaceText}
 				/>
-				<div onClick={handleButtonClick} class="control">
-					<button
-						class={
-							'button button-send p-3 ' +
-							(getChatContext().progressing
-								? ' is-loading is-warning'
-								: 'is-primary')
-						}
-					>
-						<BiRegularSend />
-					</button>
-				</div>
+				<SendButton
+					onSend={send}
+					onCancel={() => {
+						cancelAllChats();
+					}}
+				/>
 			</div>
 		</div>
 	);

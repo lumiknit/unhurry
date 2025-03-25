@@ -45,6 +45,7 @@ export const genChatID = () => {
 export const emptyChatContext = (): ChatContext => ({
 	_id: genChatID(),
 	createdAt: Date.now(),
+	lastUsedAt: Date.now(),
 	title: '',
 	history: {
 		msgPairs: [],
