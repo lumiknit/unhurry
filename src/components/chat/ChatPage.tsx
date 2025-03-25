@@ -1,6 +1,6 @@
 import { Component } from 'solid-js';
 
-import BottomInput from './BottomInput';
+import BottomInput from './bottom/BottomInput';
 import ChatHistoryView from './ChatHistoryView';
 
 const ChatPage: Component = () => {

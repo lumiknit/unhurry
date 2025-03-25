@@ -28,6 +28,16 @@ interface GlobalStore {
 	streamingMessage?: StreamingMessage;
 
 	userConfig?: UserConfig;
+
+	/**
+	 * Auto send set timestamp
+	 */
+	autoSendSetAt?: number;
+
+	/**
+	 * Auto send launch timestamp
+	 */
+	autoSendLaunchAt?: number;
 }
 
 export const [store, setStore] = createStore<GlobalStore>({

@@ -64,28 +64,6 @@ const AutoSendTag: Component = () => {
 	);
 };
 
-const EnableToolsTag: Component = () => {
-	const toggle = (e: MouseEvent) => {
-		e.stopPropagation();
-		setUserConfig((c) => ({
-			...c,
-			enableTools: !c.enableTools,
-		}));
-	};
-
-	return (
-		<Tag
-			class={getUserConfig()?.enableTools ? 'is-primary' : ''}
-			onClick={toggle}
-		>
-			<Switch>
-				<Match when={getUserConfig()?.enableTools}>Run</Match>
-				<Match when>No Run</Match>
-			</Switch>
-		</Tag>
-	);
-};
-
 interface Props {
 	children?: JSX.Element | JSX.Element[];
 	onInsertText: (text: string) => void;
@@ -112,7 +90,6 @@ const PromptTags: Component<Props> = (props) => {
 	return (
 		<div class="input-tags">
 			{props.children}
-			<EnableToolsTag />
 			<AutoSendTag />
 			<For each={promptTags()}>
 				{(tag) => (

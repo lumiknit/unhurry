@@ -1,27 +1,39 @@
+import {
+	BiRegularLeftArrow,
+	BiRegularRightArrow,
+	BiRegularTrash,
+} from 'solid-icons/bi';
 import { TbPlus } from 'solid-icons/tb';
-import { Component, For } from 'solid-js';
+import { Component, createSignal, Show } from 'solid-js';
 import { toast } from 'solid-toast';
 
 import {
 	Color,
 	colors,
 	colorSet,
+	defaultPromptTag,
 	PromptTag,
 	PromptTagAction,
 	promptTagActions,
+	PromptTagShowCondition,
+	promptTagShowConditions,
 } from '@lib/config';
 
 import { getUserConfig, setUserConfig } from '@store';
 
+import SelectForm from './form/SelectForm';
+import SwitchForm from './form/SwitchForm';
+import TextForm from './form/TextForm';
+import ItemList from './ItemList';
 import { openConfirm } from '../modal-confirm';
 
 interface TagProps {
 	idx: number;
 	promptTag: PromptTag;
 	onChange: (tag: PromptTag) => void;
-	onDelete: (idx: number) => void;
-	onMoveUp: (idx: number) => void;
-	onMoveDown: (idx: number) => void;
+	onDelete: () => void;
+	onMoveUp: () => void;
+	onMoveDown: () => void;
 }
 
 const Tag: Component<TagProps> = (props) => {
@@ -53,112 +65,138 @@ const Tag: Component<TagProps> = (props) => {
 	};
 
 	return (
-		<div class="card">
-			<div class="card-content">
-				<div class="field">
-					<label class="label">Tag</label>
-					<div class="control">
-						<input
-							class="input"
-							type="text"
-							value={props.promptTag.tag}
-							ref={nameRef!}
-							onChange={handleChange}
-						/>
-					</div>
-				</div>
-				<div class="field">
-					<label class="label">Color</label>
-					<div class="control">
-						<div
-							class={
-								'select is-fullwidth is-' +
-								props.promptTag.color
-							}
-						>
-							<select
-								value={props.promptTag.color}
-								ref={colorRef!}
-								onChange={handleChange}
-							>
-								<For each={colors}>
-									{(color) => (
-										<option value={color}>{color}</option>
-									)}
-								</For>
-							</select>
-						</div>
-					</div>
-				</div>
-				<div class="field">
-					<label class="label">Action</label>
-					<div class="control">
-						<div class="select is-fullwidth">
-							<select
-								value={props.promptTag.action}
-								ref={actionRef!}
-								onChange={handleChange}
-							>
-								<For each={promptTagActions}>
-									{(action) => (
-										<option value={action}>{action}</option>
-									)}
-								</For>
-							</select>
-						</div>
-					</div>
-				</div>
-				<div class="field">
-					<label class="label">Prompt</label>
-					<div class="control">
-						<textarea
-							class="textarea"
-							value={props.promptTag.prompt}
-							ref={promptRef!}
-							onChange={handleChange}
-						/>
-					</div>
+		<>
+			<div class="mb-4" />
+
+			<h4 class="title is-4">
+				{props.idx + 1}. {props.promptTag.tag}
+			</h4>
+
+			<div class="has-text-right mb-4">
+				<button class="button is-primary mr-2" onClick={props.onMoveUp}>
+					<BiRegularLeftArrow />
+				</button>
+				<button
+					class="button is-primary mr-2"
+					onClick={props.onMoveDown}
+				>
+					<BiRegularRightArrow />
+				</button>
+				<button class="button is-danger" onClick={props.onDelete}>
+					<BiRegularTrash />
+					Delete
+				</button>
+			</div>
+
+			<TextForm
+				label="Name"
+				desc="Tag name"
+				controlClass="flex-1 maxw-75"
+				get={() => props.promptTag.tag}
+				set={(name) =>
+					props.onChange({ ...props.promptTag, tag: name })
+				}
+			/>
+
+			<SelectForm
+				label="Color"
+				desc="Tag color"
+				options={colors.map((c) => ({ value: c, label: c }))}
+				selectClass={'is-' + props.promptTag.color}
+				get={() => props.promptTag.color}
+				set={(color) =>
+					props.onChange({
+						...props.promptTag,
+						color: color as Color,
+					})
+				}
+			/>
+
+			<SelectForm
+				label="Action"
+				desc="How prompt is inserted"
+				options={promptTagActions.map((action) => ({
+					value: action,
+					label: action,
+				}))}
+				get={() => props.promptTag.action}
+				set={(action) =>
+					props.onChange({
+						...props.promptTag,
+						action: action as PromptTagAction,
+					})
+				}
+			/>
+
+			<SelectForm
+				label="Show Condition"
+				desc="When tag is shown"
+				options={promptTagShowConditions.map((action) => ({
+					value: action,
+					label: action,
+				}))}
+				get={() =>
+					(props.promptTag.showCondition || 'always') as string
+				}
+				set={(action) =>
+					props.onChange({
+						...props.promptTag,
+						showCondition: action as PromptTagShowCondition,
+					})
+				}
+			/>
+
+			<TextForm
+				label="Show Condition Param"
+				desc="Parameter for the show condition"
+				controlClass="flex-1 maxw-75"
+				placeholder="comma separated keywords"
+				get={() => props.promptTag.showConditionParam || ''}
+				set={(showConditionParam) =>
+					props.onChange({
+						...props.promptTag,
+						showConditionParam,
+					})
+				}
+			/>
+
+			<SwitchForm
+				label="Send Immediately"
+				desc="Send the message when tag is clicked."
+				get={() => !!props.promptTag.sendImmediately}
+				set={(sendImmediately) =>
+					props.onChange({
+						...props.promptTag,
+						sendImmediately,
+					})
+				}
+			/>
+
+			<div class="field">
+				<label class="label">Prompt</label>
+				<div class="control">
+					<textarea
+						class="textarea"
+						value={props.promptTag.prompt}
+						ref={promptRef!}
+						onChange={handleChange}
+					/>
 				</div>
 			</div>
-			<footer class="card-footer">
-				<a
-					href="#"
-					class="card-footer-item"
-					onClick={() => props.onMoveUp(props.idx)}
-				>
-					Up
-				</a>
-				<a
-					href="#"
-					class="card-footer-item"
-					onClick={() => props.onMoveDown(props.idx)}
-				>
-					Down
-				</a>
-				<a
-					href="#"
-					class="card-footer-item has-text-danger"
-					onClick={() => props.onDelete(props.idx)}
-				>
-					Delete
-				</a>
-			</footer>
-		</div>
+		</>
 	);
 };
 
 const TagList: Component = () => {
+	const [editingIdx, setEditingIdx] = createSignal<number>(0);
+
 	const handleAddTag = () => {
-		const tag: PromptTag = {
-			tag: 'New Tag',
-			color: 'none',
-			action: 'insert',
-			prompt: 'Hello! ',
-		};
+		const tag: PromptTag = defaultPromptTag();
 		setUserConfig((c) => ({
 			...c,
-			promptTags: [tag, ...c.promptTags],
+			promptTags: [...c.promptTags, tag],
 		}));
+		setEditingIdx(getUserConfig()!.promptTags.length - 1);
 	};
 
 	const handleChange = (idx: number) => (tag: PromptTag) => {
@@ -182,24 +220,23 @@ const TagList: Component = () => {
 		}));
 		toast.success('Tag deleted');
 	};
-	const handleMoveUpTag = (idx: number) => {
-		if (idx === 0) return;
-		setUserConfig((c) => {
-			const newTags = [...c.promptTags];
-			[newTags[idx - 1], newTags[idx]] = [newTags[idx], newTags[idx - 1]];
-			return { ...c, promptTags: newTags };
-		});
-		toast.success('Tag moved up');
-	};
 
-	const handleMoveDownTag = (idx: number) => {
+	const handleMoveTag = (idx: number, delta: number) => {
+		const c = getUserConfig();
+		if (!c) return;
+
+		const newIdx = idx + delta;
+		if (newIdx < 0 || newIdx >= c.promptTags.length) {
+			toast.error('Invalid move');
+			return;
+		}
+
 		setUserConfig((c) => {
-			if (idx === c.promptTags.length - 1) return c;
 			const newTags = [...c.promptTags];
-			[newTags[idx + 1], newTags[idx]] = [newTags[idx], newTags[idx + 1]];
+			[newTags[newIdx], newTags[idx]] = [newTags[idx], newTags[newIdx]];
 			return { ...c, promptTags: newTags };
 		});
-		toast.success('Tag moved down');
+		setEditingIdx(newIdx);
 	};
 
 	return (
@@ -217,20 +254,28 @@ const TagList: Component = () => {
 
 			<p> Your preset prompts here. </p>
 
-			<div>
-				<For each={getUserConfig()?.promptTags}>
-					{(tag, idx) => (
-						<Tag
-							idx={idx()}
-							promptTag={tag}
-							onChange={handleChange(idx())}
-							onDelete={handleDeleteTag}
-							onMoveUp={handleMoveUpTag}
-							onMoveDown={handleMoveDownTag}
-						/>
-					)}
-				</For>
-			</div>
+			<div class="mb-4" />
+
+			<ItemList
+				items={(getUserConfig()?.promptTags || []).map((m) => ({
+					label: m.tag,
+					color: m.color,
+				}))}
+				selected={editingIdx()}
+				onSelect={setEditingIdx}
+				onAdd={handleAddTag}
+			/>
+
+			<Show when={getUserConfig()?.promptTags[editingIdx()]}>
+				<Tag
+					idx={editingIdx()}
+					promptTag={getUserConfig()!.promptTags[editingIdx()]}
+					onChange={handleChange(editingIdx())}
+					onDelete={() => handleDeleteTag(editingIdx())}
+					onMoveUp={() => handleMoveTag(editingIdx(), -1)}
+					onMoveDown={() => handleMoveTag(editingIdx(), 1)}
+				/>
+			</Show>
 		</div>
 	);
 };

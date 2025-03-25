@@ -70,7 +70,7 @@ const SpeechButton: Component<Props> = (props_) => {
 		sr = new SpeechRecognition();
 		sr.continuous = true;
 		sr.interimResults = true;
-		sr.maxAlternatives = 3;
+		sr.maxAlternatives = 1;
 	};
 
 	const startSpeechRecognition = () => {
