@@ -32,9 +32,7 @@ const ChatListPage: Component = () => {
 
 	const sortByLastUsed = () => {
 		setFilteredList(
-			filtered().sort((a, b) =>
-				(b.lastUsedAt || 0) - (a.lastUsedAt || 0)
-			)
+			filtered().sort((a, b) => (b.lastUsedAt || 0) - (a.lastUsedAt || 0))
 		);
 	};
 
