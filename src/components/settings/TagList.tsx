@@ -10,7 +10,6 @@ import { toast } from 'solid-toast';
 import {
 	Color,
 	colors,
-	colorSet,
 	defaultPromptTag,
 	PromptTag,
 	PromptTagAction,
@@ -37,33 +36,6 @@ interface TagProps {
 }
 
 const Tag: Component<TagProps> = (props) => {
-	let nameRef: HTMLInputElement;
-	let colorRef: HTMLSelectElement;
-	let actionRef: HTMLSelectElement;
-	let promptRef: HTMLTextAreaElement;
-
-	const handleChange = () => {
-		const color = colorRef!.value as Color;
-		if (!colorSet.has(color)) {
-			toast.error('Invalid color');
-			return;
-		}
-
-		const action = actionRef!.value as PromptTagAction;
-		if (!new Set(promptTagActions).has(action)) {
-			toast.error('Invalid action');
-			return;
-		}
-
-		props.onChange({
-			...props.promptTag,
-			tag: nameRef!.value,
-			color,
-			action,
-			prompt: promptRef!.value,
-		});
-	};
-
 	return (
 		<>
 			<div class="mb-4" />
@@ -150,7 +122,7 @@ const Tag: Component<TagProps> = (props) => {
 				label="Show Condition Param"
 				desc="Parameter for the show condition"
 				controlClass="flex-1 maxw-75"
-				placeholder="comma separated keywords"
+				placeholder="comma separated list"
 				get={() => props.promptTag.showConditionParam || ''}
 				set={(showConditionParam) =>
 					props.onChange({
@@ -178,8 +150,12 @@ const Tag: Component<TagProps> = (props) => {
 					<textarea
 						class="textarea"
 						value={props.promptTag.prompt}
-						ref={promptRef!}
-						onChange={handleChange}
+						onChange={(e) =>
+							props.onChange({
+								...props.promptTag,
+								prompt: e.currentTarget.value,
+							})
+						}
 					/>
 				</div>
 			</div>

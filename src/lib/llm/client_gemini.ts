@@ -223,7 +223,7 @@ export class GeminiClient implements ILLMService {
 
 	private chatCompletionBody(system: string, history: LLMMessages): string {
 		let tools = undefined;
-		if (this.functions.length > 0) {
+		if (this.config.useToolCall && this.functions.length > 0) {
 			tools = [{ function_declarations: this.functions }];
 		}
 		if (this.config.model.includes('image-generation')) {

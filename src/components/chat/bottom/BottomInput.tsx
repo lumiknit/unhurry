@@ -36,16 +36,44 @@ const BottomInput: Component = () => {
 	const [files, setFiles] = createSignal<FileInput[]>([]);
 	const [sendCnt, setSendCnt] = createSignal(0);
 
-	const insertText = (text: string) => {
+	const [inputTriple, setInputTriple] = createSignal<
+		[string, string, string]
+	>(['', '', '']);
+
+	const updateInputTriple = () => {
+		const t = taRef!.value;
+		const selStart = taRef!.selectionStart;
+		const selEnd = taRef!.selectionEnd;
+		setInputTriple([
+			t.slice(0, selStart),
+			t.slice(selStart, selEnd),
+			t.slice(selEnd),
+		]);
+	};
+
+	const insertText = (text: string, idx?: number) => {
 		const ta = taRef!;
-		const selStart = ta.selectionStart;
+		let selStart = ta.selectionStart;
 		const selEnd = ta.selectionEnd;
-		const v = ta.value;
-		const newV = v.slice(0, selStart) + text + v.slice(selEnd);
+		let v = ta.value;
+
+		if (idx === undefined) {
+			idx = selStart;
+			v = v.slice(0, selStart) + v.slice(selEnd);
+		} else if (idx < 0) {
+			idx = selEnd;
+		}
+
+		if (selStart <= idx) {
+			selStart += text.length;
+		}
+
+		const newV = v.slice(0, idx) + text + v.slice(idx);
 		ta.value = newV;
-		ta.setSelectionRange(selStart + text.length, selStart + text.length);
+		ta.setSelectionRange(selStart, selStart);
 		ta.focus();
 		autosizeTextarea();
+		updateInputTriple();
 	};
 
 	const replaceText = (text: string) => {
@@ -200,12 +228,15 @@ const BottomInput: Component = () => {
 	};
 
 	const handleInput = (e: InputEvent) => {
+		updateInputTriple();
+
 		composing = e.isComposing;
 		autosizeTextarea();
 		setAutoSend();
 	};
 
 	const handleKeyUp = (e: KeyboardEvent) => {
+		updateInputTriple();
 		if (e.isComposing) return;
 		switch (e.key) {
 			case 'Enter':
@@ -311,7 +342,25 @@ const BottomInput: Component = () => {
 					}
 				/>
 				<InputTags
-					onInsertText={insertText}
+					textState={inputTriple()}
+					onInsertText={(text, toSend) => {
+						insertText(text);
+						if (toSend) {
+							send();
+						}
+					}}
+					onInsertStartText={(text, toSend) => {
+						insertText(text, 0);
+						if (toSend) {
+							send();
+						}
+					}}
+					onInsertEndText={(text, toSend) => {
+						insertText(text, -1);
+						if (toSend) {
+							send();
+						}
+					}}
 					onReplaceText={replaceText}
 				/>
 				<SendButton

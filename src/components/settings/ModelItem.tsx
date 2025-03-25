@@ -16,6 +16,7 @@ import {
 	newClientFromConfig,
 } from '@lib/llm';
 
+import SwitchForm from './form/SwitchForm';
 import TextForm from './form/TextForm';
 
 interface Props {
@@ -211,6 +212,15 @@ const ModelEditor: Component<Props> = (props) => {
 					/>
 				</div>
 			</div>
+
+			<SwitchForm
+				label="Use ToolCall"
+				desc="If model supports ToolCall, enable this"
+				get={() => !!props.model.useToolCall}
+				set={(v) =>
+					props.updateModel((m) => ({ ...m, useToolCall: v }))
+				}
+			/>
 		</>
 	);
 };

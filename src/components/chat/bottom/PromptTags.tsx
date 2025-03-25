@@ -1,4 +1,13 @@
-import { Component, For, JSX, Match, splitProps, Switch } from 'solid-js';
+import {
+	Component,
+	createEffect,
+	createSignal,
+	For,
+	JSX,
+	Match,
+	splitProps,
+	Switch,
+} from 'solid-js';
 import { toast } from 'solid-toast';
 
 import { vibrate } from '@/store/actions';
@@ -66,32 +75,77 @@ const AutoSendTag: Component = () => {
 
 interface Props {
 	children?: JSX.Element | JSX.Element[];
-	onInsertText: (text: string) => void;
-	onReplaceText: (text: string) => void;
+
+	/**
+	 * Text state.
+	 * BeforeCursor, Selection, AfterCursor
+	 */
+	textState: [string, string, string];
+
+	onInsertText: (text: string, send: boolean) => void;
+	onInsertStartText: (text: string, send: boolean) => void;
+	onInsertEndText: (text: string, send: boolean) => void;
+	onReplaceText: (text: string, send: boolean) => void;
 }
 
 const PromptTags: Component<Props> = (props) => {
+	const [filtered, setFiltered] = createSignal<PromptTag[]>([]);
+
 	const promptTags = () => getUserConfig()?.promptTags || [];
 
 	const handlePromptTagClick = (e: MouseEvent, tag: PromptTag) => {
 		e.stopPropagation();
 		switch (tag.action) {
 			case 'insert':
-				props.onInsertText(tag.prompt);
+				props.onInsertText(tag.prompt, !!tag.sendImmediately);
+				break;
+			case 'insert-start':
+				props.onInsertStartText(tag.prompt, !!tag.sendImmediately);
+				break;
+			case 'insert-end':
+				props.onInsertEndText(tag.prompt, !!tag.sendImmediately);
 				break;
 			case 'replace':
-				props.onReplaceText(tag.prompt);
+				props.onReplaceText(tag.prompt, !!tag.sendImmediately);
 				break;
 			default:
 				toast.error(`Unknown PromptTag action: ${tag.action}`);
 		}
 	};
 
+	createEffect(() => {
+		const ln =
+			props.textState[0].length +
+			props.textState[1].length +
+			props.textState[2].length;
+		const nonWordIdx = props.textState[0].lastIndexOf(' ');
+		const lastWord =
+			nonWordIdx === -1
+				? props.textState[0]
+				: props.textState[0].slice(nonWordIdx + 1);
+		const v = [...promptTags()].filter((tag) => {
+			switch (tag.showCondition) {
+				case 'empty':
+					return ln === 0;
+				case 'non-empty':
+					return ln > 0;
+				case 'prefix':
+					return (
+						lastWord.length > 0 &&
+						(tag.showConditionParam || '').startsWith(lastWord)
+					);
+				default:
+					return true;
+			}
+		});
+		setFiltered(v);
+	});
+
 	return (
 		<div class="input-tags">
 			{props.children}
 			<AutoSendTag />
-			<For each={promptTags()}>
+			<For each={filtered()}>
 				{(tag) => (
 					<Tag
 						class={'is-' + tag.color}
