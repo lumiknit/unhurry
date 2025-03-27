@@ -108,11 +108,6 @@ const ModelEditor: Component<Props> = (props) => {
 	const handleInputChange = () => {
 		props.updateModel((m) => ({
 			...m,
-			model: modelRef!.value,
-			endpoint: endpointRef!.value,
-			apiKey: apiKeyRef!.value.trim(),
-			clientType: clientTypeRef!.value as LLMClientType,
-			name: nameRef!.value,
 			systemPrompt: systemPromptRef!.value,
 		}));
 	};
