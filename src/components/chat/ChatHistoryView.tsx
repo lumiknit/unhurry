@@ -1,12 +1,17 @@
-import { Component, createMemo, For, Show } from 'solid-js';
+import { Component, createMemo, For, onMount, Show } from 'solid-js';
 
 import { getChatContext, getStreamingMessage } from '@store';
 
+import { scrollToLastUserMessage } from './lib';
 import { Message } from './message';
 import Title from './Title';
 
 const ChatHistoryView: Component = () => {
 	const pairs = createMemo(() => getChatContext().history.msgPairs);
+
+	onMount(() => {
+		setTimeout(() => scrollToLastUserMessage(), 100);
+	});
 
 	return (
 		<div>

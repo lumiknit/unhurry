@@ -17,6 +17,7 @@ import SendButton from './SendButton';
 import SpeechButton from './SpeechButton';
 import UploadedFiles from './UploadedFiles';
 import UploadFileButton from './UploadFileButton';
+import { scrollToLastUserMessage } from '../lib';
 
 interface FileInput {
 	name: string;
@@ -115,19 +116,7 @@ const BottomInput: Component = () => {
 			setChatContext((c) => ({ ...c, progressing: true }));
 
 			// Pick the last user message and scroll to top.
-			setTimeout(() => {
-				const elems = document.getElementsByClassName('msg-user');
-				if (elems.length > 0) {
-					const last = elems[elems.length - 1];
-					const rect = last.getBoundingClientRect();
-					const top = window.scrollY + rect.top - 54;
-					// current scroll position
-					window.scrollTo({
-						top,
-						behavior: 'smooth',
-					});
-				}
-			}, 33);
+			setTimeout(scrollToLastUserMessage, 33);
 			await chat(
 				v,
 				fs.map((f) => f.id)
