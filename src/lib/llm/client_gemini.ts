@@ -11,8 +11,8 @@ import {
 	LLMMessage,
 	LLMMsgContent,
 	Role,
-	FunctionCallContent,
 	fnCallMsgPartToMD,
+	TypedContent,
 } from './message';
 import { ModelConfig } from './model_config';
 import { JSONValue } from '../json';
@@ -73,6 +73,9 @@ interface GeminiFunctionResponsePart {
 	};
 }
 
+/**
+ * Gemini's content part.
+ */
 type GeminiPart =
 	| GeminiTextPart
 	| GeminiInlineDataPart
@@ -125,6 +128,9 @@ export class GeminiClient implements ILLMService {
 		this.config = config;
 	}
 
+	/**
+	 * Set available function tools.
+	 */
 	setFunctions(functions: FunctionTool[]): void {
 		this.functions = functions;
 	}
@@ -152,7 +158,9 @@ export class GeminiClient implements ILLMService {
 			}
 			const last = out[out.length - 1];
 			const fnResults: GeminiPart[] = [];
+
 			if (typeof msg.content === 'string') {
+				// If string, just push as text.
 				if (msg.content.length === 0) continue;
 				last.parts.push({
 					text: msg.content,
@@ -189,6 +197,8 @@ export class GeminiClient implements ILLMService {
 							break;
 						case 'function_call':
 							if (this.config.useToolCall) {
+								// If function call is supported,
+								// use functionCall and functionResponse parts.
 								last.parts.push({
 									functionCall: {
 										name: item.name,
@@ -284,6 +294,30 @@ export class GeminiClient implements ILLMService {
 		});
 	}
 
+	private geminiPartToTypedContent(part: GeminiPart): TypedContent {
+		if ('text' in part) {
+			return {
+				type: 'text',
+				text: part.text,
+			};
+		} else if ('data' in part) {
+			return {
+				type: 'image_url',
+				image_url: {
+					url: part.data as string,
+				},
+			};
+		} else if ('functionCall' in part) {
+			return {
+				type: 'function_call',
+				id: part.functionCall.name,
+				name: part.functionCall.name,
+				args: JSON.stringify(part.functionCall.args),
+			};
+		}
+		throw new Error('Invalid part');
+	}
+
 	async chat(
 		systemPrompt: string,
 		history: LLMMessages
@@ -306,29 +340,9 @@ export class GeminiClient implements ILLMService {
 		}
 		const respBody = (await resp.json()) as GeminiGeneateContentResponse;
 		const lastMessage = respBody.candidates[0].content;
-		let content: LLMMsgContent = [];
-		for (const part of lastMessage.parts) {
-			if ('text' in part) {
-				content.push({
-					type: 'text',
-					text: part.text,
-				});
-			} else if ('data' in part) {
-				content.push({
-					type: 'image_url',
-					image_url: {
-						url: part.data as string,
-					},
-				});
-			} else if ('functionCall' in part) {
-				content.push({
-					type: 'function_call',
-					id: part.functionCall.name,
-					name: part.functionCall.name,
-					args: JSON.stringify(part.functionCall.args),
-				});
-			}
-		}
+		let content: LLMMsgContent = lastMessage.parts.map(
+			this.geminiPartToTypedContent
+		);
 		if (content.length === 1 && content[0].type === 'text') {
 			content = content[0].text;
 		}
@@ -372,7 +386,7 @@ export class GeminiClient implements ILLMService {
 			throw new Error('Failed to get reader');
 		}
 		let content: LLMMsgContent = '';
-		const fc: FunctionCallContent[] = [];
+		const contents: TypedContent[] = [];
 		await readSSEJSONStream<GeminiStreamChunk>(reader, (chunk) => {
 			const lastMessage = chunk.candidates[0].content;
 			if (lastMessage.parts === undefined) return;
@@ -381,18 +395,17 @@ export class GeminiClient implements ILLMService {
 			for (const part of lastMessage.parts) {
 				if ('text' in part) {
 					gen += part.text;
-				} else if ('functionCall' in part) {
-					fc.push({
-						type: 'function_call',
-						id: part.functionCall.name,
-						name: part.functionCall.name,
-						args: JSON.stringify(part.functionCall.args),
-					});
-					callbacks.onFunctionCall?.(
-						0,
-						part.functionCall.name,
-						JSON.stringify(part.functionCall.args)
-					);
+				} else {
+					const content = this.geminiPartToTypedContent(part);
+					contents.push(content);
+					if (content.type === 'function_call') {
+						callbacks.onFunctionCall?.(
+							0,
+							content.name,
+							content.name,
+							content.args
+						);
+					}
 				}
 			}
 			content += gen;
@@ -405,13 +418,13 @@ export class GeminiClient implements ILLMService {
 			}
 		});
 
-		if (fc.length > 0) {
+		if (contents.length > 0) {
 			content = [
 				{
 					type: 'text',
 					text: content,
 				},
-				...fc,
+				...contents,
 			];
 		}
 
