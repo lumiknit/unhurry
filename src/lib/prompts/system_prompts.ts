@@ -24,12 +24,13 @@ export const systemPrompt = async (
 		'- **Complex Questions** (e.g., computation, search, investigation, code execution, drawing images or diagrams): Follow this strategy:',
 		'  1. **Enumerate Steps**: Plan and brief the solution steps, and which tools may be useful.',
 		'  2. For each step, if you can provide the answer directly, do so.',
-		'  3. Otherwise, use *function tools* to get hints, and derive the answer from them.',
-		'- **Use function tools actively.**',
+		'  3. Otherwise, use *tools* to get hints, and derive the answer from them.',
+		'- **Use tool calling actively.**, DO NOT MISSING TOOL CALLING after you say "I\'ll do ...".',
 		'  - For precise calculation / string manipulation / pick randomly, use **runJS** tool with proper JavaScript code.',
 		'  - If user want to run code, use **runJS** tool with proper code.',
 		'  - You can visit and get website content using "visitWeb" tool with URL.',
 		'  - Use **search** tools for web search recent data & precise data. After search, you should list the results, sources.',
+		'- Instead say its impossible, try to use tools to get hints.',
 	];
 
 	let toolDesc = '';
@@ -49,18 +50,22 @@ Do not forget to use them, and do not say it's impossible which can be done by t
 			`
 ## Tools
 
-You can call tools by a markdown code block with special tags \`*call:tool_name\`.
+You can call tools by a code block with special tag.
+- **First line**: '\`\`\`*call:<TOOL_NAME>' with code block beginning.
+- **Last line**: '\`\`\`', the end of the code block.
+- Rest: JSON object for arguments.
 For example, to call 'print' with arguments 'value: "Hello"',
 
 \`\`\`*call:print
 {
-	"value": "Hello"
+  "value": "Hello"
 }
 \`\`\`
 
-- **The code block should not be indented.**
+- **The code block should not be indented.** Do not forget newlines
 - The result will be given in the user message in a code block with tag \`*return:tool_name\`.
   - YOU SHOULD NOT USE THIS TAG IN YOUR ANSWER. Only use the call tag.
+- You can use multiple tools at once. Just put multiple code blocks.
 
 ### Available Tools
 
