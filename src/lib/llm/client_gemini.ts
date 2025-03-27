@@ -12,9 +12,11 @@ import {
 	LLMMsgContent,
 	Role,
 	FunctionCallContent,
+	fnCallMsgPartToMD,
 } from './message';
 import { ModelConfig } from './model_config';
 import { JSONValue } from '../json';
+import { logr } from '../logr';
 
 /**
  * Gemini LLM Message Role
@@ -149,7 +151,7 @@ export class GeminiClient implements ILLMService {
 				});
 			}
 			const last = out[out.length - 1];
-			const fnResults: GeminiFunctionResponsePart[] = [];
+			const fnResults: GeminiPart[] = [];
 			if (typeof msg.content === 'string') {
 				if (msg.content.length === 0) continue;
 				last.parts.push({
@@ -186,22 +188,36 @@ export class GeminiClient implements ILLMService {
 							}
 							break;
 						case 'function_call':
-							last.parts.push({
-								functionCall: {
-									name: item.name,
-									args: JSON.parse(item.args),
-								},
-							});
-							if (item.result !== undefined) {
-								fnResults.push({
-									functionResponse: {
+							if (this.config.useToolCall) {
+								last.parts.push({
+									functionCall: {
 										name: item.name,
-										response: {
-											name: item.name,
-											content: item.result,
-										},
+										args: JSON.parse(item.args),
 									},
 								});
+								if (item.result !== undefined) {
+									fnResults.push({
+										functionResponse: {
+											name: item.name,
+											response: {
+												name: item.name,
+												content: item.result,
+											},
+										},
+									});
+								}
+							} else {
+								// Otherwise push as text
+								const [callMD, resultMD] =
+									fnCallMsgPartToMD(item);
+								last.parts.push({
+									text: callMD,
+								});
+								if (resultMD) {
+									fnResults.push({
+										text: resultMD,
+									});
+								}
 							}
 							break;
 					}
@@ -221,21 +237,42 @@ export class GeminiClient implements ILLMService {
 		return out.filter((c) => c.parts.length > 0);
 	}
 
+	private supportSystemInstruction(): boolean {
+		return !(
+			this.config.model.includes('image-generation') ||
+			this.config.model.includes('gemma')
+		);
+	}
+
+	private responseModalities(): string[] {
+		if (this.config.model.includes('image-generation')) {
+			return ['Text', 'Image'];
+		}
+		return ['Text'];
+	}
+
 	private chatCompletionBody(system: string, history: LLMMessages): string {
 		let tools = undefined;
 		if (this.config.useToolCall && this.functions.length > 0) {
 			tools = [{ function_declarations: this.functions }];
 		}
-		if (this.config.model.includes('image-generation')) {
+		const convertedContents = this.convertMessagesForGemini(history);
+
+		if (!this.supportSystemInstruction()) {
+			// Inject systemprompt as user message
+			convertedContents.unshift({
+				parts: [{ text: system }],
+				role: 'user',
+			});
 			return JSON.stringify({
-				contents: this.convertMessagesForGemini(history),
+				contents: convertedContents,
 				generationConfig: {
-					responseModalities: ['Text', 'Image'],
+					responseModalities: this.responseModalities(),
 				},
 			});
 		}
 		return JSON.stringify({
-			contents: this.convertMessagesForGemini(history),
+			contents: convertedContents,
 			system_instruction: {
 				parts: [
 					{
@@ -338,6 +375,7 @@ export class GeminiClient implements ILLMService {
 		const fc: FunctionCallContent[] = [];
 		await readSSEJSONStream<GeminiStreamChunk>(reader, (chunk) => {
 			const lastMessage = chunk.candidates[0].content;
+			if (lastMessage.parts === undefined) return;
 
 			let gen = '';
 			for (const part of lastMessage.parts) {
@@ -363,7 +401,7 @@ export class GeminiClient implements ILLMService {
 
 			if (callbacks.isCancelled?.()) {
 				reader.cancel();
-				console.log('Cancelled');
+				logr.info('[chat/SingleChatAction/generate] Stream Cancelled');
 			}
 		});
 

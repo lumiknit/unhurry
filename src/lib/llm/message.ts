@@ -31,6 +31,26 @@ export interface FunctionCallContent {
 }
 
 /**
+ * Convert function call message part to markdown.
+ * First one is about function call, and the second one is about return value.
+ */
+export const fnCallMsgPartToMD = (
+	info: FunctionCallContent
+): [string, string] => {
+	const call =
+		'```*call:' + info.name + '(' + info.id + ')\n' + info.args + '\n```';
+	const ret =
+		'```*return:' +
+		info.name +
+		'(' +
+		info.id +
+		')\n' +
+		(info.result || '<NO RESULT>') +
+		'\n```';
+	return [call, ret];
+};
+
+/**
  * Typed content.
  */
 export type TypedContent =

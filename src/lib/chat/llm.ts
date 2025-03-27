@@ -1,4 +1,4 @@
-import { systemPrompt } from '@/store/system_prompts';
+import { systemPrompt } from '@/lib/prompts/system_prompts';
 
 import { MsgPartsParser } from './parser';
 import {
@@ -8,7 +8,7 @@ import {
 	MsgPart,
 } from './structs';
 import { fnImpls, fnTools } from './tools';
-import { ModelConfig, newClientFromConfig } from '../llm';
+import { FunctionCallContent, ModelConfig, newClientFromConfig } from '../llm';
 import { logr } from '../logr';
 
 /**
@@ -113,7 +113,11 @@ export class SingleChatAction {
 	protected async generate(modelConfig: ModelConfig) {
 		const llm = newClientFromConfig(modelConfig);
 		llm.setFunctions(fnTools);
-		const sys = await systemPrompt(modelConfig.systemPrompt);
+		const sys = await systemPrompt(
+			modelConfig.systemPrompt,
+			!!modelConfig.useToolCall,
+			fnTools
+		);
 
 		// Part parser
 		const parser = new MsgPartsParser();
@@ -128,14 +132,16 @@ export class SingleChatAction {
 				parser.push(text);
 				return !this.cancelled;
 			},
+			isCancelled: () => this.cancelled,
 		});
 		logr.info('[chat/SingleChatAction/generate] Stream End');
 
 		// Finish parser
 		const assistantParts = parser.finish();
+		console.log('Result', result);
 		const functionCalls = result.functionCalls();
 
-		this.pushAssistantMessage([
+		const fullAIParts = [
 			...assistantParts,
 			...functionCalls.map(
 				(fc): MsgPart => ({
@@ -143,38 +149,61 @@ export class SingleChatAction {
 					content: JSON.stringify(fc),
 				})
 			),
-		]);
+		];
+
+		this.pushAssistantMessage(fullAIParts);
+		const calls: FunctionCallContent[] = fullAIParts
+			.filter((p) => p.type === MSG_PART_TYPE_FUNCTION_CALL)
+			.map((p) => {
+				const parsed = JSON.parse(p.content);
+				return {
+					type: 'function_call',
+					id: parsed.id,
+					name: parsed.name,
+					args: parsed.args,
+				};
+			});
 
 		if (this.cancelled) {
 			return;
 		}
 
 		// Run the function
-		if (functionCalls.length > 0) {
+		if (calls.length > 0) {
+			const results = new Map<string, string>();
 			await Promise.all(
-				functionCalls.map(async (fc) => {
+				calls.map(async (fc) => {
 					try {
-						fc.result = await fnImpls[fc.name](JSON.parse(fc.args));
+						const a = JSON.parse(fc.args);
+						const result = await fnImpls[fc.name](a);
+						results.set(fc.id, result);
 					} catch (e) {
-						fc.result = `Error: ${e}`;
+						results.set(fc.id, `Error: ${e}`);
 					}
 				})
 			);
+
+			const updatedParts = fullAIParts.map((p) => {
+				if (p.type !== MSG_PART_TYPE_FUNCTION_CALL) return p;
+				const parsed = JSON.parse(p.content);
+				const result =
+					results.get(parsed.id) || 'Cannot find run result';
+				return {
+					type: MSG_PART_TYPE_FUNCTION_CALL,
+					content: JSON.stringify({
+						...parsed,
+						result,
+					}),
+				};
+			});
+
 			// Update the last message
 			this.history.msgPairs[this.history.msgPairs.length - 1] = {
 				...this.history.msgPairs[this.history.msgPairs.length - 1],
 				assistant: {
 					role: 'assistant',
 					timestamp: Date.now(),
-					parts: [
-						...assistantParts,
-						...functionCalls.map(
-							(fc): MsgPart => ({
-								type: MSG_PART_TYPE_FUNCTION_CALL,
-								content: JSON.stringify(fc),
-							})
-						),
-					],
+					parts: updatedParts,
 				},
 			};
 			this.onUpdate?.(this.history.msgPairs.length - 1);

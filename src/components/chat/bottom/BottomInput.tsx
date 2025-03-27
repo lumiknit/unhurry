@@ -1,4 +1,4 @@
-import { Component, createSignal, onMount, Show } from 'solid-js';
+import { batch, Component, createSignal, onMount, Show } from 'solid-js';
 import { toast } from 'solid-toast';
 
 import { logr } from '@/lib/logr';
@@ -105,9 +105,10 @@ const BottomInput: Component = () => {
 			// Otherwise, some composing left.
 			// Just ignore the send
 		}
-		setFiles([]);
-
-		setSendCnt((c) => c + 1);
+		batch(() => {
+			setFiles([]);
+			setSendCnt((c) => c + 1);
+		});
 		const isFirst = getChatContext().history.msgPairs.length === 0;
 		try {
 			logr.info('LLM Input: ', v);
@@ -156,7 +157,7 @@ const BottomInput: Component = () => {
 	};
 
 	const autoSend = () => {
-		if (autoSendAt >= Date.now()) {
+		if (autoSendAt > Date.now()) {
 			// Reassign
 			autoSendTimeoutId = window.setTimeout(
 				autoSend,
@@ -182,7 +183,12 @@ const BottomInput: Component = () => {
 	 */
 	const setAutoSend = () => {
 		const as = autoSendTimeout();
-		if (!getUserConfig()?.enableAutoSend || !as) return;
+		if (
+			!getUserConfig()?.enableAutoSend ||
+			!as ||
+			getChatContext().progressing
+		)
+			return;
 
 		const now = Date.now();
 		setStore('autoSendSetAt', now);

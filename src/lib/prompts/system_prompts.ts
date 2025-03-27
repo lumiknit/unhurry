@@ -1,4 +1,16 @@
-export const systemPrompt = async (additional: string): Promise<string> => {
+import { FunctionTool, functionToolToTS } from '../llm/function';
+
+/**
+ * Generate system prompt.
+ * @param additional Additional information.
+ * @param useToolCall Use tool call.
+ * @param functions Function tools.
+ */
+export const systemPrompt = async (
+	additional: string,
+	useToolCall: boolean,
+	functions: FunctionTool[]
+): Promise<string> => {
 	const role = "You are a helpful assistant 'Unhurry' (언허리).";
 	const importantGuidelines = [
 		"- Use the user's language for answers.",
@@ -20,6 +32,46 @@ export const systemPrompt = async (additional: string): Promise<string> => {
 		'  - Use **search** tools for web search recent data & precise data. After search, you should list the results, sources.',
 	];
 
+	let toolDesc = '';
+
+	if (useToolCall) {
+		toolDesc =
+			'\n' +
+			`
+## Tools
+
+You can use tools by function callings. Be aware of their types.
+Do not forget to use them, and do not say it's impossible which can be done by tools.
+`.trim();
+	} else {
+		toolDesc =
+			'\n' +
+			`
+## Tools
+
+You can call tools by a markdown code block with special tags \`*call:tool_name\`.
+For example, to call 'print' with arguments 'value: "Hello"',
+
+\`\`\`*call:print
+{
+	"value": "Hello"
+}
+\`\`\`
+
+- **The code block should not be indented.**
+- The result will be given in the user message in a code block with tag \`*return:tool_name\`.
+  - YOU SHOULD NOT USE THIS TAG IN YOUR ANSWER. Only use the call tag.
+
+### Available Tools
+
+The following interface name is a tool name, and the interface body is the arguments.
+
+\`\`\`typescript
+${functions.map((f) => functionToolToTS(f)).join('\n\n')}
+\`\`\`
+`.trim();
+	}
+
 	return `
 ${role}
 
@@ -35,6 +87,8 @@ Most code blocks are displayed as text, except for the following:
 - mermaid: Use this block to visually represent images, plots, diagrams, etc.
 
 Note: code blocks are not executed. For execution, use the **runJS** tool.
+
+${toolDesc}
 
 # Additional info
 

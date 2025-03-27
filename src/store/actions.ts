@@ -165,7 +165,7 @@ export const chat = async (text: string, fileIDs?: string[]) => {
 		let reason = `'${mc.name}' failed. `;
 		if (err instanceof BadRequestError) {
 			reason +=
-				'(400) Maybe the input is invalid, or some inputs are not supported. (e.g. Image)';
+				'(400) Maybe the input is invalid, or some inputs are not supported. (e.g. Image, ToolCall)';
 		} else if (err instanceof RequestEntityTooLargeError) {
 			reason += '(413) Maybe chat history is too long.';
 		} else if (err instanceof RateLimitError) {

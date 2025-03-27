@@ -1,6 +1,6 @@
 import { BiRegularSend } from 'solid-icons/bi';
 import { Component, createSignal, onCleanup, onMount } from 'solid-js';
-import toast from 'solid-toast';
+import {toast} from 'solid-toast';
 
 import { vibrate } from '@/store/actions';
 

@@ -16,6 +16,7 @@ import {
 	FunctionCallContent,
 	TypedContent,
 	LLMMsgContent,
+	fnCallMsgPartToMD,
 } from './message';
 import { ModelConfig } from './model_config';
 import { logr } from '../logr';
@@ -158,33 +159,55 @@ export class OpenAIClient implements ILLMService {
 						break;
 				}
 			}
+			let toolCalls: ToolCall[] | undefined;
+			const toolCallResult: Message[] = [];
+			if (msg.role === 'assistant' && fc.length > 0) {
+				if (this.config.useToolCall) {
+					toolCalls = fc.map((f) => {
+						if (f.result) {
+							toolCallResult.push({
+								role: 'tool',
+								tool_call_id: f.id,
+								content: f.result,
+							});
+						}
+						return {
+							type: 'function',
+							id: f.id,
+							function: {
+								name: f.name,
+								arguments: f.args,
+							},
+						};
+					});
+				} else {
+					const results: string[] = [];
+					// If tool call is not used, just append as text.
+					for (const f of fc) {
+						const [callMD, resultMD] = fnCallMsgPartToMD(f);
+						content.push({
+							type: 'text',
+							text: callMD,
+						});
+						results.push(resultMD);
+					}
+
+					toolCallResult.push({
+						role: 'user',
+						content: results.join('\n\n'),
+					});
+				}
+			}
 			let c: string | TypedContent[] = content;
 			if (content.length === 0) c = '';
-			else if (content.length === 1 && content[0].type === 'text')
-				c = content[0].text;
+			else if (content.every((x) => x.type === 'text'))
+				c = content.map((x) => x.text).join('\n\n');
 			const m: Message = {
 				role: msg.role,
 				content: c,
+				tool_calls: toolCalls,
 			};
-			if (m.role === 'assistant' && fc.length > 0) {
-				m.tool_calls = fc.map((f) => ({
-					type: 'function',
-					id: f.id,
-					function: {
-						name: f.name,
-						arguments: f.args,
-					},
-				}));
-			}
-			msgs.push(m);
-			for (const f of fc) {
-				if (f.result === undefined) continue;
-				msgs.push({
-					role: 'tool',
-					tool_call_id: f.id,
-					content: f.result,
-				});
-			}
+			msgs.push(m, ...toolCallResult);
 		}
 		return msgs;
 	}
@@ -355,6 +378,7 @@ export class OpenAIClient implements ILLMService {
 			}
 			if (callbacks.isCancelled?.()) {
 				reader.cancel();
+				logr.info('[chat/SingleChatAction/generate] Stream Cancelled');
 			}
 		});
 
