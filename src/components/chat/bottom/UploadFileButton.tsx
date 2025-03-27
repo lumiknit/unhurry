@@ -50,6 +50,7 @@ const UploadFileButton: Component<Props> = (props) => {
 		input.type = 'file';
 		input.accept = mime;
 		input.onchange = (e) => {
+			console.log('File selected:', e);
 			const files = (e.target as HTMLInputElement).files;
 			if (files && files.length > 0) {
 				const file = files[0];
