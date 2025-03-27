@@ -1,9 +1,9 @@
-# Usage: ./scripts/build-all.sh <VERSION>
-# Example: ./scripts/build-all.sh 0.3.1
+# Usage: ./scripts/bump-version.sh <VERSION>
+# Example: ./scripts/bump-version.sh 0.3.1
 
 VERSION=$1
 if [ -z "$VERSION" ]; then
-  echo "Usage: ./scripts/change-versions.sh <VERSION>"
+  echo "Usage: ./scripts/bump-version.sh <VERSION>"
   exit 1
 fi
 
