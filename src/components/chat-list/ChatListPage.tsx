@@ -92,7 +92,10 @@ const ChatListPage: Component = () => {
 		<div class="container">
 			<div class="m-2">
 				<nav class="panel is-primary">
-					<p class="panel-heading"> Chats </p>
+					<p class="panel-heading">
+						{' '}
+						Chats ({chatList()?.length || '-'}){' '}
+					</p>
 					<div class="panel-block">
 						<div>
 							<p class="control">

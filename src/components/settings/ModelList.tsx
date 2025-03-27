@@ -1,4 +1,4 @@
-import { batch, Component, createSignal, Setter, Show } from 'solid-js';
+import { batch, Component, Setter, Show } from 'solid-js';
 import { toast } from 'solid-toast';
 
 import { emptyModelConfig, ModelConfig } from '@lib/llm';
@@ -11,7 +11,10 @@ import { openConfirm } from '../modal-confirm';
 
 const ModelList: Component = () => {
 	const models = () => getUserConfig()?.models || [];
-	const [editingIdx, setEditingIdx] = createSignal<number>(0);
+
+	const editingIdx = () => getUserConfig()?.currentModelIdx || 0;
+	const setEditingIdx = (v: number) =>
+		setUserConfig((c) => ({ ...c, currentModelIdx: v }));
 
 	const addModel = () => {
 		setUserConfig((c) => ({
