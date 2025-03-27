@@ -190,7 +190,10 @@ export const chat = async (text: string, fileIDs?: string[]) => {
 				msgPairs: [...history.msgPairs],
 			},
 		}));
-		saveCurrentChatToDB();
+		// Only FULL Pair is completed, save to DB
+		if (history.msgPairs[idx].assistant) {
+			saveCurrentChatToDB();
+		}
 	};
 
 	try {

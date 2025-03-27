@@ -86,6 +86,7 @@ export class SingleChatAction {
 		// Check last message
 		const last = this.history.msgPairs[this.history.msgPairs.length - 1];
 		if (!last.assistant) {
+			console.log('SET in last');
 			this.history.msgPairs[this.history.msgPairs.length - 1] = {
 				...last,
 				assistant: {
@@ -95,6 +96,7 @@ export class SingleChatAction {
 				},
 			};
 		} else {
+			console.log('PUSH in last');
 			// Push new assistant message
 			this.history.msgPairs.push({
 				assistant: {
