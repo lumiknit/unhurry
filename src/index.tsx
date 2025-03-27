@@ -13,6 +13,7 @@ import FileListPage from './components/file-list/FileListPage.tsx';
 import { rootPath } from './env.ts';
 
 import './lib/service-worker';
+import './lib/json_schema.ts';
 
 const root = document.getElementById('root');
 

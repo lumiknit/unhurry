@@ -41,6 +41,18 @@ export const MSG_PART_TYPE_TEXT = '';
 export const MSG_PART_TYPE_FUNCTION_CALL = '*fn:call';
 
 /**
+ * Tool call prefix
+ * The content type is FunctionCallInfo.
+ */
+export const MSG_PART_TYPE_CALL_PREFIX = '*call:';
+
+/**
+ * Return prefix
+ * The content type is FunctionCallInfo.
+ */
+export const MSG_PART_TYPE_RETURN_PREFIX = '*return:';
+
+/**
  * MSG_PART_TYPE_FILE is a file.
  * The content type is ID, which is used for IndexedDB.
  */

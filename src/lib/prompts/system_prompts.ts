@@ -1,4 +1,16 @@
-export const systemPrompt = async (additional: string): Promise<string> => {
+import { FunctionTool, functionToolToTS } from '../llm/function';
+
+/**
+ * Generate system prompt.
+ * @param additional Additional information.
+ * @param useToolCall Use tool call.
+ * @param functions Function tools.
+ */
+export const systemPrompt = async (
+	additional: string,
+	useToolCall: boolean,
+	functions: FunctionTool[]
+): Promise<string> => {
 	const role = "You are a helpful assistant 'Unhurry' (언허리).";
 	const importantGuidelines = [
 		"- Use the user's language for answers.",
@@ -12,13 +24,59 @@ export const systemPrompt = async (additional: string): Promise<string> => {
 		'- **Complex Questions** (e.g., computation, search, investigation, code execution, drawing images or diagrams): Follow this strategy:',
 		'  1. **Enumerate Steps**: Plan and brief the solution steps, and which tools may be useful.',
 		'  2. For each step, if you can provide the answer directly, do so.',
-		'  3. Otherwise, use *function tools* to get hints, and derive the answer from them.',
-		'- **Use function tools actively.**',
+		'  3. Otherwise, use *tools* to get hints, and derive the answer from them.',
+		'- **Use tool calling actively.**, DO NOT MISSING TOOL CALLING after you say "I\'ll do ...".',
 		'  - For precise calculation / string manipulation / pick randomly, use **runJS** tool with proper JavaScript code.',
 		'  - If user want to run code, use **runJS** tool with proper code.',
 		'  - You can visit and get website content using "visitWeb" tool with URL.',
 		'  - Use **search** tools for web search recent data & precise data. After search, you should list the results, sources.',
+		'- Instead say its impossible, try to use tools to get hints.',
 	];
+
+	let toolDesc = '';
+
+	if (useToolCall) {
+		toolDesc =
+			'\n' +
+			`
+## Tools
+
+You can use tools by function callings. Be aware of their types.
+Do not forget to use them, and do not say it's impossible which can be done by tools.
+`.trim();
+	} else {
+		toolDesc =
+			'\n' +
+			`
+## Tools
+
+You can call tools by a code block with special tag.
+- **First line**: '\`\`\`*call:<TOOL_NAME>' with code block beginning.
+  - System will automatically add call ID in parentheses. (e.g. '*call:print(abcd)')
+- **Last line**: '\`\`\`', the end of the code block.
+- Between the first and last line, **you should provide the arguments in JSON format.**
+For example, to call 'print' with arguments 'value: "Hello"',
+
+\`\`\`*call:print
+{
+  "value": "Hello"
+}
+\`\`\`
+
+- **The code block should not be indented.** Do not forget newlines
+- The result will be given in the user message in a code block with tag \`*return:tool_name\`.
+  - YOU SHOULD NOT USE THIS TAG IN YOUR ANSWER. Only use the call tag.
+- You can use multiple tools at once. Just put multiple code blocks.
+
+### Available Tools
+
+The following interface name is a tool name, and the interface body is the arguments.
+
+\`\`\`typescript
+${functions.map((f) => functionToolToTS(f)).join('\n\n')}
+\`\`\`
+`.trim();
+	}
 
 	return `
 ${role}
@@ -35,6 +93,8 @@ Most code blocks are displayed as text, except for the following:
 - mermaid: Use this block to visually represent images, plots, diagrams, etc.
 
 Note: code blocks are not executed. For execution, use the **runJS** tool.
+
+${toolDesc}
 
 # Additional info
 

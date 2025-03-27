@@ -103,7 +103,7 @@ export class SimpleIDB {
 	 */
 	open(): Promise<void> {
 		return new Promise((resolve, reject) => {
-			const req = indexedDB.open(this.name);
+			const req = indexedDB.open(this.name, this.version);
 			req.onupgradeneeded = () => {
 				const db = req.result;
 				for (const store of this.stores) {
@@ -112,11 +112,10 @@ export class SimpleIDB {
 							keyPath: '_id',
 							autoIncrement: true,
 						});
-						//store.createIndex('_id', '_id', { unique: true });
-						if (this.upgradeCallback) {
-							this.upgradeCallback(db);
-						}
 					}
+				}
+				if (this.upgradeCallback) {
+					this.upgradeCallback(db);
 				}
 			};
 			req.onsuccess = () => {

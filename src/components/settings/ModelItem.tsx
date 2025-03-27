@@ -29,12 +29,7 @@ interface Props {
 }
 
 const ModelEditor: Component<Props> = (props) => {
-	let nameRef: HTMLInputElement;
-	let endpointRef: HTMLInputElement;
-	let apiKeyRef: HTMLInputElement;
-	let modelRef: HTMLInputElement;
-	let clientTypeRef: HTMLInputElement;
-	let systemPromptRef: HTMLTextAreaElement;
+	let systemPromptRef: HTMLTextAreaElement | null;
 
 	const [models, setModels] = createSignal<Model[] | undefined>();
 
@@ -70,14 +65,12 @@ const ModelEditor: Component<Props> = (props) => {
 		);
 	};
 
-	const preset = llmPresets.find((p) => p.endpoint === props.model.endpoint);
+	let preset = llmPresets.find((p) => p.endpoint === props.model.endpoint);
 	const apiKeyURL = preset?.apiKeyURL;
 
-	const endpoints = llmPresets.map((p) => p.name);
-
-	const handleEndpointChange = (v: string) => {
-		const preset = llmPresets.find((p) => p.name === v);
-		if (preset) {
+	const handleEndpointChange = (url: string) => {
+		const preset = llmPresets.find((p) => p.endpoint === url);
+		if (preset !== undefined) {
 			props.updateModel((m) => ({
 				...m,
 				endpoint: preset.endpoint,
@@ -89,12 +82,13 @@ const ModelEditor: Component<Props> = (props) => {
 		} else {
 			props.updateModel((m) => ({
 				...m,
-				endpoint: v,
+				endpoint: url,
 			}));
 		}
 	};
 
 	const handleModelChange = (id: string) => {
+		preset = llmPresets.find((p) => p.endpoint === props.model.endpoint);
 		props.updateModel((m) => ({
 			...m,
 			model: id,
@@ -114,11 +108,6 @@ const ModelEditor: Component<Props> = (props) => {
 	const handleInputChange = () => {
 		props.updateModel((m) => ({
 			...m,
-			model: modelRef!.value,
-			endpoint: endpointRef!.value,
-			apiKey: apiKeyRef!.value.trim(),
-			clientType: clientTypeRef!.value as LLMClientType,
-			name: nameRef!.value,
 			systemPrompt: systemPromptRef!.value,
 		}));
 	};
@@ -150,10 +139,13 @@ const ModelEditor: Component<Props> = (props) => {
 			<TextForm
 				label="Endpoint"
 				desc="API Endpoint"
-				options={endpoints.map((e) => ({ label: e, value: e }))}
+				options={llmPresets.map((p) => ({
+					label: p.name,
+					value: p.endpoint,
+				}))}
 				controlClass="flex-1 maxw-75"
 				get={() => props.model.endpoint}
-				set={(v) => handleEndpointChange(v)}
+				set={(url) => handleEndpointChange(url)}
 			/>
 
 			<TextForm

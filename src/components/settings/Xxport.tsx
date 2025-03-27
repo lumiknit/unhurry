@@ -73,6 +73,14 @@ const Xxport: Component = () => {
 			</div>
 
 			<h2 class="title is-4">Import / Export from Text</h2>
+			<p>
+				The below textarea contains your current settings. You can copy
+				the content and save it to a file or share it with others.
+			</p>
+			<p>
+				To import settings, change the content of the textarea and click
+				'Import' button.
+			</p>
 			<div>
 				<button class="button is-danger" onClick={importFromTextarea}>
 					Import

@@ -1,4 +1,4 @@
-import { Component, createSignal, onMount, Show } from 'solid-js';
+import { batch, Component, createSignal, onMount, Show } from 'solid-js';
 import { toast } from 'solid-toast';
 
 import { logr } from '@/lib/logr';
@@ -17,6 +17,7 @@ import SendButton from './SendButton';
 import SpeechButton from './SpeechButton';
 import UploadedFiles from './UploadedFiles';
 import UploadFileButton from './UploadFileButton';
+import { scrollToLastUserMessage } from '../lib';
 
 interface FileInput {
 	name: string;
@@ -105,28 +106,17 @@ const BottomInput: Component = () => {
 			// Otherwise, some composing left.
 			// Just ignore the send
 		}
-		setFiles([]);
-
-		setSendCnt((c) => c + 1);
+		batch(() => {
+			setFiles([]);
+			setSendCnt((c) => c + 1);
+		});
 		const isFirst = getChatContext().history.msgPairs.length === 0;
 		try {
 			logr.info('LLM Input: ', v);
 			setChatContext((c) => ({ ...c, progressing: true }));
 
 			// Pick the last user message and scroll to top.
-			setTimeout(() => {
-				const elems = document.getElementsByClassName('msg-user');
-				if (elems.length > 0) {
-					const last = elems[elems.length - 1];
-					const rect = last.getBoundingClientRect();
-					const top = window.scrollY + rect.top - 54;
-					// current scroll position
-					window.scrollTo({
-						top,
-						behavior: 'smooth',
-					});
-				}
-			}, 33);
+			setTimeout(scrollToLastUserMessage, 33);
 			await chat(
 				v,
 				fs.map((f) => f.id)
@@ -156,7 +146,7 @@ const BottomInput: Component = () => {
 	};
 
 	const autoSend = () => {
-		if (autoSendAt >= Date.now()) {
+		if (autoSendAt > Date.now()) {
 			// Reassign
 			autoSendTimeoutId = window.setTimeout(
 				autoSend,
@@ -182,7 +172,12 @@ const BottomInput: Component = () => {
 	 */
 	const setAutoSend = () => {
 		const as = autoSendTimeout();
-		if (!getUserConfig()?.enableAutoSend || !as) return;
+		if (
+			!getUserConfig()?.enableAutoSend ||
+			!as ||
+			getChatContext().progressing
+		)
+			return;
 
 		const now = Date.now();
 		setStore('autoSendSetAt', now);

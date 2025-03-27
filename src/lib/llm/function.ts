@@ -1,3 +1,5 @@
+import { jsonSchemaToTS, ObjectSchema } from '../json_schema';
+
 /**
  * Function tool.
  */
@@ -40,49 +42,6 @@ export const appendPartialFunctionCall = (
 	};
 };
 
-export type BoolSchema = {
-	type: 'boolean';
-	description?: string;
+export const functionToolToTS = (tool: FunctionTool): string => {
+	return jsonSchemaToTS(tool.parameters, tool.name, tool.description);
 };
-
-export type NumberSchema = {
-	type: 'number';
-	description?: string;
-	minimum?: number;
-	maximum?: number;
-	exclusiveMinimum?: number;
-	exclusiveMaximum?: number;
-	multipleOf?: number;
-};
-
-export type StringSchema = {
-	type: 'string';
-	description?: string;
-	minLength?: number;
-	maxLength?: number;
-	pattern?: string;
-	format?: string;
-};
-
-export type ObjectSchema = {
-	type: 'object';
-	description?: string;
-	properties?: Record<string, JSONSchema>;
-	required?: string[];
-};
-
-export type ArraySchema = {
-	type: 'array';
-	description?: string;
-	items?: JSONSchema;
-	prefixItems?: JSONSchema[];
-	minItems?: number;
-	maxItems?: number;
-};
-
-export type JSONSchema =
-	| BoolSchema
-	| NumberSchema
-	| StringSchema
-	| ObjectSchema
-	| ArraySchema;

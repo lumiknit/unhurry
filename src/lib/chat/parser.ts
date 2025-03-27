@@ -1,4 +1,11 @@
-import { MSG_PART_TYPE_TEXT, MSG_PART_TYPE_THINK, MsgPart } from './structs';
+import { FunctionCallContent } from '../llm';
+import {
+	MSG_PART_TYPE_CALL_PREFIX,
+	MSG_PART_TYPE_FUNCTION_CALL,
+	MSG_PART_TYPE_TEXT,
+	MSG_PART_TYPE_THINK,
+	MsgPart,
+} from './structs';
 
 /**
  * Message parts parser to support streaming.
@@ -45,6 +52,43 @@ export class MsgPartsParser {
 		return this.parts;
 	}
 
+	private checkCallPart(part: MsgPart): MsgPart {
+		if (!part.type.startsWith(MSG_PART_TYPE_CALL_PREFIX)) {
+			return part;
+		}
+
+		// Parse call (*call:toolName(...))
+		try {
+			console.log(part.type);
+			let callEnd = part.type.indexOf(
+				'(',
+				MSG_PART_TYPE_CALL_PREFIX.length
+			);
+			if (callEnd < 0) {
+				callEnd = part.type.length;
+			}
+			const name = part.type.slice(
+				MSG_PART_TYPE_CALL_PREFIX.length,
+				callEnd
+			);
+			const args = JSON.parse(part.content);
+
+			const content: FunctionCallContent = {
+				type: 'function_call',
+				id: Math.random().toString(36).slice(2),
+				name,
+				args: JSON.stringify(args),
+			};
+
+			return {
+				type: MSG_PART_TYPE_FUNCTION_CALL,
+				content: JSON.stringify(content),
+			};
+		} catch {
+			return part;
+		}
+	}
+
 	process() {
 		let lastPart = this.parts.pop()!;
 		while (this.cursor < this.buffer.length) {
@@ -89,7 +133,7 @@ export class MsgPartsParser {
 						content: '',
 					};
 				} else if (lastPart.type !== MSG_PART_TYPE_TEXT) {
-					this.parts.push(lastPart);
+					this.parts.push(this.checkCallPart(lastPart));
 					lastPart = {
 						type: MSG_PART_TYPE_TEXT,
 						content: '',

@@ -93,22 +93,23 @@ const fetchDocFromURL = async (
 			['Accept', 'text/html'],
 			['User-Agent', userAgent()],
 		]);
-		if (result.status >= 400) {
-			throw new Error(`Status ${result.status}, ${result.body}`);
-		}
-
-		// Check if the content is html
+		let body: string = result.body;
 		const contentType = result.headers.find(
 			([k]) => k.toLowerCase() === 'content-type'
 		);
-		if (!contentType || !contentType[1].includes('text/html')) {
-			return result.body;
+		if (contentType && contentType[1].startsWith('text/html')) {
+			try {
+				body = await onHTML(new DOMParser().parseFromString(body, 'text/html'));
+			} catch (e) {
+				logr.error(e);
+			}
 		}
 
-		// Parse as html
-		const parser = new DOMParser();
-		const doc = parser.parseFromString(result.body, 'text/html');
-		return await onHTML(doc);
+		if (result.status >= 400) {
+			throw new Error(`Status ${result.status}, ${body}`);
+		}
+
+		return body;
 	} catch (e) {
 		logr.error(e);
 		return 'HTTP fetch error: ' + e;
@@ -193,7 +194,8 @@ addFunc(
 			`https://search.brave.com/search?q=${encodeURI(args.query)}`,
 			onHTML
 		);
-		return content;
+		const out = turndownService.turndown(content);
+		return out;
 	}
 );
 
@@ -241,7 +243,9 @@ addFunc(
 				}
 			});
 			// Remove unnecessary whitespaces
-			return doc.body.innerHTML.replace(/>\s+</g, '><');
+			const out = doc.body.innerHTML.replace(/>\s+</g, '><');
+			const res = turndownService.turndown(out);
+			return res;
 		};
 
 		let url = args.url;
