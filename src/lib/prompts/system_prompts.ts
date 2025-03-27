@@ -52,8 +52,9 @@ Do not forget to use them, and do not say it's impossible which can be done by t
 
 You can call tools by a code block with special tag.
 - **First line**: '\`\`\`*call:<TOOL_NAME>' with code block beginning.
+  - System will automatically add call ID in parentheses. (e.g. '*call:print(abcd)')
 - **Last line**: '\`\`\`', the end of the code block.
-- Rest: JSON object for arguments.
+- Between the first and last line, **you should provide the arguments in JSON format.**
 For example, to call 'print' with arguments 'value: "Hello"',
 
 \`\`\`*call:print
