@@ -188,8 +188,12 @@ export class SingleChatAction {
 			const updatedParts = fullAIParts.map((p) => {
 				if (p.type !== MSG_PART_TYPE_FUNCTION_CALL) return p;
 				const parsed = JSON.parse(p.content);
-				const result =
-					results.get(parsed.id) || 'Cannot find run result';
+				let result = results.get(parsed.id);
+				if (result === undefined) {
+					result = '<RESULT DOES NOT EXIST>';
+				} else if (result.length === 0) {
+					result = '<EMPTY>';
+				}
 				return {
 					type: MSG_PART_TYPE_FUNCTION_CALL,
 					content: JSON.stringify({

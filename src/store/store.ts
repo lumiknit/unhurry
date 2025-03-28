@@ -16,7 +16,6 @@ import {
 } from '../lib/chat';
 import { sanitizeConfig, UserConfig } from '../lib/config';
 import { chatListTx, chatTx, loadUserConfig, saveUserConfig } from '../lib/idb';
-import { JSContext } from '../lib/run-js';
 
 interface StreamingMessage {
 	parts: MsgPart[];
@@ -108,7 +107,6 @@ export const loadChatContext = async (id: string) => {
 		history: {
 			msgPairs: msgs,
 		},
-		jsContext: new JSContext(),
 	}));
 };
 
