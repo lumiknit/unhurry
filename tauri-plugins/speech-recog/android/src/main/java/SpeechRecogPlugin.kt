@@ -59,6 +59,9 @@ class SpeechRecogPlugin(private val activity: Activity): Plugin(activity) {
         var errors: List<String> = listOf()
 
         fun updateCompletedText(text: String) {
+            if (completedText.length > 0) {
+                completedText += " "
+            }
             completedText += text
             partialText = ""
             updatedTimestampMS = System.currentTimeMillis()
@@ -67,6 +70,12 @@ class SpeechRecogPlugin(private val activity: Activity): Plugin(activity) {
         fun updatePartialText(text: String) {
             partialText = text
             updatedTimestampMS = System.currentTimeMillis()
+        }
+
+        fun flushPartialText() {
+            if (partialText.length > 0) {
+                updateCompletedText(partialText)
+            }
         }
 
         fun addError(error: String) {
@@ -109,23 +118,35 @@ class SpeechRecogPlugin(private val activity: Activity): Plugin(activity) {
             Log.d("SpeechRecogPlugin", "onEndOfSpeech")
         }
 
+        fun raiseError(error: String) {
+            State.addError(error)
+            Log.e("SpeechRecogPlugin", error)
+            Toast.makeText(activity, "STT Error: $error", Toast.LENGTH_SHORT).show()
+        }
+
         override fun onError(error: Int) {
             // Error to string
-            val errorMessage = when (error) {
-                SpeechRecognizer.ERROR_AUDIO -> "Audio recording error"
-                SpeechRecognizer.ERROR_CLIENT -> "Client side error"
-                SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "Insufficient permissions"
-                SpeechRecognizer.ERROR_NETWORK -> "Network error"
-                SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> "Network timeout"
-                SpeechRecognizer.ERROR_NO_MATCH -> "No recognition result matched"
-                SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "Recognition service busy"
-                SpeechRecognizer.ERROR_SERVER -> "Server error"
-                SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "No speech input"
-                else -> "Unknown error"
+            when (error) {
+                SpeechRecognizer.ERROR_AUDIO -> raiseError("Audio recording error")
+                SpeechRecognizer.ERROR_CLIENT -> raiseError("Client side error")
+                SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> raiseError("Insufficient permissions")
+                SpeechRecognizer.ERROR_NETWORK -> raiseError("Network error")
+                SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> raiseError("Network timeout")
+                SpeechRecognizer.ERROR_NO_MATCH -> {
+                    Log.d("SpeechRecogPlugin", "No match")
+                    tryRestartRecognition()
+                }
+                SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> {
+                    Log.d("SpeechRecogPlugin", "Recognizer busy")
+                    tryRestartRecognition()
+                }
+                SpeechRecognizer.ERROR_SERVER -> raiseError("Server error")
+                SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> {
+                    Log.d("SpeechRecogPlugin", "Speech timeout")
+                    tryRestartRecognition()
+                }
+                else -> raiseError("Unknown error")
             }
-            Toast.makeText(activity, "Error: $errorMessage", Toast.LENGTH_SHORT).show()
-            Log.e("SpeechRecogPlugin", "onError: $error, $errorMessage")
-            State.addError(errorMessage)
         }
 
         override fun onResults(results: Bundle?) {
@@ -135,11 +156,7 @@ class SpeechRecogPlugin(private val activity: Activity): Plugin(activity) {
             }
             Log.d("SpeechRecogPlugin", "onResults: ${State.completedText} / ${State.partialText} / ${State.errors}")
 
-            if (State.running) {
-                Log.d("SpeechRecogPlugin", "Restarting recognition")
-                State.listening = false
-                startRecognition()
-            }
+            tryRestartRecognition()
         }
 
         override fun onPartialResults(partialResults: Bundle?) {
@@ -209,6 +226,14 @@ class SpeechRecogPlugin(private val activity: Activity): Plugin(activity) {
             intent.putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true);
         }
         return intent
+    }
+
+    fun tryRestartRecognition() {
+        State.flushPartialText()
+        if (State.running) {
+            State.listening = false
+            startRecognition()
+        }
     }
 
     fun startRecognition() {
