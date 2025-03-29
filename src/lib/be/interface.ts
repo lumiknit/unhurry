@@ -16,6 +16,14 @@ export const impactVibes = new Set<string>([
 	'rigid',
 ]);
 
+export type SpeechRecogState = {
+	recognizing: boolean;
+	timestampMS: number;
+	completedText: string;
+	partialText: string;
+	errors: string[];
+};
+
 export type VibrationPattern = number | ImpactVibePattern | NotiVibePattern;
 
 /**
@@ -47,4 +55,24 @@ export interface IBEService {
 	 * Vibrate
 	 */
 	vibrate(pattern: VibrationPattern): void;
+
+
+	// Speech Recognition
+
+	speechRecogSupported(): Promise<boolean>;
+
+	/**
+	 * Start speech recognition.
+	 */
+	startSpeechRecognition(languages: string[]): Promise<boolean>;
+
+	/**
+	 * Stop speech recognition.
+	 */
+	stopSpeechRecognition(): Promise<boolean>;
+
+	/**
+	 * Get speech recognition result.
+	 */
+	getSpeechRecognitionState(): Promise<SpeechRecogState>;
 }

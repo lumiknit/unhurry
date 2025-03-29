@@ -1,4 +1,4 @@
-import { FetchResult, IBEService, VibrationPattern } from './interface';
+import { FetchResult, IBEService, SpeechRecogState, VibrationPattern } from './interface';
 
 const vibePatterns = new Map<string, number[]>([
 	['light', [10]],
@@ -64,5 +64,27 @@ export class BrowserService implements IBEService {
 				navigator.vibrate(vibes);
 			}
 		}
+	}
+
+	async speechRecogSupported(): Promise<boolean> {
+		return false;
+	}
+
+	async startSpeechRecognition(_languages: string[]): Promise<boolean> {
+		return false;
+	}
+
+	async stopSpeechRecognition(): Promise<boolean> {
+		return false;
+	}
+
+	async getSpeechRecognitionState(): Promise<SpeechRecogState> {
+		return {
+			recognizing: false,
+			timestampMS: 0,
+			completedText: '',
+			partialText: '',
+			errors: ["Speech recognition is not supported in the browser."],
+		};
 	}
 }

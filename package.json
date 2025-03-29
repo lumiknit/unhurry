@@ -27,6 +27,7 @@
 		"@tauri-apps/plugin-haptics": "^2.2.4",
 		"@tauri-apps/plugin-http": "~2.4.2",
 		"@tauri-apps/plugin-opener": "^2.2.6",
+		"tauri-plugin-speech-recog": "file:./tauri-plugins/speech-recog",
 		"@types/turndown": "^5.0.5",
 		"billboard.js": "^3.15.0",
 		"bulma": "^1.0.3",

@@ -72,6 +72,8 @@ const About: Component = () => {
 	onMount(async () => {
 		const be = await getBEService();
 		setBE(be);
+		(window as any)._be = be;
+		console.log(be);
 	});
 
 	// Load latest release version

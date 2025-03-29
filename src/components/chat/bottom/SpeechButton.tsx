@@ -9,8 +9,9 @@ import {
 	splitProps,
 	Switch,
 } from 'solid-js';
+import {toast} from 'solid-toast';
 
-import { logr } from '@/lib/logr';
+import { getBEService } from '@/lib/be';
 
 type Props = JSX.IntrinsicElements['button'] & {
 	onSpeech?: (
@@ -61,6 +62,7 @@ const SpeechButton: Component<Props> = (props_) => {
 
 	let sr: any;
 
+	/*
 	const setupSpeechRecognition = () => {
 		if (SpeechRecognition === undefined) {
 			throw new Error(
@@ -122,6 +124,35 @@ const SpeechButton: Component<Props> = (props_) => {
 		sr?.stop();
 		sr = undefined;
 	};
+	*/
+
+	let speechTimeout: number = 0;
+
+	const startSpeechRecognition = async () => {
+		const be = await getBEService();
+		try {
+			await be.startSpeechRecognition([]);
+		} catch (e) {
+			toast.error("Failed to start speech recognition: " + e);
+			throw e;
+		}
+		let lastResult = '';
+		speechTimeout = window.setInterval(async () => {
+			const be = await getBEService();
+			const res = await be.getSpeechRecognitionState();
+			console.log(res);
+			const t = res.completedText + " " + res.partialText;
+			props.onSpeech?.(t, false, lastResult);
+			lastResult = t;
+		}, 300);
+	};
+
+	const stopSpeechRecognition = async () => {
+		const be = await getBEService();
+		await be.stopSpeechRecognition();
+		clearTimeout(speechTimeout);
+	}
+
 
 	const restartSpeechRecognition = () => {
 		if (sr) {
@@ -130,15 +161,15 @@ const SpeechButton: Component<Props> = (props_) => {
 		}
 	};
 
-	const handleClick = (e: MouseEvent) => {
+	const handleClick = async (e: MouseEvent) => {
 		props.onClick?.(e);
 
 		// toggle recording
 		if (!recording()) {
-			startSpeechRecognition();
+			await startSpeechRecognition();
 			setRecording(true);
 		} else {
-			stopSpeechRecognition();
+			await stopSpeechRecognition();
 			setRecording(false);
 		}
 	};
