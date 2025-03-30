@@ -349,7 +349,7 @@ span[aria-hidden='true'] {
 	}
 
 	&:has(textarea):has(.mic-recording) {
-		outline: 1px solid var(--bulma-warning);
+		outline: 1px solid var(--bulma-danger);
 	}
 
 	& textarea {

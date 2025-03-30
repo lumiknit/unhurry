@@ -163,10 +163,6 @@ export class TauriSpeechRecognizer implements ISpeechRecognizer {
 			'plugin:speech-recog|get_state',
 			{ payload: {} }
 		);
-		if (result.error) {
-			this.onError?.(result.error);
-			return;
-		}
 
 		if (!result.recognizing) {
 			this.onStopped?.();
@@ -176,10 +172,14 @@ export class TauriSpeechRecognizer implements ISpeechRecognizer {
 
 		if (result.timestampMs > this.lastEventMS) {
 			this.lastEventMS = result.timestampMs;
-			const isFinal = result.partialText !== '';
+			const isFinal = result.partialText === '';
 			const transcript = result.completedText + result.partialText;
 			this.onTranscript?.(transcript, isFinal, this.lastTranscript);
 			this.lastTranscript = result.partialText;
+		}
+
+		if (result.error) {
+			this.onError?.(result.error);
 		}
 	}
 }
