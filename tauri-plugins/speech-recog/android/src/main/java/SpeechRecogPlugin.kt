@@ -179,6 +179,8 @@ class SpeechRecogPlugin(private val activity: Activity): Plugin(activity) {
                 }
             }
 
+            State.flushPartialText()
+
             if (recoverable) {
                 // Try to restart recognition
                 Log.d("SpeechRecogPlugin", "Recoverable error: $msg")
@@ -196,6 +198,8 @@ class SpeechRecogPlugin(private val activity: Activity): Plugin(activity) {
             val texts = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
             if (texts != null && texts.size > 0) {
                 State.updateCompletedText(texts[0])
+            } else {
+                State.flushPartialText()
             }
             Log.d("SpeechRecogPlugin", "onResults: ${State.completedText} / ${State.partialText} / ${State.errors}")
 
@@ -266,7 +270,7 @@ class SpeechRecogPlugin(private val activity: Activity): Plugin(activity) {
             RecognizerIntent.EXTRA_LANGUAGE_MODEL,
             RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            intent.putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true);
+            //intent.putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true);
         }
         return intent
     }
