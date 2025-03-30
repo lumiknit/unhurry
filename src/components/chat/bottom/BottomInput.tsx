@@ -1,6 +1,7 @@
-import { batch, Component, createSignal, onMount, Show } from 'solid-js';
+import { Component, createSignal, onCleanup, onMount, Show } from 'solid-js';
 import { toast } from 'solid-toast';
 
+import { getBEService, ISpeechRecognizer } from '@/lib/be';
 import { logr } from '@/lib/logr';
 import { cancelAllChats, chat, generateChatTitle } from '@/store/actions';
 
@@ -35,7 +36,6 @@ const BottomInput: Component = () => {
 	let lastSent = 0;
 
 	const [files, setFiles] = createSignal<FileInput[]>([]);
-	const [sendCnt, setSendCnt] = createSignal(0);
 
 	const [inputTriple, setInputTriple] = createSignal<
 		[string, string, string]
@@ -106,10 +106,7 @@ const BottomInput: Component = () => {
 			// Otherwise, some composing left.
 			// Just ignore the send
 		}
-		batch(() => {
-			setFiles([]);
-			setSendCnt((c) => c + 1);
-		});
+		setFiles([]);
 		const isFirst = getChatContext().history.msgPairs.length === 0;
 		try {
 			logr.info('LLM Input: ', v);
@@ -254,30 +251,75 @@ const BottomInput: Component = () => {
 		}
 	};
 
-	const handleSpeech = (
-		transcript: string,
-		isFinal: boolean,
-		lastTranscript: string
-	) => {
-		// Remove if the last transcript is exists
-		if (lastTranscript) {
-			const v = taRef!.value;
-			const selStart = taRef!.selectionStart;
-			const part = v.slice(0, selStart);
-			if (v.endsWith(lastTranscript)) {
-				taRef!.value =
-					part.slice(0, -lastTranscript.length) + v.slice(selStart);
-				taRef!.setSelectionRange(selStart, selStart);
+	// Speech Recognition
+	let sr: ISpeechRecognizer | null = null;
+	const [speechRecognizing, setSpeechRecognizing] = createSignal(false);
+
+	const startSpeechRecognition = async () => {
+		const be = await getBEService();
+		if (!be) {
+			toast.error('Speech recognition not supported');
+			return;
+		}
+		if (!sr) {
+			sr = await be.speechRecognizer();
+			if (!sr) {
+				toast.error('Speech recognition not supported');
+				return;
 			}
+			sr.onTranscript = (
+				transcript: string,
+				isFinal: boolean,
+				lastTranscript: string
+			) => {
+				console.log(
+					'onTranscript',
+					transcript,
+					isFinal,
+					lastTranscript
+				);
+				// Remove if the last transcript is exists
+				if (lastTranscript) {
+					const v = taRef!.value;
+					const selStart = taRef!.selectionStart;
+					const part = v.slice(0, selStart);
+					if (part.endsWith(lastTranscript)) {
+						taRef!.value =
+							part.slice(0, -lastTranscript.length) +
+							v.slice(selStart);
+						const p = selStart - lastTranscript.length;
+						taRef!.setSelectionRange(p, p);
+					}
+				}
+				insertText(transcript);
+				// Insert the transcript
+				if (isFinal) {
+					setAutoSend();
+				} else {
+					unsetAutoSend();
+				}
+			};
+			sr.onError = (error: string) => {
+				toast.error('Speech recognition error: ' + error);
+			};
+			sr.onStopped = () => {
+				toast('Speech recognition stopped');
+				setSpeechRecognizing(false);
+			};
 		}
-		// Insert the transcript
-		insertText(transcript);
-		if (isFinal) {
-			setAutoSend();
-		} else {
-			unsetAutoSend();
-		}
+		sr.start();
+		setSpeechRecognizing(true);
 	};
+
+	const stopSpeechRecognition = async () => {
+		if (sr) {
+			await sr.stop();
+		}
+		sr = null;
+		setSpeechRecognizing(false);
+	};
+
+	onCleanup(stopSpeechRecognition);
 
 	const autosizeTextarea = () => {
 		if (taRef!) {
@@ -325,11 +367,9 @@ const BottomInput: Component = () => {
 			<div class="buttons gap-1 no-user-select">
 				<SpeechButton
 					class="control is-size-6 py-1 button-mic"
-					onSpeech={handleSpeech}
-					onSRError={(e, msg) => {
-						toast.error(`Failed to STT: ${e}, ${msg}`);
-					}}
-					cnt={sendCnt()}
+					startRecognition={startSpeechRecognition}
+					stopRecognition={stopSpeechRecognition}
+					recognizing={() => speechRecognizing()}
 				/>
 				<UploadFileButton
 					onFile={(name, id) =>
@@ -359,6 +399,9 @@ const BottomInput: Component = () => {
 					onReplaceText={replaceText}
 				/>
 				<SendButton
+					speechRecognizing={speechRecognizing}
+					startSpeechRecognition={startSpeechRecognition}
+					stopSpeechRecognition={stopSpeechRecognition}
 					onSend={send}
 					onCancel={() => {
 						cancelAllChats();

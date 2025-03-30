@@ -1,5 +1,12 @@
-import { BiRegularSend } from 'solid-icons/bi';
-import { Component, createSignal, onCleanup, onMount } from 'solid-js';
+import { BiRegularMicrophone, BiRegularSend } from 'solid-icons/bi';
+import {
+	Accessor,
+	Component,
+	createSignal,
+	onCleanup,
+	onMount,
+} from 'solid-js';
+import { Dynamic } from 'solid-js/web';
 import { toast } from 'solid-toast';
 
 import { vibrate } from '@/store/actions';
@@ -9,22 +16,112 @@ import { getChatContext, store } from '@store';
 import './send_button.scss';
 
 type Props = {
+	speechRecognizing: Accessor<boolean>;
+	startSpeechRecognition: () => void;
+	stopSpeechRecognition: () => void;
+
 	onSend: () => void;
 	onCancel: () => void;
 };
 
 const SendButton: Component<Props> = (props) => {
-	const handleButtonClick = (e: MouseEvent) => {
+	const className = () => {
+		let additional = '';
+		if (getChatContext().progressing) {
+			additional = 'is-loading is-warning';
+		} else if (props.speechRecognizing()) {
+			additional = 'is-danger';
+		} else {
+			additional = 'is-primary';
+		}
+		return 'button button-send p-3 ' + additional;
+	};
+
+	const icon = () =>
+		props.speechRecognizing() ? BiRegularMicrophone : BiRegularSend;
+
+	// After this duration, the button will be considered as a long press
+	// and the speech recognition will be started
+	const micStartDurationMS = 1000;
+
+	// Before this duration, speech recognition is considered as toggle,
+	// and the button will be considered as a long press
+	const micHoldDurationMS = 1500;
+
+	let stopSRWhenUp = false;
+	let srStartTimeout: number | null = null;
+	let srHoldTimeout: number | null = null;
+
+	const startRecog = () => {
+		console.log('Start recognition');
+		vibrate('light');
+		srStartTimeout = null;
+		stopSRWhenUp = false;
+		props.startSpeechRecognition();
+	};
+
+	const setHolding = () => {
+		console.log('Holding');
+		vibrate('light');
+		srHoldTimeout = null;
+		stopSRWhenUp = true;
+	};
+
+	const clearTimeouts = () => {
+		stopSRWhenUp = true;
+		if (srStartTimeout) {
+			clearTimeout(srStartTimeout);
+			srStartTimeout = null;
+		}
+		if (srHoldTimeout) {
+			clearTimeout(srHoldTimeout);
+			srHoldTimeout = null;
+		}
+	};
+
+	const handlePointerDown = (e: PointerEvent) => {
+		console.log('Down', e);
 		e.stopPropagation();
+		e.preventDefault();
+
+		stopSRWhenUp = true;
+		clearTimeout(srStartTimeout!);
+		clearTimeout(srHoldTimeout!);
 		vibrate('medium');
 
-		if (getChatContext().progressing) {
+		if (!getChatContext().progressing && !props.speechRecognizing()) {
+			srStartTimeout = window.setTimeout(startRecog, micStartDurationMS);
+			srHoldTimeout = window.setTimeout(setHolding, micHoldDurationMS);
+		}
+	};
+
+	const handlePointerLeave = (e: PointerEvent) => {
+		console.log('Leave', e);
+		e.stopPropagation();
+		e.preventDefault();
+		clearTimeouts();
+	};
+
+	const handlePointerUp = (e: PointerEvent) => {
+		console.log('Up', e);
+		e.stopPropagation();
+		e.preventDefault();
+
+		if (props.speechRecognizing()) {
+			if (stopSRWhenUp) {
+				props.stopSpeechRecognition();
+			}
+		} else if (getChatContext().progressing) {
 			toast('Canceling the current operation...');
 			props.onCancel();
 		} else {
 			props.onSend();
 		}
+
+		clearTimeouts();
 	};
+
+	onCleanup(clearTimeouts);
 
 	let running = false;
 
@@ -55,16 +152,14 @@ const SendButton: Component<Props> = (props) => {
 	});
 
 	return (
-		<div onClick={handleButtonClick} class="control">
-			<button
-				class={
-					'button button-send p-3 ' +
-					(getChatContext().progressing
-						? 'is-loading is-warning'
-						: 'is-primary')
-				}
-			>
-				<BiRegularSend />
+		<div
+			onPointerDown={handlePointerDown}
+			onPointerUp={handlePointerUp}
+			onPointerLeave={handlePointerLeave}
+			class="control"
+		>
+			<button class={className()} type="button" aria-label="Send">
+				<Dynamic component={icon()} />
 			</button>
 			<svg
 				class="auto-send-progress has-text-warning"

@@ -1,6 +1,7 @@
 import { BrowserService } from './browser';
 import { IBEService } from './interface';
 
+export * from './interface_sr';
 export * from './interface';
 
 let beService: IBEService | null = null;

@@ -1,3 +1,5 @@
+import { ISpeechRecognizer } from './interface_sr';
+
 export interface FetchResult {
 	status: number;
 	headers: [string, string][];
@@ -47,4 +49,8 @@ export interface IBEService {
 	 * Vibrate
 	 */
 	vibrate(pattern: VibrationPattern): void;
+
+	// Speech Recognition
+
+	speechRecognizer(): Promise<ISpeechRecognizer>;
 }

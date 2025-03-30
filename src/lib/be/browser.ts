@@ -1,4 +1,5 @@
 import { FetchResult, IBEService, VibrationPattern } from './interface';
+import { BrowserSpeechRecognizer, ISpeechRecognizer } from './interface_sr';
 
 const vibePatterns = new Map<string, number[]>([
 	['light', [10]],
@@ -64,5 +65,9 @@ export class BrowserService implements IBEService {
 				navigator.vibrate(vibes);
 			}
 		}
+	}
+
+	async speechRecognizer(): Promise<ISpeechRecognizer> {
+		return new BrowserSpeechRecognizer();
 	}
 }

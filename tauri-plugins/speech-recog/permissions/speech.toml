@@ -1,0 +1,11 @@
+"$schema" = "schemas/schema.json"
+
+[[permission]]
+identifier = "allow-all-commands"
+description = "Enables the is_supported command."
+commands.allow = ["is_supported", "start_recognition", "stop_recognition", "get_state"]
+
+[[permission]]
+identifier = "deny-all-commands"
+description = "Denies the is_supported command."
+commands.deny = ["is_supported", "start_recognition", "stop_recognition", "get_state"]

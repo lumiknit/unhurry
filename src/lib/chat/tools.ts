@@ -8,7 +8,6 @@ import { JSContext } from '../run-js';
 
 const turndownService = new TurndownService();
 const jsonValidator = new Validator();
-const jsContext = new JSContext();
 
 export const fnTools: FunctionTool[] = [];
 type Impl = (args: any) => Promise<string>;
@@ -50,8 +49,10 @@ addFunc(
 		if (!args.code) {
 			return 'Error: no code is provide. Please give `code` parameter.';
 		}
+		const jsContext = new JSContext();
 		const result = await jsContext.run(args.code);
-		console.log(args.code, result);
+		logr.info('[tool/runJS] Run Result', args.code, result);
+		jsContext.terminateInstance();
 		return result;
 	}
 );
@@ -99,7 +100,9 @@ const fetchDocFromURL = async (
 		);
 		if (contentType && contentType[1].startsWith('text/html')) {
 			try {
-				body = await onHTML(new DOMParser().parseFromString(body, 'text/html'));
+				body = await onHTML(
+					new DOMParser().parseFromString(body, 'text/html')
+				);
 			} catch (e) {
 				logr.error(e);
 			}
