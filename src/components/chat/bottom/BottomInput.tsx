@@ -271,12 +271,11 @@ const BottomInput: Component = () => {
 				taRef!.setSelectionRange(p, p);
 			}
 		}
+		insertText(transcript);
 		// Insert the transcript
 		if (isFinal) {
-			insertText(transcript + ' ');
 			setAutoSend();
 		} else {
-			insertText(transcript);
 			unsetAutoSend();
 		}
 	};

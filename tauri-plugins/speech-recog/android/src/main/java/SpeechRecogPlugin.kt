@@ -50,43 +50,69 @@ class SpeechRecogPlugin(private val activity: Activity): Plugin(activity) {
     var mRecognizer: SpeechRecognizer?
 
     object State {
+        @Volatile
         var running: Boolean = false
+        @Volatile
         var listening: Boolean = false
 
+        @Volatile
         var updatedTimestampMS: Long = 0
+        @Volatile
         var completedText: String = ""
+        @Volatile
         var partialText: String = ""
+        @Volatile
         var errors: List<String> = listOf()
 
+        @Synchronized
         fun updateCompletedText(text: String) {
-            if (completedText.length > 0) {
-                completedText += " "
-            }
-            completedText += text
+            completedText += text + " "
             partialText = ""
             updatedTimestampMS = System.currentTimeMillis()
         }
 
+        @Synchronized
         fun updatePartialText(text: String) {
             partialText = text
             updatedTimestampMS = System.currentTimeMillis()
         }
 
+        @Synchronized
         fun flushPartialText() {
-            if (partialText.length > 0) {
+            if (partialText.isNotEmpty()) {
                 updateCompletedText(partialText)
             }
         }
 
+        @Synchronized
         fun addError(error: String) {
             errors += error
         }
 
+        @Synchronized
         fun clear() {
             running = false
             updatedTimestampMS = 0
             completedText = ""
             partialText = ""
+            errors = listOf()
+        }
+
+        @Synchronized
+        fun flushToJS(obj: JSObject) {
+            // Put all states
+            obj.put("recognizing", running)
+            obj.put("timestampMs", updatedTimestampMS)
+            obj.put("completedText", completedText)
+            obj.put("partialText", partialText)
+            val errorsArray = JSArray()
+            errors.forEach {
+                errorsArray.put(it)
+            }
+            obj.put("errors", errorsArray)
+
+            // Clear completed
+            completedText = ""
             errors = listOf()
         }
     }
@@ -125,7 +151,7 @@ class SpeechRecogPlugin(private val activity: Activity): Plugin(activity) {
         }
 
         override fun onError(error: Int) {
-            var msg = ""
+            var msg: String
             var recoverable = false
             // Error to string
             when (error) {
@@ -259,11 +285,7 @@ class SpeechRecogPlugin(private val activity: Activity): Plugin(activity) {
         // If no recognizer, create one
         if (mRecognizer == null) {
             mRecognizer = SpeechRecognizer.createSpeechRecognizer(
-                this.activity,
-                ComponentName(
-                    "com.google.android.tts",
-                    "com.google.android.apps.speech.tts.googletts.service.GoogleTTSRecognitionService"
-                )
+                this.activity
             )
             mRecognizer?.setRecognitionListener(mListener)
         }
@@ -349,18 +371,8 @@ class SpeechRecogPlugin(private val activity: Activity): Plugin(activity) {
     @Command
     fun getState(invoke: Invoke) {
         val ret = JSObject()
-        ret.put("recognizing", State.running)
-        ret.put("timestampMs", State.updatedTimestampMS)
-        ret.put("completedText", State.completedText)
-        ret.put("partialText", State.partialText)
-        val errors = JSArray()
-        State.errors.forEach {
-            errors.put(it)
-        }
-        ret.put("errors", errors)
+        State.flushToJS(ret)
 
         invoke.resolve(ret)
-
-        State.errors = listOf()
     }
 }

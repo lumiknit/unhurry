@@ -111,7 +111,8 @@ const SpeechButton: Component<Props> = (props_) => {
 		<button {...btnProps} onClick={handleClick}>
 			<Switch>
 				<Match when={recording()}>
-					<BiRegularMicrophoneOff class="mic-recording" />
+					<span class="mic-recording" />
+					<BiRegularMicrophoneOff />
 				</Match>
 				<Match when>
 					<BiRegularMicrophone />

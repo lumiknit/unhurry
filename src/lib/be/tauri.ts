@@ -12,7 +12,6 @@ import {
 	impactVibes,
 	NotiVibePattern,
 	notiVibes,
-	SpeechRecogState,
 	VibrationPattern,
 } from './interface';
 import { BrowserSpeechRecognizer, ISpeechRecognizer } from './interface_sr';
@@ -63,7 +62,17 @@ export class TauriService implements IBEService {
 	}
 
 	async speechRecognizer(): Promise<ISpeechRecognizer> {
-		return new BrowserSpeechRecognizer();
+		// Check if supported
+		const supported = await this.speechRecogSupported();
+		if (!supported) {
+			console.warn(
+				'Speech Recognition Plugin not availble, use fallback'
+			);
+			return new BrowserSpeechRecognizer();
+		}
+
+		// Use Tauri speech recognizer
+		return new TauriSpeechRecognizer();
 	}
 
 	async speechRecogSupported(): Promise<boolean> {
@@ -72,15 +81,55 @@ export class TauriService implements IBEService {
 		}>('plugin:speech-recog|is_supported', { payload: {} });
 		return result.supported;
 	}
+}
 
-	async startSpeechRecognition(languages: string[]): Promise<boolean> {
+// Android speech recognition
+
+type SpeechRecogState = {
+	recognizing: boolean;
+	timestampMs: number;
+	completedText: string;
+	partialText: string;
+	errors: string[];
+};
+
+export class TauriSpeechRecognizer implements ISpeechRecognizer {
+	recognizing: boolean = false;
+	languages: string[] = [];
+
+	onError?: (error: string) => void;
+	onTranscript?: (
+		transcript: string,
+		isFinal: boolean,
+		lastTranscript: string
+	) => void;
+	onStopped?: () => void;
+
+	stateInterval: number = 0;
+	lastEventMS: number = 0;
+	lastTranscript: string = '';
+
+	async start(): Promise<boolean> {
+		if (this.recognizing) {
+			return false;
+		}
+
+		this.recognizing = true;
+		this.lastEventMS = 0;
+		this.lastTranscript = '';
+
+		this.stateInterval = window.setInterval(
+			() => this.handleGetState(),
+			200
+		);
+
 		const result = await invoke<
 			WithError & {
 				success: boolean;
 			}
 		>('plugin:speech-recog|start_recognition', {
 			payload: {
-				languages,
+				languages: [],
 			},
 		});
 		if (!result.success) {
@@ -89,7 +138,7 @@ export class TauriService implements IBEService {
 		return result.success;
 	}
 
-	async stopSpeechRecognition(): Promise<boolean> {
+	async stop() {
 		const result = await invoke<
 			WithError & {
 				success: boolean;
@@ -98,23 +147,39 @@ export class TauriService implements IBEService {
 		if (!result.success) {
 			throw new Error(result.error);
 		}
+
+		this.cleanup();
 		return result.success;
 	}
 
-	async getSpeechRecognitionState(): Promise<SpeechRecogState> {
+	async cleanup() {
+		this.recognizing = false;
+		window.clearInterval(this.stateInterval);
+		this.stateInterval = 0;
+	}
+
+	async handleGetState(): Promise<void> {
 		const result = await invoke<WithError & SpeechRecogState>(
 			'plugin:speech-recog|get_state',
 			{ payload: {} }
 		);
 		if (result.error) {
-			throw new Error(result.error);
+			this.onError?.(result.error);
+			return;
 		}
-		return {
-			recognizing: result.recognizing,
-			timestampMS: result.timestampMS,
-			completedText: result.completedText,
-			partialText: result.partialText,
-			errors: result.errors,
-		};
+
+		if (!result.recognizing) {
+			this.onStopped?.();
+			this.cleanup();
+			return;
+		}
+
+		if (result.timestampMs > this.lastEventMS) {
+			this.lastEventMS = result.timestampMs;
+			const isFinal = result.partialText !== '';
+			const transcript = result.completedText + result.partialText;
+			this.onTranscript?.(transcript, isFinal, this.lastTranscript);
+			this.lastTranscript = result.partialText;
+		}
 	}
 }

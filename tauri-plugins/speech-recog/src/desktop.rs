@@ -48,12 +48,6 @@ impl<R: Runtime> SpeechRecog<R> {
     &self,
     _payload: GetStateRequest,
   ) -> crate::Result<GetStateResponse> {
-    Ok(GetStateResponse {
-      recognizing: false,
-      timestamp_ms: 0,
-      completed_text: "".to_string(),
-      partial_text: "".to_string(),
-      errors: vec![],
-    })
+    Ok(GetStateResponse::default())
   }
 }

@@ -348,7 +348,7 @@ span[aria-hidden='true'] {
 		outline: 1px solid var(--bulma-primary);
 	}
 
-	&:has(.mic-recording) {
+	&:has(textarea):has(.mic-recording) {
 		outline: 1px solid var(--bulma-warning);
 	}
 

@@ -72,6 +72,7 @@ pub struct GetStateResponse {
   /// True if the recognizer is running.
   pub recognizing: bool,
 
+  /// Event that occurred during recognition.
   pub timestamp_ms: u64,
 
   pub completed_text: String,

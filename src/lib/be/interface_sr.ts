@@ -1,11 +1,3 @@
-export type SpeechRecogState = {
-	recognizing: boolean;
-	timestampMS: number;
-	completedText: string;
-	partialText: string;
-	errors: string[];
-};
-
 export interface ISpeechRecognizer {
 	/**
 	 * Error callback.
@@ -96,7 +88,7 @@ export class BrowserSpeechRecognizer implements ISpeechRecognizer {
 			const resultIndex = event.resultIndex;
 			const result = event.results[resultIndex];
 			const isFinal = result.isFinal;
-			const transcript = result[0].transcript;
+			const transcript = result[0].transcript + (isFinal ? ' ' : '');
 
 			this.onTranscript?.(transcript, isFinal, this.accumulatedText);
 			this.accumulatedText = isFinal ? '' : transcript;
