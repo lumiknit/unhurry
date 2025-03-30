@@ -15,10 +15,11 @@ import {
 	SpeechRecogState,
 	VibrationPattern,
 } from './interface';
+import { BrowserSpeechRecognizer, ISpeechRecognizer } from './interface_sr';
 
 type WithError = {
 	error?: string;
-}
+};
 
 /**
  * Use Tauri (Rust code) as backend service.
@@ -61,19 +62,27 @@ export class TauriService implements IBEService {
 		}
 	}
 
+	async speechRecognizer(): Promise<ISpeechRecognizer> {
+		return new BrowserSpeechRecognizer();
+	}
+
 	async speechRecogSupported(): Promise<boolean> {
 		const result = await invoke<{
 			supported: boolean;
-		}>('plugin:speech-recog|is_supported', { payload: {}});
+		}>('plugin:speech-recog|is_supported', { payload: {} });
 		return result.supported;
 	}
 
 	async startSpeechRecognition(languages: string[]): Promise<boolean> {
-		const result = await invoke<WithError & {
-			success: boolean;
-		}>('plugin:speech-recog|start_recognition', { payload: {
-			languages
-		}});
+		const result = await invoke<
+			WithError & {
+				success: boolean;
+			}
+		>('plugin:speech-recog|start_recognition', {
+			payload: {
+				languages,
+			},
+		});
 		if (!result.success) {
 			throw new Error(result.error);
 		}
@@ -81,9 +90,11 @@ export class TauriService implements IBEService {
 	}
 
 	async stopSpeechRecognition(): Promise<boolean> {
-		const result = await invoke<WithError & {
-			success: boolean;
-		}>('plugin:speech-recog|stop_recognition', { payload: {}});
+		const result = await invoke<
+			WithError & {
+				success: boolean;
+			}
+		>('plugin:speech-recog|stop_recognition', { payload: {} });
 		if (!result.success) {
 			throw new Error(result.error);
 		}
@@ -93,7 +104,7 @@ export class TauriService implements IBEService {
 	async getSpeechRecognitionState(): Promise<SpeechRecogState> {
 		const result = await invoke<WithError & SpeechRecogState>(
 			'plugin:speech-recog|get_state',
-			{ payload: {}}
+			{ payload: {} }
 		);
 		if (result.error) {
 			throw new Error(result.error);

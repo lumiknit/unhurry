@@ -125,27 +125,44 @@ class SpeechRecogPlugin(private val activity: Activity): Plugin(activity) {
         }
 
         override fun onError(error: Int) {
+            var msg = ""
+            var recoverable = false
             // Error to string
             when (error) {
-                SpeechRecognizer.ERROR_AUDIO -> raiseError("Audio recording error")
-                SpeechRecognizer.ERROR_CLIENT -> raiseError("Client side error")
-                SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> raiseError("Insufficient permissions")
-                SpeechRecognizer.ERROR_NETWORK -> raiseError("Network error")
-                SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> raiseError("Network timeout")
+                SpeechRecognizer.ERROR_AUDIO -> msg = "Audio error"
+                SpeechRecognizer.ERROR_CLIENT -> msg = "Client side error"
+                SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> msg = "Insufficient permissions"
+                SpeechRecognizer.ERROR_NETWORK -> msg = "Network error"
+                SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> msg = "Network timeout"
                 SpeechRecognizer.ERROR_NO_MATCH -> {
-                    Log.d("SpeechRecogPlugin", "No match")
-                    tryRestartRecognition()
+                    msg = "No match"
+                    recoverable = true
                 }
                 SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> {
-                    Log.d("SpeechRecogPlugin", "Recognizer busy")
-                    tryRestartRecognition()
+                    msg = "Recognizer busy"
+                    recoverable = true
                 }
-                SpeechRecognizer.ERROR_SERVER -> raiseError("Server error")
+                SpeechRecognizer.ERROR_SERVER -> msg = "Server error"
                 SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> {
-                    Log.d("SpeechRecogPlugin", "Speech timeout")
-                    tryRestartRecognition()
+                    msg = "Speech timeout"
+                    recoverable = true
                 }
-                else -> raiseError("Unknown error")
+                else -> {
+                    msg = "Unknown error"
+                    recoverable = false
+                }
+            }
+
+            if (recoverable) {
+                // Try to restart recognition
+                Log.d("SpeechRecogPlugin", "Recoverable error: $msg")
+                tryRestartRecognition()
+            } else {
+                // Stop recognition
+                Log.d("SpeechRecogPlugin", "Unrecoverable error: $msg")
+                Toast.makeText(activity, "STT Error: $msg", Toast.LENGTH_SHORT).show()
+                State.addError(msg)
+                stopRecognition()
             }
         }
 

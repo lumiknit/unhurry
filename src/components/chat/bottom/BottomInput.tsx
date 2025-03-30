@@ -264,17 +264,19 @@ const BottomInput: Component = () => {
 			const v = taRef!.value;
 			const selStart = taRef!.selectionStart;
 			const part = v.slice(0, selStart);
-			if (v.endsWith(lastTranscript)) {
+			if (part.endsWith(lastTranscript)) {
 				taRef!.value =
 					part.slice(0, -lastTranscript.length) + v.slice(selStart);
-				taRef!.setSelectionRange(selStart, selStart);
+				const p = selStart - lastTranscript.length;
+				taRef!.setSelectionRange(p, p);
 			}
 		}
 		// Insert the transcript
-		insertText(transcript);
 		if (isFinal) {
+			insertText(transcript + ' ');
 			setAutoSend();
 		} else {
+			insertText(transcript);
 			unsetAutoSend();
 		}
 	};
