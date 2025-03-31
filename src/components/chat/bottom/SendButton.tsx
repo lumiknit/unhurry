@@ -43,10 +43,6 @@ const SendButton: Component<Props> = (props) => {
 	const icon = () =>
 		props.speechRecognizing() ? BiRegularMicrophone : BiRegularSend;
 
-	// Before this duration, speech recognition is considered as toggle,
-	// and the button will be considered as a long press
-	const micHoldDurationMS = 1500;
-
 	let stopSRWhenUp = false;
 	let srStartTimeout: number | null = null;
 	let srHoldTimeout: number | null = null;
