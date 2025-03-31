@@ -43,15 +43,12 @@ const UploadFileButton: Component<Props> = (props) => {
 		reader.readAsArrayBuffer(file);
 	};
 
-	const upload = (mime: string, capture?: 'user' | 'environment') => {
+	const upload = (mime: string) => {
 		setIsOpen(false);
 
 		const input = document.createElement('input');
 		input.type = 'file';
 		input.accept = mime;
-		if (capture) {
-			input.setAttribute('capture', capture);
-		}
 		input.onchange = (e) => {
 			console.log('File selected:', e);
 			const files = (e.target as HTMLInputElement).files;
@@ -67,7 +64,7 @@ const UploadFileButton: Component<Props> = (props) => {
 	};
 
 	const uploadImage = () => upload('image/*');
-	const uploadCamera = () => upload('image/*;capture=camera', 'environment');
+	const uploadCamera = () => upload('image/*;capture=camera');
 	const uploadFile = () => upload('*/*');
 
 	return (

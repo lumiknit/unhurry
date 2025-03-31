@@ -47,14 +47,11 @@ const FileListPage: Component = () => {
 	};
 
 	const handleClearAll = async () => {
-		if (!(await openConfirm('Are you sure to delete all files?'))) return;
 		await toast.promise(deleteAllFiles(), {
 			loading: 'Deleting...',
 			success: 'Deleted',
 			error: 'Failed to delete',
 		});
-		// Reload
-		await loadFileMeta();
 	};
 
 	const handleFilterChange = () => {
