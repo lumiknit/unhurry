@@ -79,7 +79,6 @@ const BottomInput: Component = () => {
 	const replaceText = (text: string) => {
 		taRef!.value = text;
 		taRef!.setSelectionRange(text.length, text.length);
-		taRef!.focus();
 		autosizeTextarea();
 	};
 
@@ -341,7 +340,6 @@ const BottomInput: Component = () => {
 
 	// When mounted, focus
 	onMount(() => {
-		taRef!.focus();
 		autosizeTextarea();
 	});
 
