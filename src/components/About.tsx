@@ -54,6 +54,7 @@ const getLatestRelease = async (): Promise<string | void> => {
 		if (name.startsWith('v')) {
 			name = name.slice(1);
 		}
+		return name;
 	}
 };
 
@@ -72,7 +73,7 @@ const About: Component = () => {
 	onMount(async () => {
 		const be = await getBEService();
 		setBE(be);
-		(window as any)._be = be;
+		(window as { _be?: unknown })._be = be;
 		console.log(be);
 	});
 

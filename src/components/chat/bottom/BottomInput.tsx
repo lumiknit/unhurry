@@ -72,7 +72,6 @@ const BottomInput: Component = () => {
 		const newV = v.slice(0, idx) + text + v.slice(idx);
 		ta.value = newV;
 		ta.setSelectionRange(selStart, selStart);
-		ta.focus();
 		autosizeTextarea();
 		updateInputTriple();
 	};
@@ -279,6 +278,7 @@ const BottomInput: Component = () => {
 					lastTranscript
 				);
 				// Remove if the last transcript is exists
+				console.log(taRef!.selectionStart);
 				if (lastTranscript) {
 					const v = taRef!.value;
 					const selStart = taRef!.selectionStart;
