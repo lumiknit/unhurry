@@ -15,6 +15,9 @@ import { getChatContext, store } from '@store';
 
 import './send_button.scss';
 
+const LONG_PRESS_DURATION = 800;
+const HOLD_DURATION = 1200;
+
 type Props = {
 	speechRecognizing: Accessor<boolean>;
 	startSpeechRecognition: () => void;
@@ -39,14 +42,6 @@ const SendButton: Component<Props> = (props) => {
 
 	const icon = () =>
 		props.speechRecognizing() ? BiRegularMicrophone : BiRegularSend;
-
-	// After this duration, the button will be considered as a long press
-	// and the speech recognition will be started
-	const micStartDurationMS = 1000;
-
-	// Before this duration, speech recognition is considered as toggle,
-	// and the button will be considered as a long press
-	const micHoldDurationMS = 1500;
 
 	let stopSRWhenUp = false;
 	let srStartTimeout: number | null = null;
@@ -90,8 +85,8 @@ const SendButton: Component<Props> = (props) => {
 		vibrate('medium');
 
 		if (!getChatContext().progressing && !props.speechRecognizing()) {
-			srStartTimeout = window.setTimeout(startRecog, micStartDurationMS);
-			srHoldTimeout = window.setTimeout(setHolding, micHoldDurationMS);
+			srStartTimeout = window.setTimeout(startRecog, LONG_PRESS_DURATION);
+			srHoldTimeout = window.setTimeout(setHolding, HOLD_DURATION);
 		}
 	};
 
