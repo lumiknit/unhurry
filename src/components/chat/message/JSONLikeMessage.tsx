@@ -1,5 +1,5 @@
 import { area, bb } from 'billboard.js';
-import { default as DOMPurify } from 'dompurify';
+import DOMPurify from 'dompurify';
 import hljs from 'highlight.js';
 import { Component, createSignal, For, Match, onMount, Switch } from 'solid-js';
 import { toast } from 'solid-toast';
