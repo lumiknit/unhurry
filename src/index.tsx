@@ -1,5 +1,6 @@
 import { Route, Router } from '@solidjs/router';
 import { render } from 'solid-js/web';
+import 'solid-devtools';
 
 import About from '@components/About.tsx';
 import ChatPage from '@components/chat/ChatPage.tsx';

@@ -2,6 +2,7 @@ import path from 'path';
 
 import { defineConfig, loadEnv } from 'vite';
 import solid from 'vite-plugin-solid';
+import devtools from 'solid-devtools/vite';
 import packageJson from './package.json';
 
 const host = process.env.TAURI_DEV_HOST;
@@ -38,7 +39,12 @@ export default ({ mode }: { mode: string }) => {
 		define: {
 			PACKAGE_VERSION: JSON.stringify(packageJson.version),
 		},
-		plugins: [solid()],
+		plugins: [
+			devtools({
+				autoname: true,
+			}),
+			solid(),
+		],
 		resolve: {
 			alias: {
 				'@': path.resolve(__dirname, 'src'),
@@ -63,6 +69,9 @@ export default ({ mode }: { mode: string }) => {
 				ignored: ['**/src-tauri/**'],
 			},
 			allowedHosts: ['localhost', 'host.docker.internal'],
+		},
+		preview: {
+			port: 1420,
 		},
 	});
 };
