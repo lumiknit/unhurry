@@ -1,12 +1,22 @@
-import { Component, createSignal, For, Match, Switch } from 'solid-js';
+import { Component, createSignal, For } from 'solid-js';
+import { Dynamic } from 'solid-js/web';
 
 import GeneralSettings from './GeneralSettings';
 import ModelList from './ModelList';
 import TagList from './TagList';
+import ToolsSettings from './ToolsSettings';
 import Xxport from './Xxport';
 
-type Tab = 'General' | 'Models' | 'Prompt Tags' | 'Im/Export';
-const tabs: Tab[] = ['General', 'Models', 'Prompt Tags', 'Im/Export'];
+type Tab = 'General' | 'Models' | 'Prompt Tags' | 'Tools' | 'Im/Export';
+const tabs: Tab[] = ['General', 'Models', 'Prompt Tags', 'Tools', 'Im/Export'];
+
+const tabComponents = new Map<Tab, Component>([
+	['General', GeneralSettings],
+	['Models', ModelList],
+	['Prompt Tags', TagList],
+	['Tools', ToolsSettings],
+	['Im/Export', Xxport],
+]);
 
 const SettingsPage: Component = () => {
 	const [activeTab, setActiveTab] = createSignal<Tab>('General');
@@ -34,23 +44,7 @@ const SettingsPage: Component = () => {
 					</ul>
 				</div>
 
-				<Switch>
-					<Match when={activeTab() === 'General'}>
-						<GeneralSettings />
-					</Match>
-
-					<Match when={activeTab() === 'Models'}>
-						<ModelList />
-					</Match>
-
-					<Match when={activeTab() === 'Prompt Tags'}>
-						<TagList />
-					</Match>
-
-					<Match when={activeTab() === 'Im/Export'}>
-						<Xxport />
-					</Match>
-				</Switch>
+				<Dynamic component={tabComponents.get(activeTab())} />
 			</div>
 		</div>
 	);

@@ -149,7 +149,8 @@ export const chat = async (text: string, fileIDs?: string[]) => {
 	const history = unwrap(chatContext.history);
 
 	const action = new SingleChatAction(
-		config.models.slice(config.currentModelIdx),
+		unwrap(config.models).slice(config.currentModelIdx),
+		unwrap(config.tools),
 		history
 	);
 	actions.push(action);

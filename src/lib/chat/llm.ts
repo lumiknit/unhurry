@@ -7,7 +7,8 @@ import {
 	MSG_PART_TYPE_FUNCTION_CALL,
 	MsgPart,
 } from './structs';
-import { fnImpls, fnTools } from './tools';
+import { fnImpls, getFnTools } from './tools';
+import { ToolConfigs } from '../config/tool';
 import { FunctionCallContent, ModelConfig, newClientFromConfig } from '../llm';
 import { logr } from '../logr';
 
@@ -24,6 +25,11 @@ export class SingleChatAction {
 	 * and the rest are fallback models.
 	 */
 	modelConfigs: ModelConfig[];
+
+	/**
+	 * Tool configs
+	 */
+	toolConfigs: ToolConfigs;
 
 	/**
 	 * Chat history.
@@ -57,8 +63,13 @@ export class SingleChatAction {
 		modelConfig: ModelConfig
 	) => boolean;
 
-	constructor(modelConfigs: ModelConfig[], history: ChatHistory) {
+	constructor(
+		modelConfigs: ModelConfig[],
+		toolConfigs: ToolConfigs,
+		history: ChatHistory
+	) {
 		this.modelConfigs = modelConfigs;
+		this.toolConfigs = toolConfigs;
 		this.history = history;
 	}
 
@@ -113,12 +124,13 @@ export class SingleChatAction {
 	 * From the current history, generate the next message.
 	 */
 	protected async generate(modelConfig: ModelConfig) {
+		const tools = getFnTools(this.toolConfigs);
 		const llm = newClientFromConfig(modelConfig);
-		llm.setFunctions(fnTools);
+		llm.setFunctions(tools);
 		const sys = await systemPrompt(
 			modelConfig.systemPrompt,
 			!!modelConfig.useToolCall,
-			fnTools
+			tools
 		);
 
 		// Part parser

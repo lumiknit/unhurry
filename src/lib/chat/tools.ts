@@ -2,6 +2,7 @@ import { Validator } from 'jsonschema';
 import TurndownService from 'turndown';
 
 import { getBEService } from '../be';
+import { ToolConfigs } from '../config/tool';
 import { FunctionTool } from '../llm/function';
 import { logr } from '../logr';
 import { JSContext } from '../run-js';
@@ -12,6 +13,14 @@ const jsonValidator = new Validator();
 export const fnTools: FunctionTool[] = [];
 type Impl = (args: any) => Promise<string>;
 export const fnImpls: Record<string, Impl> = {};
+
+export const getFnTools = (configs: ToolConfigs) => {
+	return fnTools.filter((tool) => {
+		const c = configs[tool.name];
+		if (c?.disabled) return false;
+		return true;
+	});
+};
 
 const addFunc = (tool: FunctionTool, fn: Impl) => {
 	fnTools.push(tool);

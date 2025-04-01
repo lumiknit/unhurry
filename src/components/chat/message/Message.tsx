@@ -1,4 +1,4 @@
-import DOMPurify from 'dompurify';
+import {default as DOMPurify} from 'dompurify';
 import hljs from 'highlight.js';
 import { marked } from 'marked';
 import markedKatex from 'marked-katex-extension';
