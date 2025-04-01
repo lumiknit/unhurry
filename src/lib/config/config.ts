@@ -1,5 +1,6 @@
 import { PromptTag } from './prompt_tag';
 import { ModelConfig } from '../llm';
+import { ToolConfigs } from './tool';
 
 /**
  * Configuration for the user
@@ -55,6 +56,11 @@ export interface UserConfig {
 	 * Prompt tags
 	 */
 	promptTags: PromptTag[];
+
+	/**
+	 * Tools
+	 */
+	tools: ToolConfigs;
 }
 
 /**
@@ -71,6 +77,7 @@ export const defaultConfig = (): UserConfig => ({
 	fontSize: 16,
 	autoSendMillis: 2000,
 	promptTags: [],
+	tools: {},
 });
 
 /**

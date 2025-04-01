@@ -67,7 +67,7 @@ const UploadFileButton: Component<Props> = (props) => {
 	};
 
 	const uploadImage = () => upload('image/*');
-	const uploadCamera = () => upload('image/*;capture=camera', 'environment');
+	const uploadCamera = () => upload('image/*', 'environment');
 	const uploadFile = () => upload('*/*');
 
 	return (

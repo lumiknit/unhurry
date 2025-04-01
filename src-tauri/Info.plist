@@ -3,10 +3,10 @@
 <plist version="1.0">
 <dict>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>your string</string>
+	<string>Used for speech recognition</string>
 	<key>NSCameraUsageDescription</key>
-	<string>your string</string>
+	<string>Used for speech recognition</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>your string</string>
+	<string>Used for speech recognition</string>
 </dict>
 </plist>
