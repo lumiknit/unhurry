@@ -18,6 +18,7 @@ import {
 
 import SwitchForm from './form/SwitchForm';
 import TextForm from './form/TextForm';
+import { getAIIconComponent } from '../utils/icons/AIIcons';
 
 interface Props {
 	model: ModelConfig;
@@ -142,6 +143,7 @@ const ModelEditor: Component<Props> = (props) => {
 				options={llmPresets.map((p) => ({
 					label: p.name,
 					value: p.endpoint,
+					icon: getAIIconComponent(p.name),
 				}))}
 				controlClass="flex-1 maxw-75"
 				get={() => props.model.endpoint}

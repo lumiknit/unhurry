@@ -4,12 +4,15 @@ import {
 	createEffect,
 	For,
 	Match,
+	Show,
 	Switch,
 } from 'solid-js';
+import { Dynamic } from 'solid-js/web';
 
 export interface Option {
 	label: string;
 	value: string;
+	icon?: Component;
 }
 
 interface Props {
@@ -79,6 +82,11 @@ const TextForm: Component<Props> = (props) => {
 										class="tag mr-1"
 										onClick={() => handleOptionClick(opt)}
 									>
+										<Show when={opt.icon}>
+											<span class="mr-1">
+												<Dynamic component={opt.icon} />
+											</span>
+										</Show>
 										{opt.label}
 									</button>
 								)}
