@@ -83,7 +83,7 @@ const TextForm: Component<Props> = (props) => {
 										onClick={() => handleOptionClick(opt)}
 									>
 										<Show when={opt.icon}>
-											<span class="mr-1">
+											<span class="icon">
 												<Dynamic component={opt.icon} />
 											</span>
 										</Show>

@@ -67,7 +67,9 @@ const ModelEditor: Component<Props> = (props) => {
 	};
 
 	let preset = llmPresets.find((p) => p.endpoint === props.model.endpoint);
-	const apiKeyURL = preset?.apiKeyURL;
+	const [apiKeyURL, setApiKeyURL] = createSignal<string | undefined>(
+		preset?.apiKeyURL
+	);
 
 	const handleEndpointChange = (url: string) => {
 		const preset = llmPresets.find((p) => p.endpoint === url);
@@ -80,6 +82,7 @@ const ModelEditor: Component<Props> = (props) => {
 				clientType: preset.clientType,
 				name: `${preset.name}/${preset.models[0]}`,
 			}));
+			setApiKeyURL(preset.apiKeyURL);
 		} else {
 			props.updateModel((m) => ({
 				...m,
@@ -160,8 +163,8 @@ const ModelEditor: Component<Props> = (props) => {
 
 			<div class="mb-4">
 				API Key URL:
-				<a target="_blank" href={apiKeyURL}>
-					{apiKeyURL}
+				<a target="_blank" href={apiKeyURL()}>
+					{apiKeyURL()}
 				</a>
 			</div>
 
@@ -181,7 +184,11 @@ const ModelEditor: Component<Props> = (props) => {
 			<TextForm
 				label="Client Type"
 				desc="Client"
-				options={clientTypes.map((t) => ({ label: t, value: t }))}
+				options={clientTypes.map((t) => ({
+					label: t,
+					value: t,
+					icon: getAIIconComponent(t),
+				}))}
 				controlClass="flex-1 maxw-75"
 				get={() => props.model.clientType}
 				set={(v) => handleClientTypeClick(v as LLMClientType)}

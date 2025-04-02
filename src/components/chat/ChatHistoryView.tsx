@@ -25,26 +25,25 @@ const ChatHistoryView: Component = () => {
 						<Show when={item.assistant}>
 							<Message msg={item.assistant!} idx={idx()} />
 						</Show>
-						<Show
-							when={
-								pairs().length - 1 === idx() &&
-								getStreamingMessage()
-							}
-						>
-							<Message
-								msg={{
-									role: 'assistant',
-									parts: getStreamingMessage()!.parts,
-									timestamp: Date.now(),
-								}}
-								idx={idx()}
-							/>
-							<div class="streaming-msg">
-								{getStreamingMessage()!.rest}
+						<Show when={pairs().length - 1 === idx()}>
+							<Show when={getStreamingMessage()}>
+								<Message
+									msg={{
+										role: 'assistant',
+										parts: getStreamingMessage()!.parts,
+										timestamp: Date.now(),
+									}}
+									idx={idx()}
+								/>
+								<div class="streaming-msg">
+									{getStreamingMessage()!.rest}
+								</div>
+							</Show>
+							<Show when={getChatContext().progressing}>
 								<div class="text-center">
 									<span class="spinner" />
 								</div>
-							</div>
+							</Show>
 						</Show>
 					</div>
 				)}

@@ -75,7 +75,6 @@ const SendButton: Component<Props> = (props) => {
 	};
 
 	const handlePointerDown = (e: PointerEvent) => {
-		console.log('Down', e);
 		e.stopPropagation();
 		e.preventDefault();
 
