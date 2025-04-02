@@ -11,3 +11,8 @@ export const scrollToLastUserMessage = () => {
 		});
 	}
 };
+
+/**
+ * Global Shortcut
+ */
+export const globalShortcut = (event: KeyboardEvent) => {};
