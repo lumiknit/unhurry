@@ -6,6 +6,7 @@ import {
 	BiRegularQuestionMark,
 	BiSolidFilePlus,
 } from 'solid-icons/bi';
+import { FaSolidListCheck } from 'solid-icons/fa';
 import { Component, onMount } from 'solid-js';
 import { toast } from 'solid-toast';
 
@@ -68,6 +69,11 @@ const NavBar: Component = () => {
 				<A class="navbar-item" href="/chat-list">
 					<BiRegularHistory />
 					<span class="is-hidden-mobile">Open</span>
+				</A>
+
+				<A class="navbar-item" href="/task-list">
+					<FaSolidListCheck />
+					<span class="is-hidden-mobile">Task</span>
 				</A>
 
 				<a

@@ -3,6 +3,8 @@ import { SimpleIDB } from './client';
 const userConfigIDB = new SimpleIDB('local-user-config', 'configs', 1);
 const userConfigKey = 'current';
 
+// User Config
+
 interface UserConfigType {
 	config: string;
 	_id: string;
@@ -29,6 +31,8 @@ export const loadUserConfig = async <T>() => {
 		return {} as T;
 	}
 };
+
+// Chat list
 
 const chatListIDB = new SimpleIDB('chat-list', 'chats', 1);
 
@@ -78,4 +82,12 @@ export const deleteChatByID = async (id: string) => {
 	await tx.delete(id);
 
 	indexedDB.deleteDatabase('chat:' + id);
+};
+
+// Tasks
+
+const taskListIDB = new SimpleIDB('task-list', 'tasks', 1);
+
+export const taskListTx = async <T>() => {
+	return await taskListIDB.transaction<T>('readwrite');
 };

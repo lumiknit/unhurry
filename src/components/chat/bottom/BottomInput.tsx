@@ -100,6 +100,7 @@ const BottomInput: Component = () => {
 		if (!composing) {
 			taRef!.value = '';
 			lastSent = 0;
+			autosizeTextarea();
 		} else {
 			// Otherwise, some composing left.
 			// Just ignore the send

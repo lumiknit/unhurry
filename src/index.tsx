@@ -11,6 +11,8 @@ import SettingsPage from '@components/settings/SettingsPage.tsx';
 import './index.scss';
 import App from './App.tsx';
 import FileListPage from './components/file-list/FileListPage.tsx';
+import TaskListPage from './components/task/TaskListPage.tsx';
+import TaskPage from './components/task/TaskPage.tsx';
 import { rootPath } from './env.ts';
 
 import './lib/service-worker';
@@ -24,6 +26,8 @@ render(
 			<Route path={`${rootPath}/`} component={ChatPage} />
 			<Route path={`${rootPath}/about`} component={About} />
 			<Route path={`${rootPath}/chat-list`} component={ChatListPage} />
+			<Route path={`${rootPath}/task-list`} component={TaskListPage} />
+			<Route path={`${rootPath}/task/:id`} component={TaskPage} />
 			<Route path={`${rootPath}/file-list`} component={FileListPage} />
 			<Route path={`${rootPath}/settings`} component={SettingsPage} />
 			<Route path={`${rootPath}/logs`} component={LogsPage} />

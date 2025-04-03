@@ -1,4 +1,4 @@
-import { resetChatMessages } from "@/store/actions";
+import { resetChatMessages } from '@/store/actions';
 
 export const scrollToLastUserMessage = () => {
 	const elems = document.getElementsByClassName('msg-user');
@@ -15,14 +15,16 @@ export const scrollToLastUserMessage = () => {
 };
 
 const keyMaps: Record<string, () => void> = {
-	"ctrl-i": () => {
+	'ctrl-i': () => {
 		// Focus to input
-		const input = document.querySelector('.bottom-input textarea') as HTMLTextAreaElement;
+		const input = document.querySelector(
+			'.bottom-input textarea'
+		) as HTMLTextAreaElement;
 		if (input) {
 			input.focus();
 		}
 	},
-	"ctrl-n": () => {
+	'ctrl-n': () => {
 		// New chat
 		resetChatMessages();
 	},
