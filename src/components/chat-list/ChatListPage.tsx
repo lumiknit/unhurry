@@ -1,7 +1,10 @@
 import { useNavigate } from '@solidjs/router';
+import { BiRegularCalendar } from 'solid-icons/bi';
 import { TbTrash } from 'solid-icons/tb';
 import { Component, createSignal, For, Match, onMount, Switch } from 'solid-js';
 import { toast } from 'solid-toast';
+
+import { shortRelativeDateFormat } from '@/lib/intl';
 
 import { ChatMeta } from '@lib/chat';
 import { chatListTx, clearAllChats, deleteChatByID } from '@lib/idb';
@@ -144,24 +147,32 @@ const ChatListPage: Component = () => {
 							<For each={page().items}>
 								{(chat) => (
 									<a
-										class="panel-block is-active flex-split"
+										class="panel-block panel-item is-active"
 										onClick={openChat(chat._id)}
 									>
-										<div>
-											<Switch>
-												<Match when={chat.title}>
-													<b>{chat.title}</b>
-												</Match>
-												<Match when>
-													<i>Untitled</i>
-												</Match>
-											</Switch>
-											<br />
-											<span class="ml-2 is-size-7">
-												{new Date(
-													chat.createdAt
-												).toLocaleString()}
-											</span>
+										<div class="panel-item-content">
+											<div class="panel-item-body">
+												<div>
+													<Switch>
+														<Match
+															when={chat.title}
+														>
+															<b>{chat.title}</b>
+														</Match>
+														<Match when>
+															<i>Untitled</i>
+														</Match>
+													</Switch>
+												</div>
+											</div>
+											<div class="panel-item-date">
+												<div>
+													<BiRegularCalendar />
+													{shortRelativeDateFormat(
+														new Date(chat.createdAt)
+													)}
+												</div>
+											</div>
 										</div>
 										<button
 											class="button is-danger is-outlined is-small"

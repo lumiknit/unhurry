@@ -8,6 +8,7 @@ $theme-color: #0b7f4e;
 	$primary: $theme-color
 );
 @use './switch.scss';
+@use './panel.scss';
 @use './utils.scss';
 
 // Fonts

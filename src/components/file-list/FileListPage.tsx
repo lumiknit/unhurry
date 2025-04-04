@@ -1,3 +1,4 @@
+import { BiRegularCalendar } from 'solid-icons/bi';
 import { TbTrash } from 'solid-icons/tb';
 import {
 	Component,
@@ -17,6 +18,7 @@ import {
 	deleteFile,
 	getFile,
 } from '@/lib/idb/file_storage';
+import { shortRelativeDateFormat } from '@/lib/intl';
 
 import FilePreviewModal from './FilePreviewModal';
 import { openConfirm } from '../modal-confirm';
@@ -30,20 +32,28 @@ type ItemProps = {
 
 const FileListItem: Component<ItemProps> = (props) => {
 	return (
-		<a class="panel-block is-active flex-split" onClick={props.onOpen}>
-			<div>
-				<Switch>
-					<Match when={props.file.name}>
-						<b>{props.file.name}</b>
-					</Match>
-					<Match when>
-						<i>{props.file._id}</i>
-					</Match>
-				</Switch>
-				<br />
-				<span class="ml-2 is-size-7">
-					{new Date(props.file.createdAt).toLocaleString()}
-				</span>
+		<a class="panel-block panel-item" onClick={props.onOpen}>
+			<div class="panel-item-content">
+				<div class="panel-item-body">
+					<div class="panel-item-title">
+						<Switch>
+							<Match when={props.file.name}>
+								<b>{props.file.name}</b>
+							</Match>
+							<Match when>
+								<i>{props.file._id}</i>
+							</Match>
+						</Switch>
+					</div>
+				</div>
+				<div class="panel-item-date">
+					<div>
+						<BiRegularCalendar />
+						{shortRelativeDateFormat(
+							new Date(props.file.createdAt)
+						)}
+					</div>
+				</div>
 			</div>
 			<button
 				class="button is-danger is-outlined is-small"

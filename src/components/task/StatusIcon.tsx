@@ -27,13 +27,14 @@ const statusIconComponent = new Map<Status, Component>([
 ]);
 
 interface StatusIconProps {
+	class?: string;
 	status: Status;
 }
 
 const StatusIcon: Component<StatusIconProps> = (props) => {
 	return (
 		<span
-			class={`task-status-icon has-text-${statusColor.get(props.status)}`}
+			class={`task-status-icon has-text-${statusColor.get(props.status)} ${props.class ?? ''}`}
 			title={props.status}
 		>
 			<Dynamic component={statusIconComponent.get(props.status)} />

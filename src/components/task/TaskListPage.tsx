@@ -12,8 +12,6 @@ import { shortRelativeDateFormat } from '@/lib/intl';
 
 import StatusIcon from './StatusIcon';
 
-import './styles.scss';
-
 type ItemProps = {
 	status: 'pending' | 'running' | 'done' | 'failed';
 	id: string;
@@ -27,27 +25,25 @@ const TaskListItem: Component<ItemProps> = (props) => {
 	const [showDropdown, setShowDropdown] = createSignal(false);
 
 	return (
-		<div class="task-item w-full">
-			<StatusIcon status={props.status} />
-			<div class="task-item-content">
-				<div class="is-flex-1">
+		<div class="panel-block panel-item">
+			<StatusIcon class="panel-item-icon" status={props.status} />
+			<div class="panel-item-content">
+				<div class="panel-item-body">
 					<A
 						href={`${rootPath}/tasks/${props.id}`}
-						class="task-title"
+						class="panel-item-title"
 					>
 						{props.title}
 					</A>
-					<div class="task-msg">{props.message}</div>
+					<div class="panel-item-desc">{props.message}</div>
 				</div>
-				<div>
-					<div class="task-date">
-						<div>
-							<BiRegularCalendar />
-							{shortRelativeDateFormat(props.createdAt)}
-						</div>
-						<div>
-							<BiRegularTime /> 1:23
-						</div>
+				<div class="panel-item-date">
+					<div>
+						<BiRegularCalendar />
+						{shortRelativeDateFormat(props.createdAt)}
+					</div>
+					<div>
+						<BiRegularTime /> 1:23
 					</div>
 				</div>
 			</div>
@@ -127,11 +123,7 @@ const TaskListPage: Component = () => {
 						</A>
 					</p>
 					<For each={exampleItems}>
-						{(item) => (
-							<div class="panel-block">
-								<TaskListItem {...item} />
-							</div>
-						)}
+						{(item) => <TaskListItem {...item} />}
 					</For>
 				</nav>
 			</div>
