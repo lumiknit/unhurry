@@ -8,6 +8,10 @@ interface Props {
 	set: (v: boolean) => void;
 }
 
+/**
+ * Form with a switch input.
+ * It can be used for checkbox.
+ */
 const SwitchForm: Component<Props> = (props) => {
 	const [checked, setChecked] = createSignal(false);
 

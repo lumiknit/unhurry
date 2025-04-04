@@ -1,3 +1,5 @@
+import { uniqueID } from '../utils';
+
 /**
  * LLM Client Type
  */
@@ -28,6 +30,9 @@ export interface LLMServiceInfo {
  * This is used for user config.
  */
 export interface ModelConfig {
+	/** ModelID */
+	id: string;
+
 	/** Display name */
 	name: string;
 
@@ -54,6 +59,7 @@ export interface ModelConfig {
  * Create an empty model config.
  */
 export const emptyModelConfig = (): ModelConfig => ({
+	id: uniqueID(),
 	name: 'New Model',
 	clientType: 'OpenAI',
 	endpoint: '',

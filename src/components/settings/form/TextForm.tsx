@@ -28,6 +28,9 @@ interface Props {
 	placeholder?: string;
 }
 
+/**
+ * Form with a text input.
+ */
 const TextForm: Component<Props> = (props) => {
 	let inputRef: HTMLInputElement;
 

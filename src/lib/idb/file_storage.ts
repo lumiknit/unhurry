@@ -1,3 +1,4 @@
+import { uniqueID } from '../utils';
 import { SimpleIDB } from './client';
 
 /**
@@ -31,12 +32,6 @@ const dataTx = async () => {
 	return await fileIDB.transaction<FileData>('readwrite', undefined, 'data');
 };
 
-export const genFileID = () => {
-	const ts = Date.now().toString(36);
-	const rand = Math.random().toString(36).slice(2);
-	return ts + '_' + rand;
-};
-
 /**
  * Create a file for storage.
  */
@@ -45,7 +40,7 @@ export const createFile = async (
 	mimeType: string,
 	fileData: string | Uint8Array
 ): Promise<string> => {
-	const id = genFileID();
+	const id = uniqueID();
 	const meta = {
 		_id: id,
 		name,

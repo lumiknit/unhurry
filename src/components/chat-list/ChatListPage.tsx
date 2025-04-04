@@ -10,10 +10,16 @@ import { loadChatContext } from '@store/index';
 
 import { rootPath } from '../../env';
 import { openConfirm } from '../modal-confirm';
+import Pagination, { createPaginatedList } from '../utils/Pagination';
 
 const ChatListPage: Component = () => {
+	const pageSize = 10;
 	const [chatList, setChatList] = createSignal<ChatMeta[] | undefined>();
 	const [filteredList, setFilteredList] = createSignal<ChatMeta[]>([]);
+	const [page, setPage] = createPaginatedList<ChatMeta>(
+		filteredList,
+		pageSize
+	);
 
 	let clearLeftRef: HTMLInputElement;
 	let filterRef: HTMLInputElement;
@@ -92,9 +98,8 @@ const ChatListPage: Component = () => {
 		<div class="container">
 			<div class="m-2">
 				<nav class="panel is-primary">
-					<p class="panel-heading">
-						{' '}
-						Chats ({chatList()?.length || '-'}){' '}
+					<p class="panel-block has-background-text-soft has-text-weight-bold">
+						Chats ({chatList()?.length || '-'})
 					</p>
 					<div class="panel-block">
 						<div>
@@ -136,7 +141,7 @@ const ChatListPage: Component = () => {
 							</a>
 						</Match>
 						<Match when>
-							<For each={filteredList()!}>
+							<For each={page().items}>
 								{(chat) => (
 									<a
 										class="panel-block is-active flex-split"
@@ -172,6 +177,11 @@ const ChatListPage: Component = () => {
 						</Match>
 					</Switch>
 				</nav>
+				<Pagination
+					currentPage={page().page}
+					totalPages={page().totalPages}
+					onPageChange={setPage}
+				/>
 			</div>
 		</div>
 	);

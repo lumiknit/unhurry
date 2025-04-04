@@ -10,6 +10,9 @@ interface Props {
 	set: (v: string) => void;
 }
 
+/**
+ * Form with a select input
+ */
 const SelectForm: Component<Props> = (props) => {
 	let selectRef: HTMLSelectElement;
 

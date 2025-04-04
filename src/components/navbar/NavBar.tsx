@@ -66,12 +66,12 @@ const NavBar: Component = () => {
 					<span class="is-hidden-mobile">New</span>
 				</a>
 
-				<A class="navbar-item" href="/chat-list">
+				<A class="navbar-item" href="/chats">
 					<BiRegularHistory />
 					<span class="is-hidden-mobile">Open</span>
 				</A>
 
-				<A class="navbar-item" href="/task-list">
+				<A class="navbar-item" href="/tasks">
 					<FaSolidListCheck />
 					<span class="is-hidden-mobile">Task</span>
 				</A>
@@ -100,10 +100,7 @@ const NavBar: Component = () => {
 					<div class="navbar-item has-dropdown is-hoverable">
 						<a class="navbar-link">Menu</a>
 						<div class="navbar-dropdown">
-							<A
-								class="navbar-item"
-								href={`${rootPath}/file-list`}
-							>
+							<A class="navbar-item" href={`${rootPath}/files`}>
 								<BiRegularFolder />
 								Files
 							</A>

@@ -1,11 +1,9 @@
 import { useParams } from '@solidjs/router';
 import { Component, onMount } from 'solid-js';
 
-const TaskPage: Component = () => {
+const TeamPage: Component = () => {
 	const params = useParams<{ id: string }>();
 	const taskID = () => params.id;
-
-	const task = () => {};
 
 	onMount(() => {
 		//TODO: load task from DB
@@ -13,9 +11,9 @@ const TaskPage: Component = () => {
 
 	return (
 		<div>
-			<h1>Task Page: {taskID()}</h1>
+			<h1>Team Page</h1>
 		</div>
 	);
 };
 
-export default TaskPage;
+export default TeamPage;

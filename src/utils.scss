@@ -1,0 +1,51 @@
+.w-full {
+	width: 100%;
+}
+
+.h-full {
+	height: 100%;
+}
+
+.flex-split {
+	display: flex;
+	flex-wrap: none;
+	justify-content: space-between;
+}
+
+.no-user-select {
+	user-select: none;
+	-webkit-user-drag: none;
+	-webkit-user-select: none;
+}
+
+.thin-hr {
+	height: 1px;
+	opacity: 0.1;
+}
+
+.text-ellipsis {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+	.hide-mobile {
+		display: none;
+	}
+}
+
+.is-flex-0 {
+	flex: 0;
+}
+
+.is-flex-1 {
+	flex: 1;
+}
+
+// Text no color
+
+// Override bulma items
+nav.panel {
+	overflow: hidden;
+}

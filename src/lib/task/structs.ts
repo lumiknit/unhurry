@@ -1,3 +1,41 @@
+import { ChatHistory } from '../chat';
+import { ToolConfigs } from '../config/tool';
+
+/**
+ * TaskForce is a group of agents to achieve a task.
+ */
+export interface TaskForce {
+	/**
+	 * TaskForce ID
+	 */
+	id: string;
+
+	/**
+	 * TaskForce name
+	 */
+	name: string;
+
+	/**
+	 * LLM Model ID
+	 */
+	modelID: string;
+
+	/**
+	 * Tool options
+	 */
+	toolConfigs: ToolConfigs;
+
+	/**
+	 * System prompt for planner
+	 */
+	plannerSystemPrompt: string;
+
+	/**
+	 * System prompt for worker
+	 */
+	workerSystemPrompt: string;
+}
+
 export type ProcessStatus = 'pending' | 'running' | 'done' | 'failed';
 
 export type ProcessResult = 'done' | 'cancelled' | 'failed';
@@ -27,6 +65,8 @@ export type StepItem = {
 	 * The timestamp when this step item was created.
 	 */
 	startedAt: Date;
+
+	history: ChatHistory;
 
 	result?: StepItemResult;
 };

@@ -1,3 +1,4 @@
+import { uniqueID } from '../utils';
 import { ChatHistory } from './structs';
 
 /**
@@ -31,19 +32,10 @@ export type ChatContext = ChatMeta &
 	};
 
 /**
- * Generate random Chat ID.
- */
-export const genChatID = () => {
-	const ts = Date.now().toString(36);
-	const rand = Math.random().toString(36).slice(2);
-	return ts + '_' + rand;
-};
-
-/**
  * Create an empty chat context.
  */
 export const emptyChatContext = (): ChatContext => ({
-	_id: genChatID(),
+	_id: uniqueID(),
 	createdAt: Date.now(),
 	lastUsedAt: Date.now(),
 	title: '',

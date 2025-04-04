@@ -8,6 +8,7 @@ $theme-color: #0b7f4e;
 	$primary: $theme-color
 );
 @use './switch.scss';
+@use './utils.scss';
 
 // Fonts
 
@@ -23,45 +24,6 @@ $theme-color: #0b7f4e;
 	src: url('/SourceHanSerif-VF.otf.woff2') format('woff2');
 	font-weight: 100 900;
 	font-display: swap;
-}
-
-// Common helpers
-
-.w-full {
-	width: 100%;
-}
-
-.h-full {
-	height: 100%;
-}
-
-.flex-split {
-	display: flex;
-	flex-wrap: none;
-	justify-content: space-between;
-}
-
-.no-user-select {
-	user-select: none;
-	-webkit-user-drag: none;
-	-webkit-user-select: none;
-}
-
-.thin-hr {
-	height: 1px;
-	opacity: 0.1;
-}
-
-.text-ellipsis {
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-@media (max-width: 768px) {
-	.hide-mobile {
-		display: none;
-	}
 }
 
 // Root Styles

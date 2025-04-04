@@ -16,6 +16,7 @@ import {
 	newClientFromConfig,
 } from '@lib/llm';
 
+import CodeForm from './form/CodeForm';
 import SwitchForm from './form/SwitchForm';
 import TextForm from './form/TextForm';
 import { getAIIconComponent } from '../utils/icons/AIIcons';
@@ -139,6 +140,8 @@ const ModelEditor: Component<Props> = (props) => {
 					Delete
 				</button>
 			</div>
+
+			<CodeForm label="ID" value={props.model.id} />
 
 			<TextForm
 				label="Endpoint"
