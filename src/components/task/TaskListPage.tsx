@@ -13,6 +13,7 @@ import { Task } from '@/lib/task';
 import { getAllTasks } from '@/store/task';
 
 import StatusIcon from './StatusIcon';
+import TaskManagerState from './TaskManagerState';
 
 type ItemProps = {
 	task: Task;
@@ -88,6 +89,7 @@ const TaskListPage: Component = () => {
 	return (
 		<div class="container">
 			<div class="m-2">
+				<TaskManagerState />
 				<nav class="panel">
 					<p class="panel-block has-background-text-soft has-text-weight-bold flex-split">
 						Tasks

@@ -11,6 +11,11 @@ import { getUserConfig } from '@/store';
 import { logr } from '../logr';
 import { Task, TaskPlan } from './structs';
 
+export type TaskManagerState = {
+	running: boolean;
+	watchingTasks: number;
+};
+
 class RunningTask {
 	task: Task;
 
@@ -44,19 +49,31 @@ export class TaskManager {
 
 	// Callbacks
 
-	onManagerStatusChange?: (running: boolean) => void;
+	onManagerStatusChange?: (state: TaskManagerState) => void;
 
 	/**
 	 * Callback when task status is changed.
 	 */
 	onTaskUpdate?: (task: Task) => void;
 
+	/**
+	 * Injected method to get the task list.
+	 */
+	getTaskList?: () => Promise<Task[]>;
+
 	constructor() {
 		this.managerDelayMS = 500;
 		this.taskList = new Map();
 	}
 
-	// Metrics
+	// Callback helpers
+
+	private handleStateUpdate() {
+		this.onManagerStatusChange?.({
+			running: this.running(),
+			watchingTasks: this.taskList.size,
+		});
+	}
 
 	// Utils
 
@@ -133,6 +150,7 @@ Title and objective should be a string, and plan and constraints should be an ar
 	}
 
 	private async checkTask(rt: RunningTask) {
+		logr.info('[Task/Manager] Checking task', rt.task._id);
 		try {
 			const task = rt.task;
 			if (rt.cancelled) {
@@ -147,7 +165,7 @@ Title and objective should be a string, and plan and constraints should be an ar
 		} catch (e) {
 			logr.error(
 				'[Task/Manager] Error while checking task',
-				task.task._id,
+				rt.task._id,
 				e
 			);
 		}
@@ -174,7 +192,7 @@ Title and objective should be a string, and plan and constraints should be an ar
 			this.checkTasks();
 		}, this.managerDelayMS);
 
-		this.onManagerStatusChange?.(true);
+		this.handleStateUpdate();
 	}
 
 	/**
@@ -184,7 +202,7 @@ Title and objective should be a string, and plan and constraints should be an ar
 		if (this.intervalID) {
 			clearInterval(this.intervalID);
 			this.intervalID = null;
-			this.onManagerStatusChange?.(false);
+			this.handleStateUpdate();
 		} else {
 			logr.warn('Task manager is not running');
 		}
@@ -203,7 +221,9 @@ Title and objective should be a string, and plan and constraints should be an ar
 			return;
 		}
 
+		task.status = 'running';
 		this.taskList.set(task._id, new RunningTask(task));
+		this.onTaskUpdate?.(task);
 	}
 
 	cancelTask(id: string) {

@@ -5,6 +5,7 @@ import { Component, createSignal, For, Match, onMount, Switch } from 'solid-js';
 import { toast } from 'solid-toast';
 
 import { shortRelativeDateFormat } from '@/lib/intl';
+import { gotoNewChat } from '@/store/chat';
 
 import { ChatMeta } from '@lib/chat';
 import { chatListTx, clearAllChats, deleteChatByID } from '@lib/idb';
@@ -16,6 +17,8 @@ import { openConfirm } from '../modal-confirm';
 import Pagination, { createPaginatedList } from '../utils/Pagination';
 
 const ChatListPage: Component = () => {
+	const navigate = useNavigate();
+
 	const pageSize = 10;
 	const [chatList, setChatList] = createSignal<ChatMeta[] | undefined>();
 	const [filteredList, setFilteredList] = createSignal<ChatMeta[]>([]);
@@ -26,8 +29,6 @@ const ChatListPage: Component = () => {
 
 	let clearLeftRef: HTMLInputElement;
 	let filterRef: HTMLInputElement;
-
-	const navigate = useNavigate();
 
 	const loadChatMeta = async () => {
 		const db = await chatListTx<ChatMeta>();
@@ -103,6 +104,12 @@ const ChatListPage: Component = () => {
 				<nav class="panel is-primary">
 					<p class="panel-block has-background-text-soft has-text-weight-bold">
 						Chats ({chatList()?.length || '-'})
+						<button
+							class="button is-small is-primary"
+							onClick={() => gotoNewChat(navigate)}
+						>
+							New Chat
+						</button>
 					</p>
 					<div class="panel-block">
 						<div>

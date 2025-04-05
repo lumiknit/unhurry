@@ -1,24 +1,20 @@
-import { A, useNavigate } from '@solidjs/router';
+import { A } from '@solidjs/router';
 import {
 	BiRegularCog,
 	BiRegularFolder,
 	BiRegularHistory,
 	BiRegularQuestionMark,
-	BiSolidFilePlus,
 } from 'solid-icons/bi';
 import { FaSolidListCheck } from 'solid-icons/fa';
 import { Component, onMount } from 'solid-js';
-import { toast } from 'solid-toast';
+
+import { rootPath } from '@/env';
 
 import ModelDropdown from './ModelDropdown';
-import { rootPath } from '../../env';
-import { resetChatMessages } from '../../store/global_actions';
 
 const NavBar: Component = () => {
 	let burgerRef: HTMLAnchorElement;
 	let menuRef: HTMLDivElement;
-
-	const navigate = useNavigate();
 
 	const handleBurgerClick = () => {
 		burgerRef!.classList.toggle('is-active');
@@ -29,14 +25,6 @@ const NavBar: Component = () => {
 		burgerRef!.classList.remove('is-active');
 		menuRef!.classList.remove('is-active');
 	};
-
-	const handleNew = () => {
-		toast.success('New notebook created');
-		navigate(`${rootPath}/`);
-		resetChatMessages();
-		close();
-	};
-
 	onMount(() => {
 		menuRef!.querySelectorAll('a').forEach((a) => {
 			if (!a.href) return;
@@ -61,19 +49,14 @@ const NavBar: Component = () => {
 					</svg>
 				</A>
 
-				<a class="navbar-item" onClick={handleNew}>
-					<BiSolidFilePlus />
-					<span class="is-hidden-mobile">New</span>
-				</a>
-
 				<A class="navbar-item" href="/chats">
 					<BiRegularHistory />
-					<span class="is-hidden-mobile">Open</span>
+					<span class="is-hidden-mobile">Chats</span>
 				</A>
 
 				<A class="navbar-item" href="/tasks">
 					<FaSolidListCheck />
-					<span class="is-hidden-mobile">Task</span>
+					<span class="is-hidden-mobile">Tasks</span>
 				</A>
 
 				<a
