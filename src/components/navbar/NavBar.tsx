@@ -6,9 +6,10 @@ import {
 	BiRegularQuestionMark,
 } from 'solid-icons/bi';
 import { FaSolidListCheck } from 'solid-icons/fa';
-import { Component, onMount } from 'solid-js';
+import { Component, Match, onMount, Switch } from 'solid-js';
 
 import { rootPath } from '@/env';
+import { taskStore } from '@/store/task';
 
 import ModelDropdown from './ModelDropdown';
 
@@ -57,6 +58,17 @@ const NavBar: Component = () => {
 				<A class="navbar-item" href="/tasks">
 					<FaSolidListCheck />
 					<span class="is-hidden-mobile">Tasks</span>
+					<Switch>
+						<Match when={taskStore.state.running === false}>
+							<span class="indicator-off" />
+						</Match>
+						<Match when={taskStore.state.watchingTasks === -1}>
+							<span class="indicator-on" />
+						</Match>
+						<Match when>
+							<span class="spinner" />
+						</Match>
+					</Switch>
 				</A>
 
 				<a

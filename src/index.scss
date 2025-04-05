@@ -73,6 +73,24 @@ $theme-color: #0b7f4e;
 
 // Components
 
+.indicator-off {
+	display: inline-block;
+	width: 0.75rem;
+	height: 0.75rem;
+	margin: 0.25rem;
+	border-radius: 999rem;
+	background-color: var(--bulma-danger);
+}
+
+.indicator-on {
+	display: inline-block;
+	width: 0.75rem;
+	height: 0.75rem;
+	margin: 0.25rem;
+	border-radius: 999rem;
+	background-color: var(--bulma-success);
+}
+
 .spinner {
 	animation: spinAround 500ms infinite linear;
 	border: 0.25rem solid var(--bulma-primary);

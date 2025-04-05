@@ -62,7 +62,7 @@ export class TaskManager {
 	getTaskList?: () => Promise<Task[]>;
 
 	constructor() {
-		this.managerDelayMS = 500;
+		this.managerDelayMS = 1000;
 		this.taskList = new Map();
 	}
 
@@ -172,6 +172,7 @@ Title and objective should be a string, and plan and constraints should be an ar
 	}
 
 	private async checkTasks() {
+		logr.info('[Task/Manager] Checking tasks');
 		const ps = [];
 		for (const rt of this.taskList.values()) {
 			ps.push(this.checkTask(rt));
