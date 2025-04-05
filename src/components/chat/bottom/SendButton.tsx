@@ -9,7 +9,7 @@ import {
 import { Dynamic } from 'solid-js/web';
 import { toast } from 'solid-toast';
 
-import { vibrate } from '@/store/actions';
+import { vibrate } from '@/store/global_actions';
 
 import { getChatContext, store } from '@store';
 

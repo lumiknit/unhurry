@@ -1,4 +1,4 @@
-import { resetChatMessages } from '@/store/actions';
+import { resetChatMessages } from '@/store/global_actions';
 
 export const scrollToLastUserMessage = () => {
 	const elems = document.getElementsByClassName('msg-user');

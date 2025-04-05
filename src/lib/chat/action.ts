@@ -1,5 +1,3 @@
-import { systemPrompt } from '@/lib/prompts/system_prompts';
-
 import { MsgPartsParser } from './parser';
 import {
 	ChatHistory,
@@ -10,6 +8,7 @@ import {
 import { fnImpls, getFnTools } from './tools';
 import { ToolConfigs } from '../config/tool';
 import { FunctionCallContent, ModelConfig, newClientFromConfig } from '../llm';
+import { FunctionTool } from '../llm/function';
 import { logr } from '../logr';
 
 /**
@@ -18,7 +17,9 @@ import { logr } from '../logr';
  * - Model fallback
  * - Automatically run tools and feed to the model
  */
-export class SingleChatAction {
+export abstract class SingleLLMAction {
+	// Configuratinos
+
 	/**
 	 * Model configs.
 	 * The first one is the main model,
@@ -36,10 +37,14 @@ export class SingleChatAction {
 	 */
 	history: ChatHistory;
 
+	/**
+	 * Option to enable LLM Model fallback.
+	 */
 	enableFallback: boolean = false;
 
 	/**
-	 *
+	 * Whether the action is cancelled.
+	 * This is used to stop the streaming & ongoing requests.
 	 */
 	cancelled: boolean = false;
 
@@ -57,11 +62,27 @@ export class SingleChatAction {
 	 */
 	onUpdate?: (index: number) => void;
 
+	/**
+	 * Called when the LLM fails.
+	 */
 	onLLMFallback?: (
 		err: Error,
 		index: number,
 		modelConfig: ModelConfig
 	) => boolean;
+
+	// Abstract Methods
+
+	/**
+	 * Generate the system prompt for the model.
+	 * This is used for the system message.
+	 */
+	abstract systemPrompt(
+		model: ModelConfig,
+		tools: FunctionTool[]
+	): Promise<string>;
+
+	// Methods
 
 	constructor(
 		modelConfigs: ModelConfig[],
@@ -73,10 +94,9 @@ export class SingleChatAction {
 		this.history = history;
 	}
 
-	setFallback(enable: boolean) {
-		this.enableFallback = enable;
-	}
-
+	/**
+	 * Cancel the action.
+	 */
 	cancel() {
 		this.cancelled = true;
 	}
@@ -127,11 +147,7 @@ export class SingleChatAction {
 		const tools = getFnTools(this.toolConfigs);
 		const llm = newClientFromConfig(modelConfig);
 		llm.setFunctions(tools);
-		const sys = await systemPrompt(
-			modelConfig.systemPrompt,
-			!!modelConfig.useToolCall,
-			tools
-		);
+		const sys = await this.systemPrompt(modelConfig, tools);
 
 		// Part parser
 		const parser = new MsgPartsParser();

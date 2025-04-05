@@ -49,6 +49,12 @@ export class MsgPartsParser {
 		this.push('\n');
 		this.parts[this.parts.length - 1].content =
 			this.parts[this.parts.length - 1].content.trim();
+		while (
+			this.parts[this.parts.length - 1].content.length === 0 &&
+			this.parts[this.parts.length - 1].type === MSG_PART_TYPE_TEXT
+		) {
+			this.parts.pop();
+		}
 		return this.parts;
 	}
 

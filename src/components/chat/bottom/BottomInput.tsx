@@ -3,7 +3,11 @@ import { toast } from 'solid-toast';
 
 import { getBEService, ISpeechRecognizer } from '@/lib/be';
 import { logr } from '@/lib/logr';
-import { cancelAllChats, chat, generateChatTitle } from '@/store/actions';
+import {
+	cancelAllChats,
+	chat,
+	generateChatTitle,
+} from '@/store/global_actions';
 
 import {
 	getChatContext,

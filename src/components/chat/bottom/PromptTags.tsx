@@ -10,7 +10,7 @@ import {
 } from 'solid-js';
 import { toast } from 'solid-toast';
 
-import { vibrate } from '@/store/actions';
+import { vibrate } from '@/store/global_actions';
 
 import { PromptTag } from '@lib/config';
 

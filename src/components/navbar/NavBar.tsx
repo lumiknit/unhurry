@@ -12,7 +12,7 @@ import { toast } from 'solid-toast';
 
 import ModelDropdown from './ModelDropdown';
 import { rootPath } from '../../env';
-import { resetChatMessages } from '../../store/actions';
+import { resetChatMessages } from '../../store/global_actions';
 
 const NavBar: Component = () => {
 	let burgerRef: HTMLAnchorElement;
@@ -96,10 +96,13 @@ const NavBar: Component = () => {
 				id="navbarTarget"
 				class="navbar-menu no-user-select"
 			>
-				<div class="navbar-start">
+				<div class="navbar-end">
+					<div class="navbar-item">
+						<ModelDropdown />
+					</div>
 					<div class="navbar-item has-dropdown is-hoverable">
 						<a class="navbar-link">Menu</a>
-						<div class="navbar-dropdown">
+						<div class="navbar-dropdown is-right">
 							<A class="navbar-item" href={`${rootPath}/files`}>
 								<BiRegularFolder />
 								Files
@@ -119,12 +122,6 @@ const NavBar: Component = () => {
 								Logs
 							</A>
 						</div>
-					</div>
-				</div>
-
-				<div class="navbar-end">
-					<div class="navbar-item">
-						<ModelDropdown />
 					</div>
 				</div>
 			</div>

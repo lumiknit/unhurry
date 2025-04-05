@@ -6,7 +6,7 @@ import { logr } from '@/lib/logr';
 
 import { getChatContext, saveChatContextMeta, setChatContext } from '@store';
 
-import { generateChatTitle } from '../../store/actions';
+import { generateChatTitle } from '../../store/global_actions';
 
 interface EditProps {
 	originalTitle: string;

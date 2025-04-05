@@ -8,9 +8,9 @@ import {
 import { Component } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 
-type Status = 'pending' | 'running' | 'done' | 'failed' | 'interrupted';
+import { ProcessStatus } from '@/lib/task';
 
-const statusColor = new Map<Status, string>([
+const statusColor = new Map<ProcessStatus, string>([
 	['pending', 'text'],
 	['running', 'info'],
 	['done', 'success'],
@@ -18,7 +18,7 @@ const statusColor = new Map<Status, string>([
 	['interrupted', 'warning'],
 ]);
 
-const statusIconComponent = new Map<Status, Component>([
+const statusIconComponent = new Map<ProcessStatus, Component>([
 	['pending', BiRegularMinusCircle],
 	['running', BiRegularLoaderCircle],
 	['done', BiSolidCheckCircle],
@@ -28,7 +28,7 @@ const statusIconComponent = new Map<Status, Component>([
 
 interface StatusIconProps {
 	class?: string;
-	status: Status;
+	status: ProcessStatus;
 }
 
 const StatusIcon: Component<StatusIconProps> = (props) => {

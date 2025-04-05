@@ -3,7 +3,7 @@ import { unwrap } from 'solid-js/store';
 import { toast } from 'solid-toast';
 
 import { getBEService, VibrationPattern } from '@/lib/be';
-import { SingleChatAction } from '@/lib/chat/llm';
+import { SingleChatAction } from '@/lib/chat/action_chat';
 import { logr } from '@/lib/logr';
 
 import {

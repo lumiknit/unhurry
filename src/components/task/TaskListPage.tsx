@@ -5,48 +5,45 @@ import {
 	BiRegularTime,
 } from 'solid-icons/bi';
 import { IoSparkles } from 'solid-icons/io';
-import { Component, createSignal, For, Show } from 'solid-js';
+import { Component, createSignal, For, onMount, Show } from 'solid-js';
 
 import { rootPath } from '@/env';
 import { shortRelativeDateFormat } from '@/lib/intl';
+import { Task } from '@/lib/task';
+import { getAllTasks } from '@/store/task';
 
 import StatusIcon from './StatusIcon';
 
 type ItemProps = {
-	status: 'pending' | 'running' | 'done' | 'failed';
-	id: string;
-	title: string;
-	message: string;
-	createdAt: Date;
-	updatedAt: Date;
+	task: Task;
 };
 
 const TaskListItem: Component<ItemProps> = (props) => {
 	const [showDropdown, setShowDropdown] = createSignal(false);
 
 	return (
-		<div class="panel-block panel-item">
-			<StatusIcon class="panel-item-icon" status={props.status} />
-			<div class="panel-item-content">
+		<a class="panel-block panel-item">
+			<StatusIcon class="panel-item-icon" status={props.task.status} />
+			<A
+				class="panel-item-content has-text-default"
+				href={`${rootPath}/tasks/${props.task._id}`}
+			>
 				<div class="panel-item-body">
-					<A
-						href={`${rootPath}/tasks/${props.id}`}
-						class="panel-item-title"
-					>
-						{props.title}
-					</A>
-					<div class="panel-item-desc">{props.message}</div>
+					<div class="panel-item-title">{props.task.plan.title}</div>
+					<div class="panel-item-desc">
+						{props.task.plan.objective}
+					</div>
 				</div>
 				<div class="panel-item-date">
 					<div>
 						<BiRegularCalendar />
-						{shortRelativeDateFormat(props.createdAt)}
+						{shortRelativeDateFormat(props.task.createdAt)}
 					</div>
 					<div>
 						<BiRegularTime /> 1:23
 					</div>
 				</div>
-			</div>
+			</A>
 			<div
 				class={
 					'h-full dropdown is-right' +
@@ -74,37 +71,19 @@ const TaskListItem: Component<ItemProps> = (props) => {
 					</div>
 				</Show>
 			</div>
-		</div>
+		</a>
 	);
 };
 
 const TaskListPage: Component = () => {
-	const exampleItems: ItemProps[] = [
-		{
-			id: 'a',
-			status: 'running',
-			title: 'Task 1',
-			message: 'This is a test task',
-			createdAt: new Date(Date.now() - 1000 * 60 * 8),
-			updatedAt: new Date(),
-		},
-		{
-			id: 'b',
-			status: 'failed',
-			title: 'Task 1',
-			message: 'This is a test task',
-			createdAt: new Date(Date.now() - 1000 * 60 * 3),
-			updatedAt: new Date(),
-		},
-		{
-			id: 'c',
-			status: 'done',
-			title: 'Simple one, but what is your purpose?',
-			message: 'What is going on. Hello',
-			createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2),
-			updatedAt: new Date(),
-		},
-	];
+	const [tasks, setTasks] = createSignal<Task[]>([]);
+
+	const reloadTasks = async () => {
+		const tasks = await getAllTasks();
+		setTasks(tasks);
+	};
+
+	onMount(reloadTasks);
 
 	return (
 		<div class="container">
@@ -122,8 +101,8 @@ const TaskListPage: Component = () => {
 							Start New Task
 						</A>
 					</p>
-					<For each={exampleItems}>
-						{(item) => <TaskListItem {...item} />}
+					<For each={tasks()}>
+						{(task) => <TaskListItem task={task} />}
 					</For>
 				</nav>
 			</div>

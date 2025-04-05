@@ -2,6 +2,22 @@ import { ChatHistory } from '../chat';
 import { ToolConfigs } from '../config/tool';
 
 /**
+ * Process status.
+ *
+ * - Pending: Not started yet.
+ * - Running: In progress.
+ * - Done: Completed.
+ * - Failed: Failed to complete.
+ * - Interrupted: Stopped by user.
+ */
+export type ProcessStatus =
+	| 'pending'
+	| 'running'
+	| 'done'
+	| 'failed'
+	| 'interrupted';
+
+/**
  * TaskForce is a group of agents to achieve a task.
  */
 export interface TaskForce {
@@ -16,7 +32,7 @@ export interface TaskForce {
 	name: string;
 
 	/**
-	 * LLM Model ID
+	 * Available models for this task force
 	 */
 	modelID: string;
 
@@ -36,62 +52,45 @@ export interface TaskForce {
 	workerSystemPrompt: string;
 }
 
-export type ProcessStatus = 'pending' | 'running' | 'done' | 'failed';
-
-export type ProcessResult = 'done' | 'cancelled' | 'failed';
-
-// StepItem
-
-export type StepItemResult = {
-	status: ProcessResult;
-
-	report: string;
-
-	finishedAt: Date;
-};
-
-/**
- * StepItem is a atomic unit of a step.
- * Each step item can be run independently, concurrently.
- *
- */
-export type StepItem = {
-	/**
-	 * The goal of this step item.
-	 */
-	goal: string;
-
-	/**
-	 * The timestamp when this step item was created.
-	 */
-	startedAt: Date;
-
-	history: ChatHistory;
-
-	result?: StepItemResult;
-};
-
-// Step
-
-export type StepResult = {
-	status: ProcessResult;
-
-	report: string;
-
-	finishedAt: Date;
-};
-
 export type Step = {
+	status: ProcessStatus;
+
 	createdAt: Date;
 
+	updatedAt: Date;
+
 	goal: string;
 
-	items: StepItem[];
+	chatHistory: ChatHistory;
 
-	result?: StepResult;
+	report?: string;
 };
 
 // Task
+
+export type TaskPlan = {
+	/**
+	 * Task title
+	 */
+	title: string;
+
+	/**
+	 * The ultimate goal of the task.
+	 * The planner will check this goal and create a plan to achieve it.
+	 */
+	objective: string;
+
+	/**
+	 * Each
+	 */
+	subgoals: string[];
+
+	/**
+	 * The task is divided into subtasks.
+	 * Each subtask is a step to achieve the goal.
+	 */
+	constraints: string[];
+};
 
 /**
  * Task is a kind of 'work' of AI.
@@ -109,29 +108,33 @@ export type Task = {
 	createdAt: Date;
 
 	/**
+	 * Task updated date
+	 */
+	updatedAt: Date;
+
+	/**
+	 * Last timestamp when user checked the task.
+	 * This is used to notify the user.
+	 */
+	lastCheckedAt: Date;
+
+	/**
+	 * Task plan
+	 */
+	plan: TaskPlan;
+
+	/**
 	 * Task status.
 	 */
 	status: ProcessStatus;
 
 	/**
-	 * Task title
+	 * Steps
 	 */
-	title: string;
+	steps: Step[];
 
 	/**
-	 * The ultimate goal of the task.
-	 * The planner will check this goal and create a plan to achieve it.
+	 * Outputs
 	 */
-	objective: string;
-
-	/**
-	 * The task is divided into subtasks.
-	 * Each subtask is a step to achieve the goal.
-	 */
-	constraints: string[];
-
-	/**
-	 * Each
-	 */
-	subgoals: string[];
+	outputs?: string[];
 };

@@ -43,9 +43,35 @@
 	flex: 1;
 }
 
+.gap-1 {
+	gap: 0.25rem !important;
+}
+
+.gap-2 {
+	gap: 0.5rem !important;
+}
+
+.flex-1 {
+	flex: 1 !important;
+}
+
+.maxw-75 {
+	max-width: 75% !important;
+}
+
 // Text no color
+.has-text-default {
+	color: var(--bulma-text-strong);
+}
 
 // Override bulma items
 nav.panel {
 	overflow: hidden;
+}
+
+textarea.textarea {
+	padding: var(--bulma-control-padding-vertical)
+		var(--bulma-control-padding-horizontal);
+	--bulma-textarea-min-height: 2.5em;
+	height: 5em;
 }
