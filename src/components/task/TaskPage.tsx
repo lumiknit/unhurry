@@ -63,17 +63,19 @@ const TaskPage: Component = () => {
 
 	return (
 		<div class="container">
-			<Switch>
-				<Match when={task() === undefined}>
-					<p>Loading...</p>
-				</Match>
-				<Match when={task() === false}>
-					<p>Task not found</p>
-				</Match>
-				<Match when={task() !== undefined && task() !== false}>
-					<TaskPageBody task={task() as Task} />
-				</Match>
-			</Switch>
+			<div class="m-2">
+				<Switch>
+					<Match when={task() === undefined}>
+						<p>Loading...</p>
+					</Match>
+					<Match when={task() === false}>
+						<p>Task not found</p>
+					</Match>
+					<Match when={task() !== undefined && task() !== false}>
+						<TaskPageBody task={task() as Task} />
+					</Match>
+				</Switch>
+			</div>
 		</div>
 	);
 };
