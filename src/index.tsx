@@ -2,6 +2,8 @@ import { Route, Router } from '@solidjs/router';
 import { render } from 'solid-js/web';
 import 'solid-devtools';
 
+import TaskSummaryPage from '@/components/task/TaskSummaryPage.tsx';
+
 import About from '@components/About.tsx';
 import ChatPage from '@components/chat/ChatPage.tsx';
 import ChatListPage from '@components/chat-list/ChatListPage.tsx';
@@ -10,8 +12,6 @@ import LogsPage from '@components/logs-page/LogsPage.tsx';
 import SettingsPage from '@components/settings/SettingsPage.tsx';
 import TaskCreatePage from '@components/task/TaskCreatePage.tsx';
 import TaskListPage from '@components/task/TaskListPage.tsx';
-import TaskPage from '@components/task/TaskPage.tsx';
-import TeamPage from '@components/task/TeamPage.tsx';
 
 import './index.scss';
 import App from './App.tsx';
@@ -30,8 +30,7 @@ render(
 			<Route path={`${rootPath}/chats`} component={ChatListPage} />
 			<Route path={`${rootPath}/tasks`} component={TaskListPage} />
 			<Route path={`${rootPath}/task/new`} component={TaskCreatePage} />
-			<Route path={`${rootPath}/tasks/:id`} component={TaskPage} />
-			<Route path={`${rootPath}/team`} component={TeamPage} />
+			<Route path={`${rootPath}/tasks/:id`} component={TaskSummaryPage} />
 			<Route path={`${rootPath}/files`} component={FileListPage} />
 			<Route path={`${rootPath}/settings`} component={SettingsPage} />
 			<Route path={`${rootPath}/logs`} component={LogsPage} />

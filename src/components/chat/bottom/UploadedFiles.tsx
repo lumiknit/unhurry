@@ -1,4 +1,3 @@
-import { BiRegularX } from 'solid-icons/bi';
 import { Component, For } from 'solid-js';
 
 interface UploadedFile {
@@ -21,7 +20,7 @@ const UploadedFiles: Component<UploadedFilesProps> = (props) => {
 						onClick={() => props.onDelete(file.id)}
 					>
 						{file.name}
-						<BiRegularX />
+						<span class="delete is-small" />
 					</button>
 				)}
 			</For>

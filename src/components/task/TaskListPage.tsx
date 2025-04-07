@@ -2,18 +2,42 @@ import { A } from '@solidjs/router';
 import {
 	BiRegularCalendar,
 	BiRegularDotsHorizontalRounded,
+	BiRegularPlus,
 	BiRegularTime,
+	BiSolidWrench,
 } from 'solid-icons/bi';
-import { IoSparkles } from 'solid-icons/io';
 import { Component, createSignal, For, onMount, Show } from 'solid-js';
 
 import { rootPath } from '@/env';
 import { shortRelativeDateFormat } from '@/lib/intl';
 import { Task } from '@/lib/task';
-import { getAllTasks } from '@/store/task';
+import { taskManager } from '@/lib/task/manager';
+import { getAllTasks, taskStore } from '@/store/task';
 
 import StatusIcon from './StatusIcon';
-import TaskManagerState from './TaskManagerState';
+import Stat from '../utils/Stat';
+
+const TaskManagerToggleButton: Component = () => {
+	const msg = () => (taskStore.state.running ? 'Running' : 'Stopped');
+	const cls = () => (taskStore.state.running ? 'is-primary' : 'is-danger');
+	return (
+		<button
+			class={'button has-text-weight-bold ' + cls()}
+			onClick={() => {
+				if (taskStore.state.running) {
+					taskManager.stop();
+				} else {
+					taskManager.start();
+				}
+			}}
+		>
+			<span class="icon mr-1">
+				<BiSolidWrench />
+			</span>
+			{msg()}
+		</button>
+	);
+};
 
 type ItemProps = {
 	task: Task;
@@ -89,7 +113,20 @@ const TaskListPage: Component = () => {
 	return (
 		<div class="container">
 			<div class="m-2">
-				<TaskManagerState />
+				<Stat
+					class="mb-2"
+					stats={[
+						{
+							title: 'Manager',
+							value: TaskManagerToggleButton,
+							props: {},
+						},
+						{
+							title: 'Watching',
+							value: `${taskStore.state.watchingTasks}`,
+						},
+					]}
+				/>
 				<nav class="panel">
 					<p class="panel-block has-background-text-soft has-text-weight-bold flex-split">
 						Tasks
@@ -97,10 +134,10 @@ const TaskListPage: Component = () => {
 							class="button is-small is-primary"
 							href={`${rootPath}/task/new`}
 						>
-							<span class="icon mx-1">
-								<IoSparkles />
+							<span class="icon mr-1">
+								<BiRegularPlus />
 							</span>
-							Start New Task
+							New Task
 						</A>
 					</p>
 					<For each={tasks()}>

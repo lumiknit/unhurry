@@ -7,6 +7,7 @@ $theme-color: #0b7f4e;
 		'Pretendard, Inter, SF Pro, Segoe UI, Roboto, Oxygen, Ubuntu, Helvetica Neue, Helvetica, Arial, sans-serif',
 	$primary: $theme-color
 );
+@use './bulma-ext.scss';
 @use './switch.scss';
 @use './panel.scss';
 @use './utils.scss';

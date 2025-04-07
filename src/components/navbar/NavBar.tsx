@@ -62,7 +62,7 @@ const NavBar: Component = () => {
 						<Match when={taskStore.state.running === false}>
 							<span class="indicator-off" />
 						</Match>
-						<Match when={taskStore.state.watchingTasks === -1}>
+						<Match when={taskStore.state.watchingTasks <= 0}>
 							<span class="indicator-on" />
 						</Match>
 						<Match when>

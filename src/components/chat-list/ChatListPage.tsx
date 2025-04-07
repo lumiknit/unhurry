@@ -1,5 +1,5 @@
 import { useNavigate } from '@solidjs/router';
-import { BiRegularCalendar } from 'solid-icons/bi';
+import { BiRegularCalendar, BiRegularPlus } from 'solid-icons/bi';
 import { TbTrash } from 'solid-icons/tb';
 import { Component, createSignal, For, Match, onMount, Switch } from 'solid-js';
 import { toast } from 'solid-toast';
@@ -102,12 +102,15 @@ const ChatListPage: Component = () => {
 		<div class="container">
 			<div class="m-2">
 				<nav class="panel is-primary">
-					<p class="panel-block has-background-text-soft has-text-weight-bold">
-						Chats ({chatList()?.length || '-'})
+					<p class="panel-block has-background-text-soft has-text-weight-bold flex-split">
+						<span>Chats ({chatList()?.length || '-'})</span>
 						<button
 							class="button is-small is-primary"
 							onClick={() => gotoNewChat(navigate)}
 						>
+							<span class="icon mr-1">
+								<BiRegularPlus />
+							</span>
 							New Chat
 						</button>
 					</p>
