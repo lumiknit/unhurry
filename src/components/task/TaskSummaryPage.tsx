@@ -2,11 +2,12 @@ import { useParams } from '@solidjs/router';
 import { BiRegularArrowBack } from 'solid-icons/bi';
 import { Component, createSignal, For, Match, onMount, Switch } from 'solid-js';
 
+import Collapsible from '@/components/utils/Collapsible';
+import Stat from '@/components/utils/Stat';
 import { Task } from '@/lib/task';
 import { getTask } from '@/store/task';
 
 import StatusIcon from './StatusIcon';
-import Stat from '../utils/Stat';
 
 type Props = {
 	task: Task;
@@ -90,9 +91,15 @@ const TaskPageBody: Component<Props> = (props) => {
 
 			<For each={props.task.steps}>
 				{(step, idx) => (
-					<div class="has-border p-2 my-2 round-1">Step {idx()}</div>
+					<div class="has-border p-2 my-2 round-1">
+						Step {idx()} {step.goal}
+					</div>
 				)}
 			</For>
+
+			<Collapsible header={() => <h3 class="subtitle">Plan</h3>}>
+				Hi, there
+			</Collapsible>
 		</>
 	);
 };

@@ -1,4 +1,5 @@
 import { Component, For, Match, Switch } from 'solid-js';
+import { Dynamic } from 'solid-js/web';
 
 export type StatItem<T extends Record<string, any>> = {
 	title: string;
@@ -15,7 +16,10 @@ const Item: Component<StatItem<any>> = (props) => {
 			<Switch>
 				<Match when={typeof props.value === 'function'}>
 					<div class="is-size-5 has-text-weight-bold">
-						{(props.value as Component)(props.props!)}
+						<Dynamic
+							component={props.value as Component}
+							{...props.props}
+						/>
 					</div>
 				</Match>
 				<Match when>
