@@ -133,10 +133,12 @@ export class TaskManager {
 		});
 	}
 
-	private handleTaskUpdate(task: Task) {
+	private handleTaskUpdate(task: Task, stopped?: boolean) {
 		// Update time
 		commitElapsed(task);
-		task.lastStartedAt = new Date();
+		if (!stopped) {
+			task.lastStartedAt = new Date();
+		}
 		this.onTaskUpdate?.(task);
 	}
 
@@ -165,7 +167,9 @@ export class TaskManager {
 		const llm = newClientFromConfig(modelConfig);
 		if (chatHistory[chatHistory.length - 1]?.role !== 'user') {
 			chatHistory.push(
-				LLMMessage.user('Then? Please give me code block.')
+				LLMMessage.user(
+					'Then? Please give me the result with md code block. (e.g. ```type ... ```)'
+				)
 			);
 		}
 		const resp = await llm.chat(systemPrompt, chatHistory);
@@ -189,7 +193,7 @@ export class TaskManager {
 			rt.task.status = 'failed';
 			rt.task.outputs = ['Cancelled by user'];
 		}
-		this.handleTaskUpdate(rt.task);
+		this.handleTaskUpdate(rt.task, true);
 		this.handleStateUpdate();
 	}
 
@@ -410,7 +414,10 @@ ${task.steps
 		rt.task.outputs = [details];
 		rt.task.status = 'done';
 
-		this.handleTaskUpdate(rt.task);
+		this.handleTaskUpdate(rt.task, true);
+
+		// Remove from the list of running tasks
+		this.taskList.delete(rt.task._id);
 	}
 
 	/**
@@ -457,10 +464,15 @@ ${task.steps
 			.map((s) => `#### ${s.goal}\n${s.report}\n`);
 		action.currentGoal = step.goal;
 
+		let msgContent = 'Then?';
+		if (step.chatHistory.msgPairs.length === 0) {
+			msgContent = 'Start to achieve your goal.';
+		}
+
 		await action.runWithUserMessage([
 			{
 				type: 'text',
-				content: 'Then?',
+				content: msgContent,
 			},
 		]);
 		const lastParts =

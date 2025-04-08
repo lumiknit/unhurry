@@ -31,13 +31,16 @@ ${toolCallSystemPrompt(!!model.useToolCall, tools)}
 
 # Report format
 
-You can use any tools and generate any words.
-But when you finish your goal, you should give a report with markdown code block.
-Start with a line with triple backticks, and 'task:report', ends with triple backticks)
-The code block's language should be 'task:report'.
-the report.
-The first line should be a summary of the report.
-And then, you can put any long details afterwords.
+- You can give any sketch of your idea or use tools.
+- BUT note that **report is required** and **only report will be used for the task**
+- To finish your goal, you should give a report with markdown code block.
+- Start with a line with triple backticks, and 'task:report', ends with triple backticks)
+- The code block's language should be 'task:report'.
+- The first line should be a summary of the report.
+- The next line, you can put details which should be used in future.
+  - For example, which tools you used and what is the result.
+  - Which artifacts you put the result in.
+  - Since only report will be passed to the next step, you should put every details in your report.
 
 The below is a example report for writing a quick sort:
 

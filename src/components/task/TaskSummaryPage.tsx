@@ -1,4 +1,5 @@
 import { useParams } from '@solidjs/router';
+import { marked } from 'marked';
 import {
 	BiRegularArrowBack,
 	BiRegularPause,
@@ -9,6 +10,7 @@ import {
 	Accessor,
 	Component,
 	createSignal,
+	For,
 	Index,
 	Match,
 	onCleanup,
@@ -143,6 +145,17 @@ const TaskPageBody: Component<Props> = (props) => {
 			</div>
 
 			<TaskSummaryDescription task={props.task} />
+
+			<Show when={props.task().outputs}>
+				<h3 class="subtitle">Outputs</h3>
+				<ul>
+					<For each={props.task().outputs}>
+						{(text) => (
+							<li innerHTML={marked(text, { async: false })} />
+						)}
+					</For>
+				</ul>
+			</Show>
 
 			<h3 class="subtitle">Steps (#={props.task().steps.length})</h3>
 

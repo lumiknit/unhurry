@@ -131,7 +131,7 @@ const TaskListPage: Component = () => {
 	const reloadTasks = async () => {
 		const tasks = await getAllTasks();
 		// Sort by createdAt
-		tasks.sort((a, b) => {
+		tasks.sort((b, a) => {
 			return a.createdAt.getTime() - b.createdAt.getTime();
 		});
 		setTasks(tasks);
