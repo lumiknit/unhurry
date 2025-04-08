@@ -67,9 +67,23 @@
 	max-width: 75% !important;
 }
 
+.transition-transform {
+	transition: transform 0.2s ease-in-out;
+}
+
+.cw-90 {
+	transform: rotate(90deg);
+}
+
 // Text no color
 .has-text-default {
 	color: var(--bulma-text-strong);
+}
+
+.multilines {
+	white-space: pre-wrap;
+	word-wrap: break-word;
+	overflow-wrap: break-word;
 }
 
 // Override bulma items

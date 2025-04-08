@@ -34,7 +34,7 @@ interface StatusIconProps {
 const StatusIcon: Component<StatusIconProps> = (props) => {
 	return (
 		<span
-			class={`task-status-icon has-text-${statusColor.get(props.status)} ${props.class ?? ''}`}
+			class={`icon m-0 has-text-${statusColor.get(props.status)} ${props.class ?? ''}`}
 			title={props.status}
 		>
 			<Dynamic component={statusIconComponent.get(props.status)} />

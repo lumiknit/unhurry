@@ -6,7 +6,7 @@ import { toast } from 'solid-toast';
 
 import { rootPath } from '@/env';
 import { logr } from '@/lib/logr';
-import { TaskPlan } from '@/lib/task';
+import { TaskOutline } from '@/lib/task';
 import { taskManager } from '@/lib/task/manager';
 import { createTask } from '@/store/task';
 
@@ -28,8 +28,8 @@ const TaskCreatePage: Component = () => {
 		}
 
 		const pm = (async () => {
-			const plan: TaskPlan =
-				await taskManager.generateTaskPlan(userRequest);
+			const plan: TaskOutline =
+				await taskManager.generateTaskOutline(userRequest);
 			if (!plan) {
 				toast.error('Failed to generate task plan.');
 				return;
@@ -51,7 +51,7 @@ const TaskCreatePage: Component = () => {
 	};
 
 	const handleCreate = async (start?: boolean) => {
-		const plan: TaskPlan = {
+		const plan: TaskOutline = {
 			title: taskTitleRef!.value,
 			objective: taskObjectiveRef!.value,
 			subgoals: taskSubgoalsRef!.value.split('\n'),

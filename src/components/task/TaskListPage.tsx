@@ -7,14 +7,16 @@ import {
 	BiSolidWrench,
 } from 'solid-icons/bi';
 import { Component, createSignal, For, onMount, Show } from 'solid-js';
+import toast from 'solid-toast';
 
 import { rootPath } from '@/env';
-import { shortRelativeDateFormat } from '@/lib/intl';
-import { Task } from '@/lib/task';
+import { millisToColonFormat, shortRelativeDateFormat } from '@/lib/intl';
+import { elapsedMillis, Task } from '@/lib/task';
 import { taskManager } from '@/lib/task/manager';
-import { getAllTasks, taskStore } from '@/store/task';
+import { deleteTask, getAllTasks, taskStore } from '@/store/task';
 
 import StatusIcon from './StatusIcon';
+import { openConfirm } from '../modal-confirm';
 import Stat from '../utils/Stat';
 
 const TaskManagerToggleButton: Component = () => {
@@ -41,10 +43,26 @@ const TaskManagerToggleButton: Component = () => {
 
 type ItemProps = {
 	task: Task;
+
+	onReload?: () => void;
 };
 
 const TaskListItem: Component<ItemProps> = (props) => {
 	const [showDropdown, setShowDropdown] = createSignal(false);
+
+	const handleDelete = async () => {
+		if (
+			!(await openConfirm('Are you sure you want to delete this task?'))
+		) {
+			return;
+		}
+		toast.promise(deleteTask(props.task._id), {
+			loading: 'Deleting task...',
+			success: 'Task deleted successfully',
+			error: 'Failed to delete task',
+		});
+		props.onReload?.();
+	};
 
 	return (
 		<a class="panel-block panel-item">
@@ -54,9 +72,11 @@ const TaskListItem: Component<ItemProps> = (props) => {
 				href={`${rootPath}/tasks/${props.task._id}`}
 			>
 				<div class="panel-item-body">
-					<div class="panel-item-title">{props.task.plan.title}</div>
+					<div class="panel-item-title">
+						{props.task.outline.title}
+					</div>
 					<div class="panel-item-desc">
-						{props.task.plan.objective}
+						{props.task.outline.objective}
 					</div>
 				</div>
 				<div class="panel-item-date">
@@ -65,7 +85,8 @@ const TaskListItem: Component<ItemProps> = (props) => {
 						{shortRelativeDateFormat(props.task.createdAt)}
 					</div>
 					<div>
-						<BiRegularTime /> 1:23
+						<BiRegularTime />{' '}
+						{millisToColonFormat(elapsedMillis(props.task))}
 					</div>
 				</div>
 			</A>
@@ -89,7 +110,11 @@ const TaskListItem: Component<ItemProps> = (props) => {
 				<Show when={showDropdown()}>
 					<div class="dropdown-menu" id="dropdown-menu" role="menu">
 						<div class="dropdown-content">
-							<a href="#" class="dropdown-item has-text-danger">
+							<a
+								href="#"
+								class="dropdown-item has-text-danger"
+								onClick={handleDelete}
+							>
 								Delete
 							</a>
 						</div>
@@ -141,7 +166,9 @@ const TaskListPage: Component = () => {
 						</A>
 					</p>
 					<For each={tasks()}>
-						{(task) => <TaskListItem task={task} />}
+						{(task) => (
+							<TaskListItem task={task} onReload={reloadTasks} />
+						)}
 					</For>
 				</nav>
 			</div>

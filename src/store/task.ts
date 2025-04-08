@@ -1,7 +1,8 @@
 import { createStore } from 'solid-js/store';
+import { toast } from 'solid-toast';
 
 import { taskListTx } from '@/lib/idb';
-import { Task, TaskPlan } from '@/lib/task';
+import { Task, TaskOutline } from '@/lib/task';
 import { taskManager, TaskManagerState } from '@/lib/task/manager';
 import { uniqueID } from '@/lib/utils';
 
@@ -24,23 +25,23 @@ taskManager.onTaskUpdate = async (task) => {
 };
 
 taskManager.onManagerStatusChange = (state) => {
-	setTaskStore('state', 'running', state.running);
+	setTaskStore('state', state);
 };
 
 /**
  * Create a task and push to the task list.
  */
 export const createTask = async (
-	taskPlan: TaskPlan,
+	outline: TaskOutline,
 	start?: boolean
 ): Promise<string> => {
 	const task: Task = {
 		_id: uniqueID(),
 		createdAt: new Date(),
-		updatedAt: new Date(),
 		lastCheckedAt: new Date(0),
 		status: 'pending',
-		plan: taskPlan,
+		outline: outline,
+		artifacts: [],
 		steps: [],
 	};
 
@@ -67,4 +68,32 @@ export const getAllTasks = async (): Promise<Task[]> => {
 	const tx = await taskListTx<Task>();
 	const tasks = await tx.getAll();
 	return tasks;
+};
+
+taskManager.getTaskList = getAllTasks;
+
+export const startTask = async (taskID: string) => {
+	const task = await getTask(taskID);
+	if (!task) {
+		throw new Error(`Task ${taskID} not found`);
+	}
+	taskManager.startTask(task);
+	toast.success(`Task ${taskID} starts soon`);
+};
+
+export const pauseTask = async (taskID: string) => {
+	taskManager.pauseTask(taskID);
+	toast.success(`Task ${taskID} paused`);
+};
+
+export const cancelTask = async (taskID: string) => {
+	taskManager.cancelTask(taskID);
+	toast.success(`Task ${taskID} canceled`);
+};
+
+export const deleteTask = async (taskID: string): Promise<void> => {
+	taskManager.cancelTask(taskID);
+
+	const tx = await taskListTx<Task>();
+	await tx.delete(taskID);
 };

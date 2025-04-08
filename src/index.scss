@@ -157,15 +157,16 @@ textarea.textarea.inline {
 		var(--bulma-control-padding-horizontal);
 }
 
-div.msg-user .message-body {
+div.msg-user div.message-body {
 	margin-left: 2rem;
 	color: var(--bulma-primary-invert);
 	background-color: var(--bulma-primary);
 	border-radius: 1.25rem 0.125rem 1.25rem 1.25rem;
+	padding: 0.25rem 1rem;
 }
 
 div.message-body {
-	padding: 0.5rem 0.75rem;
+	padding: 0.25rem 0.5rem;
 	overflow: hidden;
 }
 
@@ -297,7 +298,7 @@ span[aria-hidden='true'] {
 
 .bottom-input {
 	border: var(--uh-bottom-input-border);
-	border-radius: 1rem;
+	border-radius: 0.66rem;
 	margin: 0.5rem;
 	padding: 0.5rem;
 

@@ -25,3 +25,22 @@ export const shortRelativeDateFormat = (date: Date): string => {
 	}
 	return shortRelativeTimeFormat.format(diff, unit);
 };
+
+export const millisToColonFormat = (millis: number): string => {
+	let seconds = Math.floor(millis / 1000);
+	let minutes = Math.floor(seconds / 60);
+	seconds = seconds % 60;
+	if (minutes < 60) {
+		return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+	} else {
+		let hours = Math.floor(minutes / 60);
+		minutes = minutes % 60;
+		if (hours < 24) {
+			return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+		} else {
+			const days = Math.floor(hours / 24);
+			hours = hours % 24;
+			return `${days}:${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+		}
+	}
+};

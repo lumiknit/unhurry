@@ -1,16 +1,32 @@
 import { useParams } from '@solidjs/router';
-import { BiRegularArrowBack } from 'solid-icons/bi';
-import { Component, createSignal, For, Match, onMount, Switch } from 'solid-js';
+import {
+	BiRegularArrowBack,
+	BiRegularPause,
+	BiRegularPlay,
+} from 'solid-icons/bi';
+import { OcCircleslash2 } from 'solid-icons/oc';
+import {
+	Accessor,
+	Component,
+	createSignal,
+	Index,
+	Match,
+	onCleanup,
+	onMount,
+	Show,
+	Switch,
+} from 'solid-js';
 
-import Collapsible from '@/components/utils/Collapsible';
 import Stat from '@/components/utils/Stat';
-import { Task } from '@/lib/task';
-import { getTask } from '@/store/task';
+import { millisToColonFormat } from '@/lib/intl';
+import { elapsedMillis, Task } from '@/lib/task';
+import { cancelTask, getTask, pauseTask, startTask } from '@/store/task';
 
 import StatusIcon from './StatusIcon';
+import StepItem from './StepItem';
 
 type Props = {
-	task: Task;
+	task: Accessor<Task>;
 };
 
 const TaskSummaryBody: Component<Props> = (props) => {
@@ -28,25 +44,25 @@ const TaskSummaryBody: Component<Props> = (props) => {
 			</a>
 
 			<h2 class="title is-flex gap-1 mb-1">
-				<StatusIcon status={props.task.status} />
-				{props.task.plan.title}
+				<StatusIcon status={props.task().status} />
+				{props.task().outline.title}
 			</h2>
-			<div class="tag">{props.task._id}</div>
+			<div class="tag">{props.task()._id}</div>
 			<Stat
 				class="my-2"
 				stats={[
 					{
 						title: 'Status',
-						value: props.task.status,
+						value: props.task().status,
 						class: 'is-half',
 					},
 					{
 						title: 'Steps',
-						value: `${props.task.steps.length}`,
+						value: `${props.task().steps.length}`,
 					},
 					{
 						title: 'Elapsed',
-						value: '1:23',
+						value: millisToColonFormat(elapsedMillis(props.task())),
 					},
 				]}
 			/>
@@ -55,26 +71,40 @@ const TaskSummaryBody: Component<Props> = (props) => {
 };
 
 const TaskSummaryDescription: Component<Props> = (props) => {
+	const [showDetails, setShowDetails] = createSignal(false);
 	return (
 		<div class="has-border p-2 my-2 round-1">
 			<ul>
 				<li>
-					<b>Title</b>: {props.task.plan.title}
+					<b>Title</b>: {props.task().outline.title}
 				</li>
 				<li>
 					<b>Objective</b>:
-					{props.task.plan.objective || 'No objective specified'}
+					{props.task().outline.objective || 'No objective specified'}
 				</li>
-				<li>
-					<b>Constraints</b>:
-					{props.task.plan.constraints?.join(', ') ||
-						'No constraints specified'}
-				</li>
-				<li>
-					<b>Subgoals</b>:
-					{props.task.plan.subgoals?.join(', ') ||
-						'No subgoals specified'}
-				</li>
+				<Switch>
+					<Match when={!showDetails()}>
+						<a href="#" onClick={() => setShowDetails(true)}>
+							Show details
+						</a>
+					</Match>
+					<Match when>
+						<li>
+							<b>Constraints</b>:
+							<div class="multilines">
+								{props.task().outline.constraints?.join('\n') ||
+									'No constraints specified'}
+							</div>
+						</li>
+						<li>
+							<b>Subgoals</b>:
+							<div class="multilines">
+								{props.task().outline.subgoals?.join('\n') ||
+									'No subgoals specified'}
+							</div>
+						</li>
+					</Match>
+				</Switch>
 			</ul>
 		</div>
 	);
@@ -85,21 +115,40 @@ const TaskPageBody: Component<Props> = (props) => {
 		<>
 			<TaskSummaryBody task={props.task} />
 
+			<div>
+				<Show when={props.task().status === 'pending'}>
+					<button
+						class="button is-primary"
+						onClick={() => startTask(props.task()._id)}
+					>
+						<BiRegularPlay />
+						Start
+					</button>
+				</Show>
+				<Show when={props.task().status === 'running'}>
+					<button
+						class="button is-warning"
+						onClick={() => pauseTask(props.task()._id)}
+					>
+						<BiRegularPause />
+						Pause
+					</button>
+					<button
+						class="button is-danger"
+						onClick={() => cancelTask(props.task()._id)}
+					>
+						<OcCircleslash2 /> Cancel
+					</button>
+				</Show>
+			</div>
+
 			<TaskSummaryDescription task={props.task} />
 
-			<h3 class="subtitle">Steps (#={props.task.steps.length})</h3>
+			<h3 class="subtitle">Steps (#={props.task().steps.length})</h3>
 
-			<For each={props.task.steps}>
-				{(step, idx) => (
-					<div class="has-border p-2 my-2 round-1">
-						Step {idx()} {step.goal}
-					</div>
-				)}
-			</For>
-
-			<Collapsible header={() => <h3 class="subtitle">Plan</h3>}>
-				Hi, there
-			</Collapsible>
+			<Index each={props.task().steps}>
+				{(step, idx) => <StepItem idx={idx} step={step} />}
+			</Index>
 		</>
 	);
 };
@@ -110,13 +159,24 @@ const TaskSummaryPage: Component = () => {
 
 	const [task, setTask] = createSignal<Task | false | undefined>();
 
-	onMount(async () => {
+	const reloadTask = async () => {
 		const t = await getTask(taskID());
 		if (t === undefined) {
 			setTask(false);
 		} else {
 			setTask(t);
 		}
+	};
+
+	let reloadInterval: number;
+
+	onMount(async () => {
+		await reloadTask();
+		reloadInterval = window.setInterval(reloadTask, 1000);
+	});
+
+	onCleanup(() => {
+		window.clearTimeout(reloadInterval);
 	});
 
 	return (
@@ -130,7 +190,7 @@ const TaskSummaryPage: Component = () => {
 						<p>Task not found</p>
 					</Match>
 					<Match when={task() !== undefined && task() !== false}>
-						<TaskPageBody task={task() as Task} />
+						<TaskPageBody task={task as any} />
 					</Match>
 				</Switch>
 			</div>

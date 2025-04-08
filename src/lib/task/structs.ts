@@ -17,6 +17,25 @@ export type ProcessStatus =
 	| 'failed'
 	| 'interrupted';
 
+export interface WithElapsed {
+	elapsedMillis?: number;
+	lastStartedAt?: Date;
+}
+
+export const elapsedMillis = (we: WithElapsed): number => {
+	let millis = we.elapsedMillis || 0;
+	if (we.lastStartedAt !== undefined) {
+		millis += Date.now() - we.lastStartedAt.getTime();
+	}
+	return millis;
+};
+
+export const commitElapsed = (we: WithElapsed): number => {
+	we.elapsedMillis = elapsedMillis(we);
+	we.lastStartedAt = undefined;
+	return we.elapsedMillis;
+};
+
 /**
  * TaskForce is a group of agents to achieve a task.
  */
@@ -52,12 +71,17 @@ export interface TaskForce {
 	workerSystemPrompt: string;
 }
 
-export type Step = {
+/**
+ * Step of task
+ */
+export type Step = WithElapsed & {
+	/**
+	 * ask: User should solve this problem
+	 * ai: AI will handling automatically
+	 */
+	type: 'ask' | 'ai';
+
 	status: ProcessStatus;
-
-	createdAt: Date;
-
-	updatedAt: Date;
 
 	goal: string;
 
@@ -66,9 +90,27 @@ export type Step = {
 	report?: string;
 };
 
+export const newStep = (type: 'ask' | 'ai', goal: string): Step => {
+	return {
+		type,
+		status: 'pending',
+		elapsedMillis: 0,
+		goal,
+		chatHistory: {
+			msgPairs: [],
+		},
+	};
+};
+
 // Task
 
-export type TaskPlan = {
+/**
+ * Outline of the task.
+ * TaskOutline is used for
+ * - To share draft via functions
+ * - Saved in task
+ */
+export type TaskOutline = {
 	/**
 	 * Task title
 	 */
@@ -81,7 +123,8 @@ export type TaskPlan = {
 	objective: string;
 
 	/**
-	 * Each
+	 * Subgoals are the intermediate goals of the task.
+	 * The planner will check these goals and create a plan to achieve them.
 	 */
 	subgoals: string[];
 
@@ -96,7 +139,7 @@ export type TaskPlan = {
  * Task is a kind of 'work' of AI.
  * User's request becomes a task, and AI plan and solve it .
  */
-export type Task = {
+export type Task = WithElapsed & {
 	/**
 	 * Task ID
 	 */
@@ -119,9 +162,10 @@ export type Task = {
 	lastCheckedAt: Date;
 
 	/**
-	 * Task plan
+	 * Task outline.
+	 * This can be considered as a draft of the task.
 	 */
-	plan: TaskPlan;
+	outline: TaskOutline;
 
 	/**
 	 * Task status.
@@ -129,12 +173,19 @@ export type Task = {
 	status: ProcessStatus;
 
 	/**
-	 * Steps
+	 * Steps for tasks.
 	 */
 	steps: Step[];
 
 	/**
-	 * Outputs
+	 * Artifact list.
+	 * This may be the uploaded file from the User,
+	 * Or AI generated ones.
+	 */
+	artifacts: string[];
+
+	/**
+	 * Outputs of the whole task.
 	 */
 	outputs?: string[];
 };
