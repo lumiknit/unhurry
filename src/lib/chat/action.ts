@@ -165,6 +165,7 @@ export abstract class SingleLLMAction {
 			isCancelled: () => this.cancelled,
 		});
 		logr.info('[chat/SingleChatAction/generate] Stream End');
+		console.log('Result', result);
 
 		// Finish parser
 		const assistantParts = parser.finish();

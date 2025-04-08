@@ -135,6 +135,17 @@ export type TaskOutline = {
 	constraints: string[];
 };
 
+export const taskOutlineToMD = (outline: TaskOutline): string => {
+	return `
+- **Title**: ${outline.title}
+- **Objective**: ${outline.objective}
+- **Subgoals**
+${outline.subgoals.join('\n')}
+- **Constraints**
+${outline.constraints.join('\n')}
+		`.trim();
+};
+
 /**
  * Task is a kind of 'work' of AI.
  * User's request becomes a task, and AI plan and solve it .

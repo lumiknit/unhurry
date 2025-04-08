@@ -7,7 +7,7 @@ import {
 	BiSolidWrench,
 } from 'solid-icons/bi';
 import { Component, createSignal, For, onMount, Show } from 'solid-js';
-import toast from 'solid-toast';
+import { toast } from 'solid-toast';
 
 import { rootPath } from '@/env';
 import { millisToColonFormat, shortRelativeDateFormat } from '@/lib/intl';
@@ -130,6 +130,10 @@ const TaskListPage: Component = () => {
 
 	const reloadTasks = async () => {
 		const tasks = await getAllTasks();
+		// Sort by createdAt
+		tasks.sort((a, b) => {
+			return a.createdAt.getTime() - b.createdAt.getTime();
+		});
 		setTasks(tasks);
 	};
 

@@ -14,7 +14,15 @@ import {
 import { getUserConfig } from '@/store';
 
 import { logr } from '../logr';
-import { commitElapsed, newStep, Step, Task, TaskOutline } from './structs';
+import { SingleTaskAction } from './action_task';
+import {
+	commitElapsed,
+	newStep,
+	Step,
+	Task,
+	TaskOutline,
+	taskOutlineToMD,
+} from './structs';
 
 // Helpers
 
@@ -125,6 +133,13 @@ export class TaskManager {
 		});
 	}
 
+	private handleTaskUpdate(task: Task) {
+		// Update time
+		commitElapsed(task);
+		task.lastStartedAt = new Date();
+		this.onTaskUpdate?.(task);
+	}
+
 	// Utils
 
 	private async getCurrentModelConfig(): Promise<ModelConfig> {
@@ -174,7 +189,7 @@ export class TaskManager {
 			rt.task.status = 'failed';
 			rt.task.outputs = ['Cancelled by user'];
 		}
-		this.onTaskUpdate?.(rt.task);
+		this.handleTaskUpdate(rt.task);
 		this.handleStateUpdate();
 	}
 
@@ -395,7 +410,7 @@ ${task.steps
 		rt.task.outputs = [details];
 		rt.task.status = 'done';
 
-		this.onTaskUpdate?.(rt.task);
+		this.handleTaskUpdate(rt.task);
 	}
 
 	/**
@@ -413,7 +428,7 @@ ${task.steps
 		rt.task.steps.push(...nextGoals.map((goal) => newStep('ai', goal)));
 		rt.task.steps.push(...asks.map((ask) => newStep('ask', ask)));
 
-		this.onTaskUpdate?.(rt.task);
+		this.handleTaskUpdate(rt.task);
 	}
 
 	private async continueStep(rt: RunningTask, idx: number) {
@@ -422,13 +437,58 @@ ${task.steps
 		if (!step) {
 			throw new Error(`Step ${idx} not found for task ${task._id}`);
 		}
-		markStepRunning(step);
-		this.onTaskUpdate?.(rt.task);
 
-		// TODO: Using LLM
-		// But for test, just put the result
-		markStepDone(step, 'done', 'This is the report');
-		this.onTaskUpdate?.(rt.task);
+		// Pre-process for llm
+		markStepRunning(step);
+		this.handleTaskUpdate(rt.task);
+
+		const userConfig = getUserConfig();
+		if (!userConfig) {
+			return;
+		}
+		const action = new SingleTaskAction(
+			userConfig.models,
+			userConfig.tools,
+			step.chatHistory
+		);
+		action.taskOutline = taskOutlineToMD(task.outline);
+		action.previousSteps = task.steps
+			.filter((s) => s.report)
+			.map((s) => `#### ${s.goal}\n${s.report}\n`);
+		action.currentGoal = step.goal;
+
+		await action.runWithUserMessage([
+			{
+				type: 'text',
+				content: 'Then?',
+			},
+		]);
+		const lastParts =
+			step.chatHistory.msgPairs[step.chatHistory.msgPairs.length - 1]
+				.assistant?.parts;
+		if (lastParts === undefined) {
+			logr.error("Chat didn't create assistant message");
+			return;
+		}
+		console.log(lastParts);
+
+		// Find 'task:report'
+		const reports: string[] = [];
+		for (const part of lastParts) {
+			if (part.type === 'task:report') {
+				reports.push(part.content);
+			}
+		}
+		const report = reports.join('\n\n');
+		if (!report) {
+			logr.error('No report found');
+			markStepPending(step);
+			this.handleTaskUpdate(rt.task);
+		} else {
+			// Post-process for llm
+			markStepDone(step, 'done', report);
+			this.handleTaskUpdate(rt.task);
+		}
 	}
 
 	private async checkTask(rt: RunningTask) {
@@ -556,7 +616,7 @@ ${task.steps
 
 		task.status = 'running';
 		this.taskList.set(task._id, new RunningTask(task));
-		this.onTaskUpdate?.(task);
+		this.handleTaskUpdate(task);
 		this.handleStateUpdate();
 		return true;
 	}

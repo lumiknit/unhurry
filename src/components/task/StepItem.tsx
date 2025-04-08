@@ -15,7 +15,7 @@ const StepItem: Component<Props> = (props) => {
 	return (
 		<div class="mb-2">
 			<button
-				class="button is-fullwidth is-flex"
+				class="button is-fullwidth is-flex has-text-left gap-1"
 				onClick={() => setIsOpen(!isOpen())}
 			>
 				<span
@@ -34,6 +34,9 @@ const StepItem: Component<Props> = (props) => {
 			</button>
 			<Show when={isOpen()}>
 				<div class="p-2">{props.step().goal}</div>
+				<Show when={props.step().report}>
+					<div>{props.step().report}</div>
+				</Show>
 			</Show>
 		</div>
 	);
