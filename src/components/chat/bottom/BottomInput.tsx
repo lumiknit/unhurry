@@ -15,6 +15,7 @@ import {
 	saveChatContextMeta,
 	setChatContext,
 	setStore,
+	store,
 } from '@store';
 
 import InputTags from './PromptTags';
@@ -113,7 +114,6 @@ const BottomInput: Component = () => {
 		const isFirst = getChatContext().history.msgPairs.length === 0;
 		try {
 			logr.info('LLM Input: ', v);
-			setChatContext((c) => ({ ...c, progressing: true }));
 
 			// Pick the last user message and scroll to top.
 			setTimeout(scrollToLastUserMessage, 33);
@@ -127,7 +127,6 @@ const BottomInput: Component = () => {
 			setFiles(fs);
 			lastSent = 0;
 		}
-		setChatContext((c) => ({ ...c, progressing: false }));
 		if (isFirst) {
 			// Generate a title
 			const title = await generateChatTitle();
@@ -175,7 +174,7 @@ const BottomInput: Component = () => {
 		if (
 			!getUserConfig()?.enableAutoSend ||
 			!as ||
-			getChatContext().progressing
+			store.focusedChatState.progressing
 		)
 			return;
 

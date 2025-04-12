@@ -11,8 +11,17 @@ import {
 	RequestEntityTooLargeError,
 } from '../llm';
 import { logr } from '../logr';
-import { ChatOptions, ChatRequest, OngoingChatMeta } from './structs';
+import {
+	ChatOptions,
+	ChatRequest,
+	emptyFocusedChatState,
+	FocusedChatState,
+	OngoingChatMeta,
+} from './structs';
 
+/**
+ * Chat not found error
+ */
 export class ChatNotFoundError extends Error {
 	constructor(id: string) {
 		super(`[ChatManager] Chat ${id} not found`);
@@ -20,11 +29,17 @@ export class ChatNotFoundError extends Error {
 	}
 }
 
+/**
+ * Chat manager state to saved in the IDB
+ */
 type ChatManagerState = {
+	/** Fixed ID */
 	_id: 'chat-manager';
 
+	/** Updated timestamp */
 	updatedAt: number;
 
+	/** Current onging chat metadata */
 	ongoings: OngoingChatMeta[];
 };
 
@@ -68,6 +83,12 @@ export class ChatManager {
 	focused?: string;
 
 	// Callbacks
+
+	/**
+	 * Callback when the focused chat state is changed.
+	 * This will be called when the
+	 */
+	onFocusedChatState: (state: FocusedChatState) => void = () => {};
 
 	/**
 	 * Callback for the chat chunk is received.
@@ -235,6 +256,19 @@ export class ChatManager {
 		});
 	}
 
+	// Chat state
+
+	private sendFocusedChatState() {
+		try {
+			const ch = this.chat(this.focused!);
+			this.onFocusedChatState({
+				progressing: ch.action !== undefined,
+			});
+		} catch {
+			this.onFocusedChatState(emptyFocusedChatState());
+		}
+	}
+
 	// Chat methods
 
 	/**
@@ -269,19 +303,15 @@ export class ChatManager {
 	focusAndCheck(id: string) {
 		const ch = this.chat(id);
 		this.focused = id;
+		this.sendFocusedChatState();
+
 		this.checkChatWrap(ch);
 	}
 
 	/**
 	 * Cancel the chat aciton.
 	 */
-	cancelChat(id?: string) {
-		if (!id) {
-			id = this.focused;
-		}
-		if (!id) {
-			throw new Error('No focused chat');
-		}
+	cancelChat(id: string) {
 		const ch = this.chat(id);
 		if (ch.action) {
 			ch.action.cancel();
@@ -369,6 +399,8 @@ export class ChatManager {
 		action.onUpdate = this.callbackOnUpdate(item.meta.id);
 		item.action = action;
 
+		this.sendFocusedChatState();
+
 		switch (req.type) {
 			case 'user-msg':
 				// Consume the message, then run the action
@@ -381,6 +413,8 @@ export class ChatManager {
 		}
 
 		item.action = undefined;
+
+		this.sendFocusedChatState();
 	}
 
 	private async checkChatWrap(item: OngoingChat) {
@@ -408,10 +442,17 @@ export class ChatManager {
 		);
 	}
 
+	/**
+	 * Check if the chat manager is working.
+	 * Return true if the check interval is set.
+	 */
 	isRunning() {
 		return this.checkInterval !== null;
 	}
 
+	/**
+	 * Start the chat manager.
+	 */
 	start() {
 		if (this.checkInterval) {
 			return;
@@ -422,6 +463,9 @@ export class ChatManager {
 		);
 	}
 
+	/**
+	 * Stop the chat manager.
+	 */
 	stop() {
 		if (this.checkInterval) {
 			window.clearInterval(this.checkInterval);

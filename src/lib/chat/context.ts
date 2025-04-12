@@ -34,8 +34,6 @@ const chatMetaFields: (keyof ChatMeta)[] = [
 ];
 
 export type ChatContext = ChatMeta & {
-	progressing?: boolean;
-
 	history: ChatHistory;
 };
 
@@ -50,7 +48,6 @@ export const emptyChatContext = (): ChatContext => ({
 	history: {
 		msgPairs: [],
 	},
-	progressing: false,
 });
 
 /**

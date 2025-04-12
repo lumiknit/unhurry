@@ -226,7 +226,6 @@ const compMap = new Map([
 
 interface Props {
 	msg: Msg;
-	idx: number;
 }
 
 const Message: Component<Props> = (props) => {

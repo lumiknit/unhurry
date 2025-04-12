@@ -33,3 +33,11 @@ export type OngoingChatMeta = {
 
 	request?: ChatRequest;
 };
+
+export type FocusedChatState = {
+	progressing: boolean;
+};
+
+export const emptyFocusedChatState = (): FocusedChatState => ({
+	progressing: false,
+});

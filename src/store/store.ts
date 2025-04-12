@@ -5,6 +5,10 @@ import { createStore, StoreSetter, unwrap } from 'solid-js/store';
 import { toast } from 'solid-toast';
 
 import { chatManager } from '@/lib/chat-manager/manager';
+import {
+	emptyFocusedChatState,
+	FocusedChatState,
+} from '@/lib/chat-manager/structs';
 import { logr } from '@/lib/logr';
 
 import {
@@ -23,10 +27,14 @@ interface StreamingMessage {
 }
 
 interface GlobalStore {
+	// Focused chat states
 	chatContext: ChatContext;
+
+	focusedChatState: FocusedChatState;
 
 	streamingMessage?: StreamingMessage;
 
+	// Configurations
 	userConfig?: UserConfig;
 
 	/**
@@ -42,6 +50,7 @@ interface GlobalStore {
 
 export const [store, setStore] = createStore<GlobalStore>({
 	chatContext: emptyChatContext(),
+	focusedChatState: emptyFocusedChatState(),
 });
 
 // Config
@@ -110,6 +119,7 @@ export const loadChatContext = async (id: string) => {
 	const ctx = await chatManager.loadChat(id, getCurrentChatOpts());
 	setChatContext(ctx);
 	chatManager.focusAndCheck(id);
+	setStreamingMessage();
 };
 
 // Streaming message

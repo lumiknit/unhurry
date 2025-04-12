@@ -8,6 +8,7 @@ import {
 	getCurrentChatOpts,
 	getUserConfig,
 	setChatContext,
+	setStore,
 	setStreamingMessage,
 } from './store';
 import {
@@ -84,26 +85,6 @@ const getLLMHistory = async () => {
 	return await convertChatHistoryForLLM(context.history);
 };
 
-chatManager.onChunk = (parts, rest) => {
-	vibrate(4);
-	setStreamingMessage({
-		parts: [...parts],
-		rest,
-	});
-};
-
-chatManager.onMessage = async (msgPairs) => {
-	setStreamingMessage();
-	setChatContext((c) => ({
-		...c,
-		history: {
-			msgPairs: [...msgPairs],
-		},
-	}));
-};
-
-chatManager.start();
-
 export const chat = async (text: string, fileIDs?: string[]) => {
 	const config = getUserConfig();
 	if (!config) {
@@ -138,5 +119,31 @@ export const chat = async (text: string, fileIDs?: string[]) => {
 };
 
 export const cancelCurrentChat = () => {
-	chatManager.cancelChat();
+	const chatContext = getChatContext();
+	chatManager.cancelChat(chatContext._id);
 };
+
+// ChatManager
+chatManager.onFocusedChatState = (state) => {
+	setStore('focusedChatState', state);
+};
+
+chatManager.onChunk = (parts, rest) => {
+	vibrate(4);
+	setStreamingMessage({
+		parts: [...parts],
+		rest,
+	});
+};
+
+chatManager.onMessage = async (msgPairs) => {
+	setStreamingMessage();
+	setChatContext((c) => ({
+		...c,
+		history: {
+			msgPairs: [...msgPairs],
+		},
+	}));
+};
+
+chatManager.start();
