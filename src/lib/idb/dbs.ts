@@ -83,11 +83,3 @@ export const deleteChatByID = async (id: string) => {
 
 	indexedDB.deleteDatabase('chat:' + id);
 };
-
-// Tasks
-
-const taskListIDB = new SimpleIDB('task-list', 'tasks', 1);
-
-export const taskListTx = async <T>() => {
-	return await taskListIDB.transaction<T>('readwrite');
-};

@@ -30,7 +30,7 @@ const chatMetaFields: (keyof ChatMeta)[] = [
 ];
 
 export type ChatContext = ChatMeta & {
-	progressing: boolean;
+	progressing?: boolean;
 
 	history: ChatHistory;
 };

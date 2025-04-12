@@ -3,7 +3,7 @@ import { unwrap } from 'solid-js/store';
 import { toast } from 'solid-toast';
 
 import { getBEService, VibrationPattern } from '@/lib/be';
-import { SingleChatAction } from '@/lib/chat/action_chat';
+import { chatManager } from '@/lib/chat-manager/manager';
 import { logr } from '@/lib/logr';
 
 import {
@@ -22,13 +22,7 @@ import {
 	MSG_PART_TYPE_FILE,
 } from '../lib/chat';
 import { chatListTx, chatTx } from '../lib/idb';
-import {
-	BadRequestError,
-	LLMMessage,
-	newClientFromConfig,
-	RateLimitError,
-	RequestEntityTooLargeError,
-} from '../lib/llm';
+import { LLMMessage, newClientFromConfig } from '../lib/llm';
 
 /**
  * Vibration
@@ -122,7 +116,25 @@ export const saveCurrentChatToDB = async () => {
 	}
 };
 
-export let actions: SingleChatAction[] = [];
+chatManager.onChunk = (parts, rest) => {
+	vibrate(4);
+	setStreamingMessage({
+		parts: [...parts],
+		rest,
+	});
+};
+
+chatManager.onMessage = async (msgPairs) => {
+	setStreamingMessage();
+	setChatContext((c) => ({
+		...c,
+		history: {
+			msgPairs: [...msgPairs],
+		},
+	}));
+};
+
+chatManager.start();
 
 export const chat = async (text: string, fileIDs?: string[]) => {
 	const config = getUserConfig();
@@ -146,67 +158,26 @@ export const chat = async (text: string, fileIDs?: string[]) => {
 		}
 	}
 
-	const history = unwrap(chatContext.history);
-
-	const action = new SingleChatAction(
-		unwrap(config.models).slice(config.currentModelIdx),
-		unwrap(config.tools),
-		history
-	);
-	actions.push(action);
-
-	action.onChunk = (_chunk, parts, rest) => {
-		vibrate(4);
-		setStreamingMessage({
-			parts: [...parts],
-			rest,
-		});
-	};
-	action.onLLMFallback = (err, _idx, mc) => {
-		let reason = `'${mc.name}' failed. `;
-		if (err instanceof BadRequestError) {
-			reason +=
-				'(400) Maybe the input is invalid, or some inputs are not supported. (e.g. Image, ToolCall)';
-		} else if (err instanceof RequestEntityTooLargeError) {
-			reason += '(413) Maybe chat history is too long.';
-		} else if (err instanceof RateLimitError) {
-			reason += '(429) Rate limit.';
-		} else {
-			reason += `(${err.message})`;
-		}
-		if (getUserConfig()?.enableLLMFallback) {
-			toast(`${reason} Trying another model...`);
-			return true;
-		} else {
-			toast.error(reason);
-			return false;
-		}
-	};
-	action.onUpdate = (idx) => {
-		console.log('Update', idx, history);
-		setStreamingMessage();
-		setChatContext((c) => ({
-			...c,
-			history: {
-				msgPairs: [...history.msgPairs],
-			},
-		}));
-		// Only FULL Pair is completed, save to DB
-		if (history.msgPairs[idx].assistant) {
-			saveCurrentChatToDB();
-		}
-	};
-
-	try {
-		await action.runWithUserMessage(parts);
-	} catch (e) {
-		logr.error(e);
-		toast.error('Failed to generate');
+	const opts = {
+		modelConfigs: config.models.slice(config.currentModelIdx),
+		toolConfigs: config.tools,
+		enableLLMFallback: config.enableLLMFallback,
 	}
 
-	actions = actions.filter((a) => a !== action);
+	const id = await chatManager.loadChat(
+		chatContext._id,
+		opts
+	);
+	chatManager.setChatRequest(
+		id,
+		{
+			type: 'user-msg',
+			message: parts,
+		}
+	);
+	chatManager.focusAndCheck(id);
 };
 
 export const cancelAllChats = () => {
-	actions.forEach((a) => a.cancel());
+	chatManager.cancelChat();
 };
