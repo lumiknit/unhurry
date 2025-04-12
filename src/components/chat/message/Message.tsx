@@ -159,18 +159,37 @@ const BlockMessage: Component<ItemProps> = (props) => {
 const SvgMessage: Component<ItemProps> = (props) => {
 	const content = DOMPurify.sanitize(props.content);
 	const [raw, setRaw] = createSignal(false);
+
+	const handleCopy = () => {
+		if (navigator.clipboard) {
+			navigator.clipboard.writeText(props.content);
+		} else {
+			const el = document.createElement('textarea');
+			el.value = props.content;
+			document.body.appendChild(el);
+			el.select();
+			document.execCommand('copy');
+			document.body.removeChild(el);
+		}
+		toast.success('Copied to clipboard');
+	};
+
 	return (
 		<div class="msg-code">
 			<header class="flex-split" onClick={() => setRaw((r) => !r)}>
-				SVG
-				<Switch>
-					<Match when={raw()}>
-						<span>[raw]</span>
-					</Match>
-					<Match when>
-						<span>[img]</span>
-					</Match>
-				</Switch>
+				<span>SVG</span>
+				<span>
+					<button
+						class="px-2"
+						onClick={(e) => {
+							handleCopy();
+							e.stopPropagation();
+						}}
+					>
+						<VsCopy /> copy
+					</button>
+					<span>{raw() ? 'raw' : 'img'}</span>
+				</span>
 			</header>
 			<div class="msg-svg-body">
 				<Switch>
@@ -187,6 +206,21 @@ const SvgMessage: Component<ItemProps> = (props) => {
 const MermaidMessage: Component<ItemProps> = (props) => {
 	const [svg, setSvg] = createSignal('');
 	const [err, setErr] = createSignal('');
+	const [raw, setRaw] = createSignal(false);
+
+	const handleCopy = () => {
+		if (navigator.clipboard) {
+			navigator.clipboard.writeText(props.content);
+		} else {
+			const el = document.createElement('textarea');
+			el.value = props.content;
+			document.body.appendChild(el);
+			el.select();
+			document.execCommand('copy');
+			document.body.removeChild(el);
+		}
+		toast.success('Copied to clipboard');
+	};
 
 	onMount(async () => {
 		try {
@@ -208,7 +242,34 @@ const MermaidMessage: Component<ItemProps> = (props) => {
 				</div>
 			</Match>
 			<Match when>
-				<div class="msg-mermaid" innerHTML={svg()} />
+				<div class="msg-code">
+					<header
+						class="flex-split"
+						onClick={() => setRaw((r) => !r)}
+					>
+						<span>Mermaid</span>
+						<span>
+							<button
+								class="px-2"
+								onClick={(e) => {
+									handleCopy();
+									e.stopPropagation();
+								}}
+							>
+								<VsCopy /> copy
+							</button>
+							<span>{raw() ? 'raw' : 'diagram'}</span>
+						</span>
+					</header>
+					<div class="msg-mermaid-body">
+						<Switch>
+							<Match when={raw()}>{props.content}</Match>
+							<Match when>
+								<div class="msg-mermaid" innerHTML={svg()} />
+							</Match>
+						</Switch>
+					</div>
+				</div>
 			</Match>
 		</Switch>
 	);
