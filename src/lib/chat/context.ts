@@ -8,10 +8,16 @@ import { ChatHistory } from './structs';
  * and runtime values (JSContext).
  */
 export interface ChatMeta {
+	/** Unique ID */
 	_id: string;
+	/** Title of chat */
 	title: string;
+	/** Chat started timestamp */
 	createdAt: number;
-	lastUsedAt?: number;
+	/** Chat updated timestamp */
+	updatedAt: number;
+	/** User checked timestamp. If updatedAt > checkedAt, there is an update */
+	checkedAt?: number;
 }
 
 /** Key of the fields */
@@ -19,17 +25,15 @@ const chatMetaFields: (keyof ChatMeta)[] = [
 	'_id',
 	'title',
 	'createdAt',
-	'lastUsedAt',
+	'updatedAt',
+	'checkedAt',
 ];
 
-export interface RunContext {
+export type ChatContext = ChatMeta & {
 	progressing: boolean;
-}
 
-export type ChatContext = ChatMeta &
-	RunContext & {
-		history: ChatHistory;
-	};
+	history: ChatHistory;
+};
 
 /**
  * Create an empty chat context.
@@ -37,13 +41,17 @@ export type ChatContext = ChatMeta &
 export const emptyChatContext = (): ChatContext => ({
 	_id: uniqueID(),
 	createdAt: Date.now(),
-	lastUsedAt: Date.now(),
+	updatedAt: Date.now(),
 	title: '',
 	history: {
 		msgPairs: [],
 	},
 	progressing: false,
 });
+
+export const hasChatUpdate = (c: ChatContext): boolean => {
+	return c.checkedAt === undefined || c.updatedAt > c.checkedAt;
+};
 
 /**
  * Extract chat metadata from the chat context.
