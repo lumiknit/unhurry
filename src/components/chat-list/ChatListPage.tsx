@@ -16,6 +16,7 @@ import {
 } from 'solid-js';
 import { toast } from 'solid-toast';
 
+import { chatManager, OngoingChatSummary } from '@/lib/chat-manager/manager';
 import { shortRelativeDateFormat } from '@/lib/intl';
 import { gotoNewChat } from '@/store/chat';
 
@@ -80,6 +81,61 @@ const ClearChatModal: Component<ClearModalProps> = (props) => {
 	);
 };
 
+type ItemProps = {
+	chat: ChatMeta;
+	onOpen: (id: string) => void;
+	onDelete: (id: string) => void;
+};
+
+const Item: Component<ItemProps> = (props) => {
+	return (
+		<a
+			class={
+				'panel-block panel-item is-active ' +
+				(hasChatUpdate(props.chat) ? 'has-background-warning-soft' : '')
+			}
+			onClick={() => props.onOpen(props.chat._id)}
+		>
+			<div class="panel-item-content">
+				<div class="panel-item-body">
+					<div>
+						<Switch>
+							<Match when={props.chat.title}>
+								<b>{props.chat.title}</b>
+							</Match>
+							<Match when>
+								<i>Untitled</i>
+							</Match>
+						</Switch>
+					</div>
+				</div>
+				<div class="panel-item-date">
+					<div>
+						<BiRegularCalendar />
+						{shortRelativeDateFormat(
+							new Date(props.chat.createdAt)
+						)}
+					</div>
+					<div>
+						<BiRegularCalendarExclamation />
+						{shortRelativeDateFormat(
+							new Date(props.chat.updatedAt || 0)
+						)}
+					</div>
+				</div>
+			</div>
+			<button
+				class="button is-danger is-outlined is-small"
+				onClick={() => props.onDelete(props.chat._id)}
+			>
+				<span class="icon">
+					<TbTrash />
+				</span>
+			</button>
+		</a>
+	);
+};
+
 const ChatListPage: Component = () => {
 	const navigate = useNavigate();
 
@@ -93,12 +149,27 @@ const ChatListPage: Component = () => {
 		pageSize
 	);
 
+	const [ongoing, setOngoing] = createSignal<OngoingChatSummary[]>([]);
+
 	let filterRef: HTMLInputElement;
 
 	const loadChatMeta = async () => {
+		const ogs = chatManager.getOngoings();
+
+		const ongoingIDs = new Set(ogs.map((x) => x.meta.id));
+
 		const db = await chatListTx<ChatMeta>();
 		const all = await db.getAll();
-		setChatList(all);
+		console.log('all chats', all, ongoingIDs);
+		const notGoings = all.filter((x) => !ongoingIDs.has(x._id));
+		console.log('not goings', notGoings);
+
+		setOngoing(
+			ogs.sort((a, b) => {
+				return (b.ctx.updatedAt || 0) - (a.ctx.updatedAt || 0);
+			})
+		);
+		setChatList(notGoings);
 		sortByLastUsed();
 	};
 
@@ -130,7 +201,7 @@ const ChatListPage: Component = () => {
 		setFilteredList(filtered());
 	};
 
-	const deleteChat = (id: string) => async (e: MouseEvent) => {
+	const deleteChat = async (id: string) => {
 		e.stopPropagation();
 		if (!(await openConfirm('Are you sure to delete this chat?'))) return;
 		toast.promise(deleteChatByID(id), {
@@ -141,7 +212,7 @@ const ChatListPage: Component = () => {
 		loadChatMeta();
 	};
 
-	const openChat = (id: string) => async () => {
+	const openChat = async (id: string) => {
 		toast.promise(
 			(async () => {
 				await loadChatContext(id);
@@ -166,6 +237,20 @@ const ChatListPage: Component = () => {
 				/>
 			</Show>
 			<div class="m-2">
+				<nav class="panel is-primary">
+					<p class="panel-block has-background-text-soft has-text-weight-bold flex-split">
+						<span>Ongoing Chats ({ongoing()?.length || '-'})</span>
+					</p>
+					<For each={ongoing()}>
+						{(chat) => (
+							<Item
+								chat={chat.ctx}
+								onOpen={openChat}
+								onDelete={deleteChat}
+							/>
+						)}
+					</For>
+				</nav>
 				<nav class="panel is-primary">
 					<p class="panel-block has-background-text-soft has-text-weight-bold flex-split">
 						<span>Chats ({chatList()?.length || '-'})</span>
@@ -199,56 +284,11 @@ const ChatListPage: Component = () => {
 						<Match when>
 							<For each={page().items}>
 								{(chat) => (
-									<a
-										class={
-											'panel-block panel-item is-active ' +
-											(hasChatUpdate(chat)
-												? 'has-background-warning-soft'
-												: '')
-										}
-										onClick={openChat(chat._id)}
-									>
-										<div class="panel-item-content">
-											<div class="panel-item-body">
-												<div>
-													<Switch>
-														<Match
-															when={chat.title}
-														>
-															<b>{chat.title}</b>
-														</Match>
-														<Match when>
-															<i>Untitled</i>
-														</Match>
-													</Switch>
-												</div>
-											</div>
-											<div class="panel-item-date">
-												<div>
-													<BiRegularCalendar />
-													{shortRelativeDateFormat(
-														new Date(chat.createdAt)
-													)}
-												</div>
-												<div>
-													<BiRegularCalendarExclamation />
-													{shortRelativeDateFormat(
-														new Date(
-															chat.updatedAt || 0
-														)
-													)}
-												</div>
-											</div>
-										</div>
-										<button
-											class="button is-danger is-outlined is-small"
-											onClick={deleteChat(chat._id)}
-										>
-											<span class="icon">
-												<TbTrash />
-											</span>
-										</button>
-									</a>
+									<Item
+										chat={chat}
+										onOpen={openChat}
+										onDelete={deleteChat}
+									/>
 								)}
 							</For>
 						</Match>
