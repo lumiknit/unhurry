@@ -7,10 +7,20 @@ import { ChatHistory } from './structs';
  * and runtime values (JSContext).
  */
 export interface ChatMeta {
+	/** Unique ID */
 	_id: string;
+
+	/** Title of chat */
 	title: string;
+
+	/** Chat started timestamp */
 	createdAt: number;
-	lastUsedAt?: number;
+
+	/** Chat updated timestamp */
+	updatedAt: number;
+
+	/** User checked timestamp. If updatedAt > checkedAt, there is an update */
+	checkedAt?: number;
 }
 
 /** Key of the fields */
@@ -18,40 +28,20 @@ const chatMetaFields: (keyof ChatMeta)[] = [
 	'_id',
 	'title',
 	'createdAt',
-	'lastUsedAt',
+	'updatedAt',
+	'checkedAt',
 ];
 
-export interface RunContext {
-	progressing: boolean;
-}
-
-export type ChatContext = ChatMeta &
-	RunContext & {
-		history: ChatHistory;
-	};
-
-/**
- * Generate random Chat ID.
- */
-export const genChatID = () => {
-	const ts = Date.now().toString(36);
-	const rand = Math.random().toString(36).slice(2);
-	return ts + '_' + rand;
+export type ChatContext = ChatMeta & {
+	history: ChatHistory;
 };
 
 /**
- * Create an empty chat context.
+ * Return true if the chat is updated since last checked.
  */
-export const emptyChatContext = (): ChatContext => ({
-	_id: genChatID(),
-	createdAt: Date.now(),
-	lastUsedAt: Date.now(),
-	title: '',
-	history: {
-		msgPairs: [],
-	},
-	progressing: false,
-});
+export const hasChatUpdate = (c: ChatMeta): boolean => {
+	return c.checkedAt === undefined || c.updatedAt > c.checkedAt;
+};
 
 /**
  * Extract chat metadata from the chat context.

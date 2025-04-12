@@ -1,0 +1,64 @@
+// Helpers for bulma panel
+
+// structure:
+// .panel-item {
+//  .panel-item-icon
+//  .panel-item-content {
+//    .panel-item-body {
+//      .panel-item-title
+//      .panel-item-desc
+//    }
+//    .panel-item-date
+//      divs
+
+.panel-item {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: stretch;
+
+	width: 100%;
+}
+
+.panel-item-icon {
+	font-size: 1.33em;
+	margin-right: 0.125em;
+}
+
+.panel-item-content {
+	flex: 1;
+	display: flex;
+}
+
+.panel-item-body {
+	flex: 1;
+}
+
+.panel-item-date {
+	display: flex;
+	font-size: 0.75em;
+	flex-direction: column;
+	min-width: 6em;
+	gap: 0.125em;
+}
+
+@media (max-width: 768px) {
+	.panel-item-content {
+		flex-direction: column;
+	}
+
+	.panel-item-date {
+		flex-direction: row;
+		gap: 1em;
+	}
+}
+
+.panel-item-title {
+	font-size: 1.125em;
+	font-weight: bold;
+	color: var(--bulma-text-strong);
+}
+
+.panel-item-desc {
+	font-size: 0.75em;
+}

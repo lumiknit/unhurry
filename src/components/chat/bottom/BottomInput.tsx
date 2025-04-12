@@ -3,15 +3,9 @@ import { toast } from 'solid-toast';
 
 import { getBEService, ISpeechRecognizer } from '@/lib/be';
 import { logr } from '@/lib/logr';
-import { cancelAllChats, chat, generateChatTitle } from '@/store/actions';
+import { cancelCurrentChat, chat } from '@/store/global_actions';
 
-import {
-	getChatContext,
-	getUserConfig,
-	saveChatContextMeta,
-	setChatContext,
-	setStore,
-} from '@store';
+import { getFocusedChatState, getUserConfig, setStore } from '@store';
 
 import InputTags from './PromptTags';
 import SendButton from './SendButton';
@@ -100,15 +94,14 @@ const BottomInput: Component = () => {
 		if (!composing) {
 			taRef!.value = '';
 			lastSent = 0;
+			autosizeTextarea();
 		} else {
 			// Otherwise, some composing left.
 			// Just ignore the send
 		}
 		setFiles([]);
-		const isFirst = getChatContext().history.msgPairs.length === 0;
 		try {
 			logr.info('LLM Input: ', v);
-			setChatContext((c) => ({ ...c, progressing: true }));
 
 			// Pick the last user message and scroll to top.
 			setTimeout(scrollToLastUserMessage, 33);
@@ -121,14 +114,6 @@ const BottomInput: Component = () => {
 			taRef!.value = v;
 			setFiles(fs);
 			lastSent = 0;
-		}
-		setChatContext((c) => ({ ...c, progressing: false }));
-		if (isFirst) {
-			// Generate a title
-			const title = await generateChatTitle();
-			logr.info('Generated title: ', title);
-			setChatContext((c) => ({ ...c, title }));
-			saveChatContextMeta();
 		}
 		autosizeTextarea();
 	};
@@ -170,7 +155,7 @@ const BottomInput: Component = () => {
 		if (
 			!getUserConfig()?.enableAutoSend ||
 			!as ||
-			getChatContext().progressing
+			getFocusedChatState().progressing
 		)
 			return;
 
@@ -402,7 +387,7 @@ const BottomInput: Component = () => {
 					stopSpeechRecognition={stopSpeechRecognition}
 					onSend={send}
 					onCancel={() => {
-						cancelAllChats();
+						cancelCurrentChat();
 					}}
 				/>
 			</div>

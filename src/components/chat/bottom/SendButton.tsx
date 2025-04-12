@@ -9,9 +9,9 @@ import {
 import { Dynamic } from 'solid-js/web';
 import { toast } from 'solid-toast';
 
-import { vibrate } from '@/store/actions';
+import { vibrate } from '@/store/global_actions';
 
-import { getChatContext, store } from '@store';
+import { getFocusedChatState, store } from '@store';
 
 import './send_button.scss';
 
@@ -30,7 +30,7 @@ type Props = {
 const SendButton: Component<Props> = (props) => {
 	const className = () => {
 		let additional = '';
-		if (getChatContext().progressing) {
+		if (getFocusedChatState().progressing) {
 			additional = 'is-loading is-warning';
 		} else if (props.speechRecognizing()) {
 			additional = 'is-danger';
@@ -75,7 +75,6 @@ const SendButton: Component<Props> = (props) => {
 	};
 
 	const handlePointerDown = (e: PointerEvent) => {
-		console.log('Down', e);
 		e.stopPropagation();
 		e.preventDefault();
 
@@ -84,7 +83,7 @@ const SendButton: Component<Props> = (props) => {
 		clearTimeout(srHoldTimeout!);
 		vibrate('medium');
 
-		if (!getChatContext().progressing && !props.speechRecognizing()) {
+		if (!getFocusedChatState().progressing && !props.speechRecognizing()) {
 			srStartTimeout = window.setTimeout(startRecog, LONG_PRESS_DURATION);
 			srHoldTimeout = window.setTimeout(setHolding, HOLD_DURATION);
 		}
@@ -106,7 +105,7 @@ const SendButton: Component<Props> = (props) => {
 			if (stopSRWhenUp) {
 				props.stopSpeechRecognition();
 			}
-		} else if (getChatContext().progressing) {
+		} else if (getFocusedChatState().progressing) {
 			toast('Canceling the current operation...');
 			props.onCancel();
 		} else {

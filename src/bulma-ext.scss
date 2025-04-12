@@ -1,0 +1,14 @@
+@use 'sass:list';
+
+@use 'bulma/sass/utilities' as bulma;
+
+.has-border {
+	border: 1px solid var(--bulma-border);
+}
+
+@each $name, $pair in bulma.$colors {
+	$color: list.nth($pair, 1);
+	.has-border-#{$name} {
+		border: 1px solid var(--bulma-#{$name});
+	}
+}

@@ -1,0 +1,99 @@
+.w-full {
+	width: 100%;
+}
+
+.h-full {
+	height: 100%;
+}
+
+.flex-split {
+	display: flex;
+	flex-wrap: none;
+	justify-content: space-between;
+}
+
+.no-user-select {
+	user-select: none;
+	-webkit-user-drag: none;
+	-webkit-user-select: none;
+}
+
+.thin-hr {
+	height: 1px;
+	opacity: 0.1;
+}
+
+.text-ellipsis {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+	.hide-mobile {
+		display: none;
+	}
+}
+
+.is-flex-0 {
+	flex: 0;
+}
+
+.is-flex-1 {
+	flex: 1;
+}
+
+.gap-1 {
+	gap: 0.25rem !important;
+}
+
+.gap-2 {
+	gap: 0.5rem !important;
+}
+
+.round-1 {
+	border-radius: 0.25rem !important;
+}
+
+.round-2 {
+	border-radius: 0.5rem !important;
+}
+
+.flex-1 {
+	flex: 1 !important;
+}
+
+.maxw-75 {
+	max-width: 75% !important;
+}
+
+.transition-transform {
+	transition: transform 0.2s ease-in-out;
+}
+
+.cw-90 {
+	transform: rotate(90deg);
+}
+
+// Text no color
+.has-text-default {
+	color: var(--bulma-text-strong);
+}
+
+.multilines {
+	white-space: pre-wrap;
+	word-wrap: break-word;
+	overflow-wrap: break-word;
+}
+
+// Override bulma items
+nav.panel {
+	overflow: hidden;
+}
+
+textarea.textarea {
+	padding: var(--bulma-control-padding-vertical)
+		var(--bulma-control-padding-horizontal);
+	--bulma-textarea-min-height: 2.5em;
+	height: 5em;
+}

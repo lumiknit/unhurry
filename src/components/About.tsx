@@ -9,6 +9,7 @@ import {
 } from 'solid-js';
 import { toast } from 'solid-toast';
 
+import { logr } from '@/lib/logr';
 import { resetAllData } from '@/lib/reset';
 
 import { openConfirm } from './modal-confirm';
@@ -74,7 +75,7 @@ const About: Component = () => {
 		const be = await getBEService();
 		setBE(be);
 		(window as { _be?: unknown })._be = be;
-		console.log(be);
+		logr.info('[About] BE service loaded', be?.name());
 	});
 
 	// Load latest release version

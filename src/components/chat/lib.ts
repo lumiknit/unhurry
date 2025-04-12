@@ -1,3 +1,5 @@
+import { resetChatMessages } from '@/store/global_actions';
+
 export const scrollToLastUserMessage = () => {
 	const elems = document.getElementsByClassName('msg-user');
 	if (elems.length > 0) {
@@ -9,5 +11,43 @@ export const scrollToLastUserMessage = () => {
 			top,
 			behavior: 'smooth',
 		});
+	}
+};
+
+const keyMaps: Record<string, () => void> = {
+	'ctrl-i': () => {
+		// Focus to input
+		const input = document.querySelector(
+			'.bottom-input textarea'
+		) as HTMLTextAreaElement;
+		if (input) {
+			input.focus();
+		}
+	},
+	'ctrl-n': () => {
+		// New chat
+		resetChatMessages();
+	},
+};
+
+/**
+ * Global Shortcut
+ */
+export const globalShortcutHandler = (e: KeyboardEvent) => {
+	// Convert to canonical form
+	let key = e.key;
+	if (e.ctrlKey || e.metaKey) {
+		key = 'ctrl-' + key;
+	}
+	if (e.altKey) {
+		key = 'alt-' + key;
+	}
+	if (e.shiftKey) {
+		key = 'shift-' + key;
+	}
+	if (keyMaps[key]) {
+		e.preventDefault();
+		e.stopPropagation();
+		keyMaps[key]();
 	}
 };

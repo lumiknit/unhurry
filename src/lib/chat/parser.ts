@@ -46,10 +46,12 @@ export class MsgPartsParser {
 	 * Finish the buffer and return the parts.
 	 */
 	finish(): MsgPart[] {
+		console.log(this.parts);
 		this.push('\n');
-		this.parts[this.parts.length - 1].content =
-			this.parts[this.parts.length - 1].content.trim();
-		return this.parts;
+		const parts = this.parts.filter((p) => {
+			return p.type !== MSG_PART_TYPE_TEXT || p.content.trim().length > 0;
+		});
+		return parts;
 	}
 
 	private checkCallPart(part: MsgPart): MsgPart {

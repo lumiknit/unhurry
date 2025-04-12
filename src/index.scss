@@ -7,7 +7,10 @@ $theme-color: #0b7f4e;
 		'Pretendard, Inter, SF Pro, Segoe UI, Roboto, Oxygen, Ubuntu, Helvetica Neue, Helvetica, Arial, sans-serif',
 	$primary: $theme-color
 );
+@use './bulma-ext.scss';
 @use './switch.scss';
+@use './panel.scss';
+@use './utils.scss';
 
 // Fonts
 
@@ -23,45 +26,6 @@ $theme-color: #0b7f4e;
 	src: url('/SourceHanSerif-VF.otf.woff2') format('woff2');
 	font-weight: 100 900;
 	font-display: swap;
-}
-
-// Common helpers
-
-.w-full {
-	width: 100%;
-}
-
-.h-full {
-	height: 100%;
-}
-
-.flex-split {
-	display: flex;
-	flex-wrap: none;
-	justify-content: space-between;
-}
-
-.no-user-select {
-	user-select: none;
-	-webkit-user-drag: none;
-	-webkit-user-select: none;
-}
-
-.thin-hr {
-	height: 1px;
-	opacity: 0.1;
-}
-
-.text-ellipsis {
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-@media (max-width: 768px) {
-	.hide-mobile {
-		display: none;
-	}
 }
 
 // Root Styles
@@ -110,6 +74,24 @@ $theme-color: #0b7f4e;
 
 // Components
 
+.indicator-off {
+	display: inline-block;
+	width: 0.75rem;
+	height: 0.75rem;
+	margin: 0.25rem;
+	border-radius: 999rem;
+	background-color: var(--bulma-danger);
+}
+
+.indicator-on {
+	display: inline-block;
+	width: 0.75rem;
+	height: 0.75rem;
+	margin: 0.25rem;
+	border-radius: 999rem;
+	background-color: var(--bulma-success);
+}
+
 .spinner {
 	animation: spinAround 500ms infinite linear;
 	border: 0.25rem solid var(--bulma-primary);
@@ -152,12 +134,6 @@ nav.navbar {
 	}
 }
 
-svg {
-	vertical-align: top;
-	width: 1.25em;
-	height: 1.25em;
-}
-
 a > svg {
 	vertical-align: top;
 	width: 1.25em;
@@ -181,15 +157,16 @@ textarea.textarea.inline {
 		var(--bulma-control-padding-horizontal);
 }
 
-div.msg-user .message-body {
+div.msg-user div.message-body {
 	margin-left: 2rem;
 	color: var(--bulma-primary-invert);
 	background-color: var(--bulma-primary);
 	border-radius: 1.25rem 0.125rem 1.25rem 1.25rem;
+	padding: 0.25rem 1rem;
 }
 
 div.message-body {
-	padding: 0.5rem 0.75rem;
+	padding: 0.25rem 0.5rem;
 	overflow: hidden;
 }
 
@@ -285,22 +262,6 @@ span[aria-hidden='true'] {
 	margin: 0.25rem 0;
 }
 
-.gap-1 {
-	gap: 0.25rem !important;
-}
-
-.gap-2 {
-	gap: 0.5rem !important;
-}
-
-.flex-1 {
-	flex: 1 !important;
-}
-
-.maxw-75 {
-	max-width: 75% !important;
-}
-
 .input-tags {
 	white-space: nowrap;
 	overflow-x: scroll;
@@ -318,8 +279,6 @@ span[aria-hidden='true'] {
 
 	color: var(--bulma-text-soft-invert);
 	border-radius: 0.5rem;
-
-	margin-bottom: 100dvh;
 }
 
 .msg-group:last-child {
@@ -337,7 +296,7 @@ span[aria-hidden='true'] {
 
 .bottom-input {
 	border: var(--uh-bottom-input-border);
-	border-radius: 1rem;
+	border-radius: 0.66rem;
 	margin: 0.5rem;
 	padding: 0.5rem;
 

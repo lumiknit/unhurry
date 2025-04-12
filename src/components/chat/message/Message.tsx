@@ -1,4 +1,4 @@
-import {default as DOMPurify} from 'dompurify';
+import { default as DOMPurify } from 'dompurify';
 import hljs from 'highlight.js';
 import { marked } from 'marked';
 import markedKatex from 'marked-katex-extension';
@@ -226,7 +226,6 @@ const compMap = new Map([
 
 interface Props {
 	msg: Msg;
-	idx: number;
 }
 
 const Message: Component<Props> = (props) => {

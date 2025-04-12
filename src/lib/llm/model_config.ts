@@ -1,3 +1,5 @@
+import { uniqueID } from '../utils';
+
 /**
  * LLM Client Type
  */
@@ -28,6 +30,9 @@ export interface LLMServiceInfo {
  * This is used for user config.
  */
 export interface ModelConfig {
+	/** ModelID */
+	id: string;
+
 	/** Display name */
 	name: string;
 
@@ -54,6 +59,7 @@ export interface ModelConfig {
  * Create an empty model config.
  */
 export const emptyModelConfig = (): ModelConfig => ({
+	id: uniqueID(),
 	name: 'New Model',
 	clientType: 'OpenAI',
 	endpoint: '',
@@ -69,35 +75,19 @@ export const emptyModelConfig = (): ModelConfig => ({
  */
 export const llmPresets: LLMServiceInfo[] = [
 	{
-		name: 'OpenAI',
+		name: 'Ollama',
 		clientType: 'OpenAI',
-		apiKeyURL: 'https://platform.openai.com/api-keys',
-		endpoint: 'https://api.openai.com/v1',
-		models: ['gpt-4o-mini', 'gpt-4o', 'o3', 'o3-mini'],
-	},
-	{
-		name: 'Groq',
-		clientType: 'OpenAI',
-		apiKeyURL: 'https://console.groq.com/keys',
-		endpoint: 'https://api.groq.com/openai/v1',
+		apiKeyURL: '',
+		endpoint: 'http://localhost:11434/v1',
 		models: [
-			'deepseek-r1-distill-llama-70b',
-			'deepseek-r1-distill-qwen-32b',
-			'qwen-2.5-32b',
-			'gemma2-9b-it',
-			'llama-3.3-70b-versatile',
-		],
-	},
-	{
-		name: 'Anthropic',
-		clientType: 'Anthropic',
-		apiKeyURL: 'https://console.anthropic.com/settings/keys',
-		endpoint: 'https://api.anthropic.com/v1',
-		models: [
-			'claude-3-7-sonnet-latest',
-			'claude-3-5-haiku-latest',
-			'claude-3-5-sonnet-latest',
-			'claude-3-5-opus-latest',
+			'llama3.3',
+			'deepseek-r1',
+			'phi4',
+			'llama3.1',
+			'llama3.2',
+			'mistral',
+			'qwen2.5',
+			'gemma',
 		],
 	},
 	{
@@ -114,21 +104,38 @@ export const llmPresets: LLMServiceInfo[] = [
 		],
 	},
 	{
-		name: 'Local Ollama',
+		name: 'Groq',
 		clientType: 'OpenAI',
-		apiKeyURL: '',
-		endpoint: 'http://localhost:11434/v1',
+		apiKeyURL: 'https://console.groq.com/keys',
+		endpoint: 'https://api.groq.com/openai/v1',
 		models: [
-			'llama3.3',
-			'deepseek-r1',
-			'phi4',
-			'llama3.1',
-			'llama3.2',
-			'mistral',
-			'qwen2.5',
-			'gemma',
+			'deepseek-r1-distill-llama-70b',
+			'deepseek-r1-distill-qwen-32b',
+			'qwen-2.5-32b',
+			'gemma2-9b-it',
+			'llama-3.3-70b-versatile',
 		],
 	},
+	{
+		name: 'OpenAI',
+		clientType: 'OpenAI',
+		apiKeyURL: 'https://platform.openai.com/api-keys',
+		endpoint: 'https://api.openai.com/v1',
+		models: ['gpt-4o-mini', 'gpt-4o', 'o3', 'o3-mini'],
+	},
+	{
+		name: 'Anthropic',
+		clientType: 'Anthropic',
+		apiKeyURL: 'https://console.anthropic.com/settings/keys',
+		endpoint: 'https://api.anthropic.com/v1',
+		models: [
+			'claude-3-7-sonnet-latest',
+			'claude-3-5-haiku-latest',
+			'claude-3-5-sonnet-latest',
+			'claude-3-5-opus-latest',
+		],
+	},
+
 	{
 		name: 'OpenRouter',
 		clientType: 'OpenAI',

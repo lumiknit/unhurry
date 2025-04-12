@@ -1,10 +1,53 @@
 import { Component, createMemo, For, onMount, Show } from 'solid-js';
 
-import { getChatContext, getStreamingMessage } from '@store';
+import { MsgPair } from '@/lib/chat';
+
+import {
+	getChatContext,
+	getFocusedChatState,
+	getStreamingMessage,
+} from '@store';
 
 import { scrollToLastUserMessage } from './lib';
 import { Message } from './message';
 import Title from './Title';
+
+type Props = {
+	isLast?: boolean;
+	pair: MsgPair;
+};
+
+const MessagePair: Component<Props> = (props) => {
+	return (
+		<div class="msg-group">
+			<Show when={props.pair.user}>
+				<Message msg={props.pair.user!} />
+			</Show>
+			<Show when={props.pair.assistant}>
+				<Message msg={props.pair.assistant!} />
+			</Show>
+			<Show when={props.isLast}>
+				<Show when={getStreamingMessage()}>
+					<Message
+						msg={{
+							role: 'assistant',
+							parts: getStreamingMessage()!.parts,
+							timestamp: Date.now(),
+						}}
+					/>
+					<div class="streaming-msg">
+						{getStreamingMessage()!.rest}
+					</div>
+				</Show>
+				<Show when={getFocusedChatState().progressing}>
+					<div class="text-center">
+						<span class="spinner" />
+					</div>
+				</Show>
+			</Show>
+		</div>
+	);
+};
 
 const ChatHistoryView: Component = () => {
 	const pairs = createMemo(() => getChatContext().history.msgPairs);
@@ -18,35 +61,10 @@ const ChatHistoryView: Component = () => {
 			<Title />
 			<For each={pairs()}>
 				{(item, idx) => (
-					<div class="msg-group">
-						<Show when={item.user}>
-							<Message msg={item.user!} idx={idx()} />
-						</Show>
-						<Show when={item.assistant}>
-							<Message msg={item.assistant!} idx={idx()} />
-						</Show>
-						<Show
-							when={
-								pairs().length - 1 === idx() &&
-								getStreamingMessage()
-							}
-						>
-							<Message
-								msg={{
-									role: 'assistant',
-									parts: getStreamingMessage()!.parts,
-									timestamp: Date.now(),
-								}}
-								idx={idx()}
-							/>
-							<div class="streaming-msg">
-								{getStreamingMessage()!.rest}
-								<div class="text-center">
-									<span class="spinner" />
-								</div>
-							</div>
-						</Show>
-					</div>
+					<MessagePair
+						pair={item}
+						isLast={idx() === pairs().length - 1}
+					/>
 				)}
 			</For>
 		</div>

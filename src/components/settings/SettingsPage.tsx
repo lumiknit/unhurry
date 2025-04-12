@@ -7,19 +7,35 @@ import TagList from './TagList';
 import ToolsSettings from './ToolsSettings';
 import Xxport from './Xxport';
 
-type Tab = 'General' | 'Models' | 'Prompt Tags' | 'Tools' | 'Im/Export';
-const tabs: Tab[] = ['General', 'Models', 'Prompt Tags', 'Tools', 'Im/Export'];
+type TabID = 'general' | 'models' | 'prompt-tags' | 'tools' | 'im-export';
+type TabItem = {
+	id: TabID;
+	label: string;
+};
 
-const tabComponents = new Map<Tab, Component>([
-	['General', GeneralSettings],
-	['Models', ModelList],
-	['Prompt Tags', TagList],
-	['Tools', ToolsSettings],
-	['Im/Export', Xxport],
+const tabs: TabItem[] = [
+	{ id: 'general', label: 'General' },
+	{ id: 'models', label: 'Models' },
+	{ id: 'prompt-tags', label: 'Prompt Tags' },
+	{ id: 'tools', label: 'Tools' },
+	{ id: 'im-export', label: 'Im/Export' },
+];
+
+const tabComponents = new Map<TabID, Component>([
+	['general', GeneralSettings],
+	['models', ModelList],
+	['prompt-tags', TagList],
+	['tools', ToolsSettings],
+	['im-export', Xxport],
 ]);
 
 const SettingsPage: Component = () => {
-	const [activeTab, setActiveTab] = createSignal<Tab>('General');
+	const query = new URLSearchParams(window.location.search);
+	let initialTab = query.get('tab') as TabID;
+	if (!tabComponents.has(initialTab)) {
+		initialTab = 'general';
+	}
+	const [activeTab, setActiveTab] = createSignal<TabID>(initialTab);
 
 	return (
 		<div class="container">
@@ -32,11 +48,11 @@ const SettingsPage: Component = () => {
 							{(tab) => (
 								<li
 									classList={{
-										'is-active': tab === activeTab(),
+										'is-active': tab.id === activeTab(),
 									}}
 								>
-									<a onClick={() => setActiveTab(tab)}>
-										{tab}
+									<a onClick={() => setActiveTab(tab.id)}>
+										{tab.label}
 									</a>
 								</li>
 							)}
