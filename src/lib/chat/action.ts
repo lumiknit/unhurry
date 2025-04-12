@@ -117,7 +117,6 @@ export abstract class SingleLLMAction {
 		// Check last message
 		const last = this.history.msgPairs[this.history.msgPairs.length - 1];
 		if (!last.assistant) {
-			console.log('SET in last');
 			this.history.msgPairs[this.history.msgPairs.length - 1] = {
 				...last,
 				assistant: {
@@ -127,7 +126,6 @@ export abstract class SingleLLMAction {
 				},
 			};
 		} else {
-			console.log('PUSH in last');
 			// Push new assistant message
 			this.history.msgPairs.push({
 				assistant: {
@@ -164,11 +162,9 @@ export abstract class SingleLLMAction {
 			isCancelled: () => this.cancelled,
 		});
 		logr.info('[chat/SingleChatAction/generate] Stream End');
-		console.log('Result', result);
 
 		// Finish parser
 		const assistantParts = parser.finish();
-		console.log('Result', result);
 		const functionCalls = result.functionCalls();
 
 		const fullAIParts = [

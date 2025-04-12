@@ -3,10 +3,9 @@ import { Component, createSignal, Match, Switch } from 'solid-js';
 import { toast } from 'solid-toast';
 
 import { logr } from '@/lib/logr';
+import { generateChatTitle, setTitle } from '@/store/global_actions';
 
-import { getChatContext, saveChatContextMeta, setChatContext } from '@store';
-
-import { generateChatTitle } from '../../store/global_actions';
+import { getChatContext } from '@store';
 
 interface EditProps {
 	originalTitle: string;
@@ -24,7 +23,7 @@ const TitleEdit: Component<EditProps> = (props) => {
 	};
 
 	const handleAIGenerate = async () => {
-		const title = await toast.promise(generateChatTitle(), {
+		await toast.promise(generateChatTitle(), {
 			loading: 'Generating...',
 			success: 'Generated',
 			error: (e) => {
@@ -32,7 +31,6 @@ const TitleEdit: Component<EditProps> = (props) => {
 				return 'Failed to generate';
 			},
 		});
-		props.onSave(title);
 	};
 
 	return (
@@ -70,9 +68,8 @@ const Title = () => {
 	const toggleEditing = () => setEditing(!editing());
 
 	const handleTitleUpdate = (title: string) => {
-		setChatContext((c) => ({ ...c, title }));
 		toggleEditing();
-		saveChatContextMeta();
+		setTitle(title);
 	};
 
 	return (

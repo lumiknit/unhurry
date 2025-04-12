@@ -3,20 +3,9 @@ import { toast } from 'solid-toast';
 
 import { getBEService, ISpeechRecognizer } from '@/lib/be';
 import { logr } from '@/lib/logr';
-import {
-	cancelCurrentChat,
-	chat,
-	generateChatTitle,
-} from '@/store/global_actions';
+import { cancelCurrentChat, chat } from '@/store/global_actions';
 
-import {
-	getChatContext,
-	getUserConfig,
-	saveChatContextMeta,
-	setChatContext,
-	setStore,
-	store,
-} from '@store';
+import { getFocusedChatState, getUserConfig, setStore } from '@store';
 
 import InputTags from './PromptTags';
 import SendButton from './SendButton';
@@ -111,7 +100,6 @@ const BottomInput: Component = () => {
 			// Just ignore the send
 		}
 		setFiles([]);
-		const isFirst = getChatContext().history.msgPairs.length === 0;
 		try {
 			logr.info('LLM Input: ', v);
 
@@ -126,13 +114,6 @@ const BottomInput: Component = () => {
 			taRef!.value = v;
 			setFiles(fs);
 			lastSent = 0;
-		}
-		if (isFirst) {
-			// Generate a title
-			const title = await generateChatTitle();
-			logr.info('Generated title: ', title);
-			setChatContext((c) => ({ ...c, title }));
-			saveChatContextMeta();
 		}
 		autosizeTextarea();
 	};
@@ -174,7 +155,7 @@ const BottomInput: Component = () => {
 		if (
 			!getUserConfig()?.enableAutoSend ||
 			!as ||
-			store.focusedChatState.progressing
+			getFocusedChatState().progressing
 		)
 			return;
 

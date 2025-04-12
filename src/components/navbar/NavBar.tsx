@@ -54,7 +54,7 @@ const NavBar: Component = () => {
 
 				<a class="navbar-item" onClick={() => gotoNewChat(navigate)}>
 					<BiRegularPlus />
-					New
+					<span class="is-hidden-mobile">New</span>
 				</a>
 
 				<A class="navbar-item" href="/chats">

@@ -85,7 +85,6 @@ export class BrowserSpeechRecognizer implements ISpeechRecognizer {
 		this.recognition.maxAlternatives = 1;
 
 		this.recognition.onresult = (event: SpeechRecognitionEvent) => {
-			console.log(event);
 			const resultIndex = event.resultIndex;
 			const result = event.results[resultIndex];
 			const isFinal = result.isFinal;

@@ -11,13 +11,9 @@ import {
 	RequestEntityTooLargeError,
 } from '../llm';
 import { logr } from '../logr';
-import {
-	ChatOptions,
-	ChatRequest,
-	emptyFocusedChatState,
-	FocusedChatState,
-	OngoingChatMeta,
-} from './structs';
+import { generateChatTitle } from './manager-utils';
+import { ChatOptions, ChatRequest, OngoingChatMeta } from './structs';
+import { uniqueID } from '../utils';
 
 /**
  * Chat not found error
@@ -80,25 +76,27 @@ export class ChatManager {
 	 */
 	chats: Map<string, OngoingChat> = new Map();
 
-	focused?: string;
-
 	// Callbacks
 
+	onProgressChange: (id: string, progress: boolean) => void = () => {};
+
 	/**
-	 * Callback when the focused chat state is changed.
-	 * This will be called when the
+	 * Callback for the chat context updated.
+	 * It should return true if the context is applied for the UI.
 	 */
-	onFocusedChatState: (state: FocusedChatState) => void = () => {};
+	onContextUpdate: (ctx: ChatContext) => boolean = () => {
+		return false;
+	};
 
 	/**
 	 * Callback for the chat chunk is received.
 	 */
-	onChunk: (parts: MsgPart[], rest: string) => void = () => {};
+	onChunk: (id: string, parts: MsgPart[], rest: string) => void = () => {};
 
 	/**
 	 * Callback for the chat completed and the message is given.
 	 */
-	onMessage: (msgPairs: MsgPair[]) => void = () => {};
+	onMessage: (id: string, msgPairs: MsgPair[]) => void = () => {};
 
 	// Methods
 
@@ -167,6 +165,40 @@ export class ChatManager {
 
 	// Chat DB related methods
 
+	private getEmptyChatCtx(): ChatContext {
+		return {
+			_id: uniqueID(),
+			title: '',
+			createdAt: Date.now(),
+			updatedAt: Date.now(),
+			history: {
+				msgPairs: [],
+			},
+		};
+	}
+
+	private makeOngoing(ctx: ChatContext, options: ChatOptions) {
+		const oc: OngoingChat = {
+			meta: {
+				id: ctx._id,
+				startedAt: Date.now(),
+			},
+			ctx,
+			opts: options,
+		};
+		this.chats.set(ctx._id, oc);
+		this.saveState();
+	}
+
+	/**
+	 * Load empty chat.
+	 */
+	emptyChat(options: ChatOptions): ChatContext {
+		const ctx = this.getEmptyChatCtx();
+		this.makeOngoing(ctx, options);
+		return ctx;
+	}
+
 	/**
 	 * Load the chat from the database.
 	 * This will load the chat meta and all messages.
@@ -178,21 +210,12 @@ export class ChatManager {
 		}
 
 		const chatListDB = await chatListTx<ChatMeta>();
-		let chatMeta = await chatListDB.get(id);
-		let msgPairs: MsgPair[] = [];
-
+		const chatMeta = await chatListDB.get(id);
 		if (!chatMeta) {
-			// Chat meta not found, create a new one.
-			chatMeta = {
-				_id: id,
-				title: '',
-				createdAt: Date.now(),
-				updatedAt: Date.now(),
-			};
-		} else {
-			const chatMsgDB = await chatTx<MsgPair>(id);
-			msgPairs = await chatMsgDB.getAll();
+			return this.emptyChat(options);
 		}
+		const chatMsgDB = await chatTx<MsgPair>(id);
+		const msgPairs = await chatMsgDB.getAll();
 
 		const ctx: ChatContext = {
 			...chatMeta,
@@ -200,19 +223,7 @@ export class ChatManager {
 				msgPairs: msgPairs,
 			},
 		};
-
-		const oc: OngoingChat = {
-			meta: {
-				id,
-				startedAt: chatMeta.createdAt,
-			},
-			ctx,
-			opts: options,
-		};
-		this.chats.set(id, oc);
-
-		this.saveState();
-
+		this.makeOngoing(ctx, options);
 		return ctx;
 	}
 
@@ -232,41 +243,24 @@ export class ChatManager {
 		const ch = this.chat(id);
 		const chatListDB = await chatListTx<ChatMeta>();
 		ch.ctx.updatedAt = Date.now();
-		if (this.focused === id) {
+		if (this.onContextUpdate(ch.ctx)) {
 			ch.ctx.checkedAt = Date.now();
 		}
 		const meta = extractChatMeta(ch.ctx);
-		console.log('Save meta', meta);
 		await chatListDB.put(meta);
-		console.log('Saved meta');
 	}
 
 	/**
 	 * Save new message
 	 */
 	async saveMessage(id: string, msgIdx: number) {
-		console.log('Save message');
 		const ch = this.chat(id);
 		const chatDB = await chatTx<MsgPair>(id);
 		const msg = ch.ctx.history.msgPairs[msgIdx];
-		console.log('PUT', id, msg);
 		await chatDB.put({
 			...msg,
 			_id: msgIdx,
 		});
-	}
-
-	// Chat state
-
-	private sendFocusedChatState() {
-		try {
-			const ch = this.chat(this.focused!);
-			this.onFocusedChatState({
-				progressing: ch.action !== undefined,
-			});
-		} catch {
-			this.onFocusedChatState(emptyFocusedChatState());
-		}
 	}
 
 	// Chat methods
@@ -299,13 +293,9 @@ export class ChatManager {
 
 	// Utility methods
 
-	/** Update focus and check the chat */
-	focusAndCheck(id: string) {
+	isProgressing(id: string) {
 		const ch = this.chat(id);
-		this.focused = id;
-		this.sendFocusedChatState();
-
-		this.checkChatWrap(ch);
+		return ch.action !== undefined;
 	}
 
 	/**
@@ -318,48 +308,53 @@ export class ChatManager {
 		}
 	}
 
-	// Callbacks for the chat actions
-
-	private callbackOnChunk(id: string) {
-		return async (_chunk: string, parts: MsgPart[], rest: string) => {
-			if (id !== this.focused) {
-				return;
-			}
-			this.onChunk(parts, rest);
+	updateChatMeta(id: string, meta: Partial<ChatMeta>) {
+		const ch = this.chat(id);
+		ch.ctx = {
+			...ch.ctx,
+			...meta,
 		};
+		this.saveChatMeta(id);
 	}
 
-	private callbackOnLLMFallback(id: string) {
-		return (err: Error, _idx: number, mc: ModelConfig): boolean => {
-			let reason = `'${mc.name}' failed. `;
-			if (err instanceof BadRequestError) {
-				reason +=
-					'(400) Maybe the input is invalid, or some inputs are not supported. (e.g. Image, ToolCall)';
-			} else if (err instanceof RequestEntityTooLargeError) {
-				reason += '(413) Maybe chat history is too long.';
-			} else if (err instanceof RateLimitError) {
-				reason += '(429) Rate limit.';
-			} else {
-				reason += `(${err.message})`;
-			}
-			if (this.chats.get(id)?.opts.enableLLMFallback) {
-				if (id === this.focused) {
-					toast(`${reason} Trying another model...`);
-				}
-				logr.info(
-					`[ChatManager] LLM fallback enabled, error: ${err.message}`
-				);
-				return true;
-			} else {
-				if (id === this.focused) {
-					toast.error(reason);
-					logr.warn(
-						`[ChatManager] LLM fallback disabled, error: ${err.message}`
-					);
-				}
-				return false;
-			}
-		};
+	async generateChatTitle(id: string) {
+		const ch = this.chat(id);
+		const title = await generateChatTitle(ch.opts, ch.ctx.history);
+		this.updateChatMeta(id, {
+			title,
+		});
+	}
+
+	// Callbacks for the chat actions
+
+	private onLLMFallback(
+		id: string,
+		err: Error,
+		_idx: number,
+		mc: ModelConfig
+	) {
+		let reason = `'${mc.name}' failed. `;
+		if (err instanceof BadRequestError) {
+			reason +=
+				'(400) Maybe the input is invalid, or some inputs are not supported. (e.g. Image, ToolCall)';
+		} else if (err instanceof RequestEntityTooLargeError) {
+			reason += '(413) Maybe chat history is too long.';
+		} else if (err instanceof RateLimitError) {
+			reason += '(429) Rate limit.';
+		} else {
+			reason += `(${err.message})`;
+		}
+		if (this.chats.get(id)?.opts.enableLLMFallback) {
+			logr.info(
+				`[ChatManager] LLM fallback enabled, error: ${err.message}; ${reason}`
+			);
+			return true;
+		} else {
+			logr.warn(
+				`[ChatManager] LLM fallback disabled, error: ${err.message}; ${reason}`
+			);
+			return false;
+		}
 	}
 
 	private callbackOnUpdate(id: string) {
@@ -369,10 +364,7 @@ export class ChatManager {
 				throw new Error(`Chat ${id} not found`);
 			}
 
-			if (id === this.focused) {
-				// TODO: Update global store
-				this.onMessage(ch.ctx.history.msgPairs);
-			}
+			this.onMessage(id, ch.ctx.history.msgPairs);
 
 			// Save to DB
 			await Promise.all([
@@ -382,48 +374,73 @@ export class ChatManager {
 		};
 	}
 
-	private async checkChat(item: OngoingChat) {
+	private async checkChatInner(item: OngoingChat) {
+		const id = item.meta.id;
 		const req = item.meta.request;
 		if (!req) {
 			// No request, skip
 			return;
 		}
 
+		const isFirst = item.ctx.history.msgPairs.length === 0;
+
 		const action = new SingleChatAction(
 			item.opts.modelConfigs,
 			item.opts.toolConfigs,
 			item.ctx.history
 		);
-		action.onChunk = this.callbackOnChunk(item.meta.id);
-		action.onLLMFallback = this.callbackOnLLMFallback(item.meta.id);
+		action.onChunk = (_, parts, rest) => this.onChunk(id, parts, rest);
+		action.onLLMFallback = (err, index, mc) =>
+			this.onLLMFallback(id, err, index, mc);
 		action.onUpdate = this.callbackOnUpdate(item.meta.id);
 		item.action = action;
 
-		this.sendFocusedChatState();
+		this.onProgressChange(id, true);
 
-		switch (req.type) {
-			case 'user-msg':
-				// Consume the message, then run the action
-				await action.runWithUserMessage(req.message);
-				item.meta.request = undefined;
-				break;
-			case 'uphurry':
-				// TODO: Generate new message, then run
-				break;
+		let err: any = undefined;
+		try {
+			switch (req.type) {
+				case 'user-msg':
+					// Consume the message, then run the action
+					await action.runWithUserMessage(req.message);
+					item.meta.request = undefined;
+					break;
+				case 'uphurry':
+					// TODO: Generate new message, then run
+					break;
+			}
+		} catch (e) {
+			err = e;
 		}
 
 		item.action = undefined;
+		this.onProgressChange(id, false);
 
-		this.sendFocusedChatState();
+		if (err) {
+			throw err;
+		}
+
+		if (isFirst) {
+			// Generate the title
+			const title = await generateChatTitle(item.opts, item.ctx.history);
+			item.ctx.title = title;
+			this.saveChatMeta(item.meta.id);
+		}
 	}
 
-	private async checkChatWrap(item: OngoingChat) {
+	/**
+	 * Check the chat and run the action if needed.
+	 */
+	async checkChat(item: OngoingChat | string) {
+		if (typeof item === 'string') {
+			item = this.chat(item);
+		}
 		try {
 			if (item.lock) {
 				return;
 			}
 			item.lock = true;
-			await this.checkChat(item);
+			await this.checkChatInner(item);
 		} catch (e) {
 			logr.error('[ChatManager] Error checking chat', e);
 			toast.error('ChatManager error: ' + item.ctx.title);
@@ -434,11 +451,9 @@ export class ChatManager {
 	/**
 	 * Periodic check for the chat
 	 */
-	private async check() {
+	private async checkAll() {
 		await Promise.all(
-			Array.from(this.chats.values()).map((item) =>
-				this.checkChatWrap(item)
-			)
+			Array.from(this.chats.values()).map((item) => this.checkChat(item))
 		);
 	}
 
@@ -458,7 +473,7 @@ export class ChatManager {
 			return;
 		}
 		this.checkInterval = window.setInterval(
-			() => this.check(),
+			() => this.checkAll(),
 			this.checkIntervalDelay
 		);
 	}

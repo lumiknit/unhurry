@@ -14,7 +14,7 @@ import { gotoNewChat } from '@/store/chat';
 import { ChatMeta, hasChatUpdate } from '@lib/chat';
 import { chatListTx, clearAllChats, deleteChatByID } from '@lib/idb';
 
-import { loadChatContext } from '@store/index';
+import { loadChatContext } from '@store/global_actions';
 
 import { rootPath } from '../../env';
 import { openConfirm } from '../modal-confirm';

@@ -1,39 +1,30 @@
 /// Global store
 
-import { createEffect } from 'solid-js';
+import { createEffect, createSignal } from 'solid-js';
 import { createStore, StoreSetter, unwrap } from 'solid-js/store';
 import { toast } from 'solid-toast';
 
 import { chatManager } from '@/lib/chat-manager/manager';
-import {
-	emptyFocusedChatState,
-	FocusedChatState,
-} from '@/lib/chat-manager/structs';
+import { emptyChatProgress, ChatProgress } from '@/lib/chat-manager/structs';
 import { logr } from '@/lib/logr';
 
-import {
-	ChatContext,
-	ChatMeta,
-	emptyChatContext,
-	extractChatMeta,
-	MsgPart,
-} from '../lib/chat';
+import { ChatContext, MsgPart } from '../lib/chat';
 import { sanitizeConfig, UserConfig } from '../lib/config';
-import { chatListTx, loadUserConfig, saveUserConfig } from '../lib/idb';
+import { loadUserConfig, saveUserConfig } from '../lib/idb';
 
 interface StreamingMessage {
 	parts: MsgPart[];
 	rest: string;
 }
 
+export const [getStreamingMessage, setStreamingMessage] = createSignal<
+	StreamingMessage | undefined
+>(undefined);
+
+export const [getFocusedChatState, setFocusedChatState] =
+	createSignal<ChatProgress>(emptyChatProgress());
+
 interface GlobalStore {
-	// Focused chat states
-	chatContext: ChatContext;
-
-	focusedChatState: FocusedChatState;
-
-	streamingMessage?: StreamingMessage;
-
 	// Configurations
 	userConfig?: UserConfig;
 
@@ -48,10 +39,7 @@ interface GlobalStore {
 	autoSendLaunchAt?: number;
 }
 
-export const [store, setStore] = createStore<GlobalStore>({
-	chatContext: emptyChatContext(),
-	focusedChatState: emptyFocusedChatState(),
-});
+export const [store, setStore] = createStore<GlobalStore>({});
 
 // Config
 
@@ -71,6 +59,7 @@ export const setUserConfig = (setter: StoreSetter<UserConfig>) => {
 		'userConfig',
 		setter as StoreSetter<UserConfig | undefined, ['userConfig']>
 	);
+
 	// Save to IDB
 	saveUserConfig(unwrap(getUserConfig()));
 };
@@ -83,12 +72,23 @@ createEffect(() => {
 	} else {
 		document.querySelector(':root')?.classList.add('font-serif');
 	}
+	// Propagate to the current context
+	const chatContext = getChatContext();
+	chatManager.setChatOpts(chatContext._id, {
+		modelConfigs: c.models.slice(c.currentModelIdx),
+		toolConfigs: c.tools,
+		enableLLMFallback: c.enableLLMFallback,
+	});
 });
 
 export const getCurrentChatOpts = () => {
-	const config = getUserConfig();
+	const config = unwrap(getUserConfig());
 	if (!config) {
-		throw new Error('No user config');
+		return {
+			modelConfigs: [],
+			toolConfigs: {},
+			enableLLMFallback: false,
+		};
 	}
 	const opts = {
 		modelConfigs: config.models.slice(config.currentModelIdx),
@@ -100,39 +100,10 @@ export const getCurrentChatOpts = () => {
 
 // Chat Context
 
-export const getChatContext = () => store.chatContext;
-export const setChatContext = (setter: StoreSetter<ChatContext>) => {
-	setStore(
-		'chatContext',
-		setter as StoreSetter<ChatContext, ['chatContext']>
-	);
-};
-
-export const saveChatContextMeta = async () => {
-	const ctx = getChatContext();
-	const chatList = await chatListTx<ChatMeta>();
-	await chatList.put(extractChatMeta(unwrap(ctx)));
-};
-
-export const loadChatContext = async (id: string) => {
-	// Load chat
-	const ctx = await chatManager.loadChat(id, getCurrentChatOpts());
-	setChatContext(ctx);
-	chatManager.focusAndCheck(id);
-	setStreamingMessage();
-};
-
-// Streaming message
-
-export const getStreamingMessage = () => store.streamingMessage;
-export const setStreamingMessage = (
-	setter: StoreSetter<StreamingMessage | void>
-) => {
-	setStore(
-		'streamingMessage',
-		setter as StoreSetter<
-			StreamingMessage | undefined,
-			['streamingMessage']
-		>
-	);
-};
+export const [getChatContext, setChatContext] = createSignal<ChatContext>(
+	chatManager.emptyChat({
+		modelConfigs: [],
+		toolConfigs: {},
+		enableLLMFallback: false,
+	})
+);

@@ -2,7 +2,11 @@ import { Component, createMemo, For, onMount, Show } from 'solid-js';
 
 import { MsgPair } from '@/lib/chat';
 
-import { getChatContext, getStreamingMessage, store } from '@store';
+import {
+	getChatContext,
+	getFocusedChatState,
+	getStreamingMessage,
+} from '@store';
 
 import { scrollToLastUserMessage } from './lib';
 import { Message } from './message';
@@ -35,7 +39,7 @@ const MessagePair: Component<Props> = (props) => {
 						{getStreamingMessage()!.rest}
 					</div>
 				</Show>
-				<Show when={store.focusedChatState.progressing}>
+				<Show when={getFocusedChatState().progressing}>
 					<div class="text-center">
 						<span class="spinner" />
 					</div>

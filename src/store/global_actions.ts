@@ -1,23 +1,18 @@
 // Store-based actions
+import { batch } from 'solid-js';
+
 import { getBEService, VibrationPattern } from '@/lib/be';
 import { chatManager } from '@/lib/chat-manager/manager';
-import { logr } from '@/lib/logr';
 
 import {
 	getChatContext,
 	getCurrentChatOpts,
 	getUserConfig,
 	setChatContext,
-	setStore,
+	setFocusedChatState,
 	setStreamingMessage,
 } from './store';
-import {
-	convertChatHistoryForLLM,
-	emptyChatContext,
-	MsgPartsParser,
-	MSG_PART_TYPE_FILE,
-} from '../lib/chat';
-import { LLMMessage, newClientFromConfig } from '../lib/llm';
+import { MsgPartsParser, MSG_PART_TYPE_FILE } from '../lib/chat';
 
 /**
  * Vibration
@@ -30,59 +25,47 @@ export const vibrate = async (pattern: VibrationPattern) => {
 };
 
 /**
- * Generate title from the chat context
- */
-export const generateChatTitle = async (): Promise<string> => {
-	// Get LLM
-	const config = getUserConfig();
-	if (!config) {
-		throw new Error('No user config');
-	}
-
-	const modelConfig = config.models[config.currentModelIdx];
-	if (!modelConfig) {
-		throw new Error('No model config');
-	}
-
-	const llm = newClientFromConfig(modelConfig);
-	const systemPrompt = `
-You are a title generator.
-Based on the following conversation, please generate a title for this chat.
-- Language should be short and clear (At least 2 words, at most 10 words. Single sentence)
-- Should be relevant to the conversation
-- Use the most used language in the conversation
-- DO NOT answer except the title. You ONLY give a title in plain text.
-`.trim();
-
-	// Generate response
-	const llmHistory = await getLLMHistory();
-	llmHistory.push(
-		LLMMessage.user('[Give me a title for the above conversation]')
-	);
-	const result = await llm.chat(systemPrompt, llmHistory);
-	logr.info('[store/action] Generated Title', result);
-	const list = result
-		.extractText()
-		.split('\n')
-		.map((l) => l.trim())
-		.filter((l) => l);
-	// Return only last line
-	return list[list.length - 1];
-};
-
-/**
  * Reset the chat context
  */
 export const resetChatMessages = () => {
-	setChatContext(emptyChatContext());
+	batch(() => {
+		setChatContext({ ...chatManager.emptyChat(getCurrentChatOpts()) });
+		setStreamingMessage();
+		setFocusedChatState({
+			progressing: false,
+		});
+	});
 };
 
-/**
- * Insert multiple messages to the chat history
- */
-const getLLMHistory = async () => {
-	const context = getChatContext();
-	return await convertChatHistoryForLLM(context.history);
+export const loadChatContext = async (id: string) => {
+	// Load chat
+	const ctx = await chatManager.loadChat(id, getCurrentChatOpts());
+	batch(() => {
+		setChatContext({ ...ctx });
+		setStreamingMessage();
+		setFocusedChatState({
+			progressing: chatManager.isProgressing(id),
+		});
+	});
+	chatManager.checkChat(id);
+};
+
+export const setTitle = (title: string) => {
+	const ctx = getChatContext();
+	if (!ctx) {
+		throw new Error('No chat context');
+	}
+	chatManager.updateChatMeta(ctx._id, {
+		title: title,
+	});
+};
+
+export const generateChatTitle = async () => {
+	const ctx = getChatContext();
+	if (!ctx) {
+		throw new Error('No chat context');
+	}
+	await chatManager.generateChatTitle(ctx._id);
 };
 
 export const chat = async (text: string, fileIDs?: string[]) => {
@@ -115,7 +98,7 @@ export const chat = async (text: string, fileIDs?: string[]) => {
 		type: 'user-msg',
 		message: parts,
 	});
-	chatManager.focusAndCheck(ctx._id);
+	chatManager.checkChat(ctx._id);
 };
 
 export const cancelCurrentChat = () => {
@@ -124,11 +107,19 @@ export const cancelCurrentChat = () => {
 };
 
 // ChatManager
-chatManager.onFocusedChatState = (state) => {
-	setStore('focusedChatState', state);
+chatManager.onContextUpdate = (ctx) => {
+	if (ctx._id !== getChatContext()._id) {
+		return false;
+	}
+	setChatContext({ ...ctx });
+	return true;
 };
 
-chatManager.onChunk = (parts, rest) => {
+chatManager.onChunk = (id, parts, rest) => {
+	const ctx = getChatContext();
+	if (ctx._id !== id) {
+		return;
+	}
 	vibrate(4);
 	setStreamingMessage({
 		parts: [...parts],
@@ -136,13 +127,28 @@ chatManager.onChunk = (parts, rest) => {
 	});
 };
 
-chatManager.onMessage = async (msgPairs) => {
+chatManager.onMessage = async (id, msgPairs) => {
+	const ctx = getChatContext();
+	if (ctx._id !== id) {
+		return;
+	}
 	setStreamingMessage();
 	setChatContext((c) => ({
 		...c,
 		history: {
 			msgPairs: [...msgPairs],
 		},
+	}));
+};
+
+chatManager.onProgressChange = (id, progress) => {
+	const ctx = getChatContext();
+	if (ctx._id !== id) {
+		return;
+	}
+	setFocusedChatState((state) => ({
+		...state,
+		progressing: progress,
 	}));
 };
 

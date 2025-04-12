@@ -1,4 +1,3 @@
-import { uniqueID } from '../utils';
 import { ChatHistory } from './structs';
 
 /**
@@ -36,19 +35,6 @@ const chatMetaFields: (keyof ChatMeta)[] = [
 export type ChatContext = ChatMeta & {
 	history: ChatHistory;
 };
-
-/**
- * Create an empty chat context.
- */
-export const emptyChatContext = (): ChatContext => ({
-	_id: uniqueID(),
-	createdAt: Date.now(),
-	updatedAt: Date.now(),
-	title: '',
-	history: {
-		msgPairs: [],
-	},
-});
 
 /**
  * Return true if the chat is updated since last checked.
