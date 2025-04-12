@@ -202,7 +202,6 @@ const ChatListPage: Component = () => {
 	};
 
 	const deleteChat = async (id: string) => {
-		e.stopPropagation();
 		if (!(await openConfirm('Are you sure to delete this chat?'))) return;
 		toast.promise(deleteChatByID(id), {
 			loading: 'Deleting...',
