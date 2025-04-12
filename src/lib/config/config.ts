@@ -1,7 +1,6 @@
 import { PromptTag } from './prompt_tag';
 import { ModelConfig } from '../llm';
 import { ToolConfigs } from './tool';
-import { TaskForce } from '../task';
 
 /**
  * Configuration for the user
@@ -11,11 +10,6 @@ export interface UserConfig {
 	 * LLM Models
 	 */
 	models: ModelConfig[];
-
-	/**
-	 * LLM TaskForces
-	 */
-	taskForces: TaskForce[];
 
 	/**
 	 * Current LLM
@@ -74,7 +68,6 @@ export interface UserConfig {
  */
 export const defaultConfig = (): UserConfig => ({
 	models: [],
-	taskForces: [],
 	currentModelIdx: 0,
 	enableLLMFallback: true,
 	enableTools: true,
