@@ -1,19 +1,21 @@
-import { A } from '@solidjs/router';
+import { A, useNavigate } from '@solidjs/router';
 import {
 	BiRegularCog,
 	BiRegularFolder,
 	BiRegularHistory,
+	BiRegularPlus,
 	BiRegularQuestionMark,
 } from 'solid-icons/bi';
-import { FaSolidListCheck } from 'solid-icons/fa';
-import { Component, Match, onMount, Switch } from 'solid-js';
+import { Component, onMount } from 'solid-js';
 
 import { rootPath } from '@/env';
-import { taskStore } from '@/store/task';
+import { gotoNewChat } from '@/store/chat';
 
 import ModelDropdown from './ModelDropdown';
 
 const NavBar: Component = () => {
+	const navigate = useNavigate();
+
 	let burgerRef: HTMLAnchorElement;
 	let menuRef: HTMLDivElement;
 
@@ -50,25 +52,14 @@ const NavBar: Component = () => {
 					</svg>
 				</A>
 
+				<a class="navbar-item" onClick={() => gotoNewChat(navigate)}>
+					<BiRegularPlus />
+					New
+				</a>
+
 				<A class="navbar-item" href="/chats">
 					<BiRegularHistory />
 					<span class="is-hidden-mobile">Chats</span>
-				</A>
-
-				<A class="navbar-item" href="/tasks">
-					<FaSolidListCheck />
-					<span class="is-hidden-mobile">Tasks</span>
-					<Switch>
-						<Match when={taskStore.state.running === false}>
-							<span class="indicator-off" />
-						</Match>
-						<Match when={taskStore.state.watchingTasks <= 0}>
-							<span class="indicator-on" />
-						</Match>
-						<Match when>
-							<span class="spinner" />
-						</Match>
-					</Switch>
 				</A>
 
 				<a
