@@ -157,16 +157,6 @@ const FileListPage: Component = () => {
 					</p>
 					<div class="panel-block">
 						<p class="control">
-							<button
-								class="button is-danger is-outlined is-fullwidth"
-								onClick={handleClearAll}
-							>
-								Clear All
-							</button>
-						</p>
-					</div>
-					<div class="panel-block">
-						<p class="control">
 							<input
 								ref={filterRef!}
 								class="input"
@@ -202,6 +192,14 @@ const FileListPage: Component = () => {
 					totalPages={page().totalPages}
 					onPageChange={setPage}
 				/>
+				<p class="control is-fullwidth">
+					<button
+						class="button is-danger is-outlined is-fullwidth"
+						onClick={handleClearAll}
+					>
+						Clear All
+					</button>
+				</p>
 			</div>
 		</div>
 	);

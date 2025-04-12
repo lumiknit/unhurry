@@ -1,7 +1,12 @@
 import { toast } from 'solid-toast';
 
 import { SingleChatAction } from '../chat/action_chat';
-import { ChatContext, ChatMeta, extractChatMeta } from '../chat/context';
+import {
+	ChatContext,
+	ChatMeta,
+	extractChatMeta,
+	hasChatUpdate,
+} from '../chat/context';
 import { MsgPair, MsgPart } from '../chat/structs';
 import { chatListTx, chatTx, SimpleIDB } from '../idb';
 import {
@@ -60,6 +65,17 @@ export type OngoingChat = {
 
 	/** Current onging chat action */
 	action?: SingleChatAction;
+};
+
+/**
+ * Ongoing chat summary
+ */
+export type OngoingChatSummary = {
+	meta: OngoingChatMeta;
+
+	ctx: ChatContext;
+
+	progressing: boolean;
 };
 
 /**
@@ -224,6 +240,12 @@ export class ChatManager {
 			},
 		};
 		this.makeOngoing(ctx, options);
+
+		if (hasChatUpdate(ctx)) {
+			// Mark as checked
+			ctx.checkedAt = Date.now();
+			this.saveChatMeta(id);
+		}
 		return ctx;
 	}
 
@@ -325,6 +347,14 @@ export class ChatManager {
 		});
 	}
 
+	getOngoings(): OngoingChatSummary[] {
+		return Array.from(this.chats.values()).map((item) => ({
+			meta: item.meta,
+			ctx: item.ctx,
+			progressing: this.isProgressing(item.meta.id),
+		}));
+	}
+
 	// Callbacks for the chat actions
 
 	private onLLMFallback(
@@ -383,6 +413,9 @@ export class ChatManager {
 		}
 
 		const isFirst = item.ctx.history.msgPairs.length === 0;
+		if (isFirst) {
+			this.saveChatMeta(id);
+		}
 
 		const action = new SingleChatAction(
 			item.opts.modelConfigs,

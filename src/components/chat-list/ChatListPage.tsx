@@ -5,7 +5,15 @@ import {
 	BiRegularPlus,
 } from 'solid-icons/bi';
 import { TbTrash } from 'solid-icons/tb';
-import { Component, createSignal, For, Match, onMount, Switch } from 'solid-js';
+import {
+	Component,
+	createSignal,
+	For,
+	Match,
+	onMount,
+	Show,
+	Switch,
+} from 'solid-js';
 import { toast } from 'solid-toast';
 
 import { shortRelativeDateFormat } from '@/lib/intl';
@@ -20,8 +28,62 @@ import { rootPath } from '../../env';
 import { openConfirm } from '../modal-confirm';
 import Pagination, { createPaginatedList } from '../utils/Pagination';
 
+type ClearModalProps = {
+	onClear: (left: number) => void;
+	onClose: () => void;
+};
+
+const ClearChatModal: Component<ClearModalProps> = (props) => {
+	let cntRef: HTMLInputElement;
+
+	const handleClear = async () => {
+		let left = parseInt(cntRef!.value);
+		if (isNaN(left)) left = 0;
+		left = Math.max(0, left);
+		props.onClear(left);
+	};
+
+	return (
+		<div class="modal is-active">
+			<div class="modal-background"></div>
+			<div class="modal-content">
+				<div class="box">
+					<p>Clear all chats except the latest chats</p>
+					<div class="field">
+						<label class="label">Leave Latest</label>
+						<div class="control">
+							<input
+								ref={cntRef!}
+								class="input"
+								type="number"
+								placeholder="Number of items to leave"
+								value="5"
+							/>
+						</div>
+					</div>
+					<div class="buttons">
+						<button class="button is-danger" onClick={handleClear}>
+							Clear
+						</button>
+						<button class="button" onClick={props.onClose}>
+							Cancel
+						</button>
+					</div>
+				</div>
+			</div>
+			<button
+				class="modal-close is-large"
+				aria-label="close"
+				onClick={props.onClose}
+			></button>
+		</div>
+	);
+};
+
 const ChatListPage: Component = () => {
 	const navigate = useNavigate();
+
+	const [showClearModal, setShowClearModal] = createSignal(false);
 
 	const pageSize = 10;
 	const [chatList, setChatList] = createSignal<ChatMeta[] | undefined>();
@@ -31,7 +93,6 @@ const ChatListPage: Component = () => {
 		pageSize
 	);
 
-	let clearLeftRef: HTMLInputElement;
 	let filterRef: HTMLInputElement;
 
 	const loadChatMeta = async () => {
@@ -50,14 +111,7 @@ const ChatListPage: Component = () => {
 		);
 	};
 
-	const handleClearAll = async () => {
-		let left = parseInt(clearLeftRef!.value);
-		if (isNaN(left)) left = 0;
-		left = Math.max(0, left);
-
-		const msg = left > 0 ? ` except ${left} latest ones` : '';
-		if (!(await openConfirm(`Are you sure to delete all chats${msg}?`)))
-			return;
+	const handleClearAll = async (left: number) => {
 		await toast.promise(
 			clearAllChats({
 				left,
@@ -69,6 +123,7 @@ const ChatListPage: Component = () => {
 			}
 		);
 		loadChatMeta();
+		setShowClearModal(false);
 	};
 
 	const handleFilterChange = () => {
@@ -104,6 +159,12 @@ const ChatListPage: Component = () => {
 
 	return (
 		<div class="container">
+			<Show when={showClearModal()}>
+				<ClearChatModal
+					onClose={() => setShowClearModal(false)}
+					onClear={handleClearAll}
+				/>
+			</Show>
 			<div class="m-2">
 				<nav class="panel is-primary">
 					<p class="panel-block has-background-text-soft has-text-weight-bold flex-split">
@@ -118,28 +179,6 @@ const ChatListPage: Component = () => {
 							New Chat
 						</button>
 					</p>
-					<div class="panel-block">
-						<div>
-							<p class="control">
-								<button
-									class="button is-danger is-outlined is-fullwidth"
-									onClick={handleClearAll}
-								>
-									Clear All
-								</button>
-							</p>
-							<p class="control">
-								Keep
-								<input
-									ref={clearLeftRef!}
-									class="input"
-									type="number"
-									placeholder="Except"
-									value="5"
-								/>
-							</p>
-						</div>
-					</div>
 					<div class="panel-block">
 						<p class="control">
 							<input
@@ -220,6 +259,14 @@ const ChatListPage: Component = () => {
 					totalPages={page().totalPages}
 					onPageChange={setPage}
 				/>
+				<p class="control is-fullwidth">
+					<button
+						class="button is-danger is-outlined is-fullwidth"
+						onClick={() => setShowClearModal(true)}
+					>
+						Clear All
+					</button>
+				</p>
 			</div>
 		</div>
 	);
