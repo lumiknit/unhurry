@@ -150,13 +150,10 @@ export class ChatManager {
 	 * Load the chat from the database.
 	 * This will load the chat meta and all messages.
 	 */
-	async loadChat(
-		id: string,
-		options: ChatOptions
-	): Promise<string> {
+	async loadChat(id: string, options: ChatOptions): Promise<ChatContext> {
 		if (this.chats.has(id)) {
 			// Already loaded, just return the ID
-			return id;
+			return this.chat(id).ctx;
 		}
 
 		const chatListDB = await chatListTx<ChatMeta>();
@@ -193,9 +190,9 @@ export class ChatManager {
 		};
 		this.chats.set(id, oc);
 
-		await this.saveState();
+		this.saveState();
 
-		return id;
+		return ctx;
 	}
 
 	/**
@@ -214,18 +211,28 @@ export class ChatManager {
 		const ch = this.chat(id);
 		const chatListDB = await chatListTx<ChatMeta>();
 		ch.ctx.updatedAt = Date.now();
+		if (this.focused === id) {
+			ch.ctx.checkedAt = Date.now();
+		}
 		const meta = extractChatMeta(ch.ctx);
+		console.log('Save meta', meta);
 		await chatListDB.put(meta);
+		console.log('Saved meta');
 	}
 
 	/**
 	 * Save new message
 	 */
 	async saveMessage(id: string, msgIdx: number) {
+		console.log('Save message');
 		const ch = this.chat(id);
 		const chatDB = await chatTx<MsgPair>(id);
 		const msg = ch.ctx.history.msgPairs[msgIdx];
-		await chatDB.put(msg);
+		console.log('PUT', id, msg);
+		await chatDB.put({
+			...msg,
+			_id: msgIdx,
+		});
 	}
 
 	// Chat methods
@@ -265,6 +272,9 @@ export class ChatManager {
 		this.checkChatWrap(ch);
 	}
 
+	/**
+	 * Cancel the chat aciton.
+	 */
 	cancelChat(id?: string) {
 		if (!id) {
 			id = this.focused;

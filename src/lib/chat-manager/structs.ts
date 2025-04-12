@@ -11,12 +11,12 @@ export interface ChatOptions {
 export type ChatReqMsg = {
 	type: 'user-msg';
 	message: MsgPart[];
-}
+};
 
 export type ChatReqUphurry = {
 	type: 'uphurry';
 	comment: string;
-}
+};
 
 export type ChatRequest = ChatReqMsg | ChatReqUphurry;
 

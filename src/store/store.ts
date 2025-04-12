@@ -4,6 +4,7 @@ import { createEffect } from 'solid-js';
 import { createStore, StoreSetter, unwrap } from 'solid-js/store';
 import { toast } from 'solid-toast';
 
+import { chatManager } from '@/lib/chat-manager/manager';
 import { logr } from '@/lib/logr';
 
 import {
@@ -11,11 +12,10 @@ import {
 	ChatMeta,
 	emptyChatContext,
 	extractChatMeta,
-	MsgPair,
 	MsgPart,
 } from '../lib/chat';
 import { sanitizeConfig, UserConfig } from '../lib/config';
-import { chatListTx, chatTx, loadUserConfig, saveUserConfig } from '../lib/idb';
+import { chatListTx, loadUserConfig, saveUserConfig } from '../lib/idb';
 
 interface StreamingMessage {
 	parts: MsgPart[];
@@ -24,6 +24,7 @@ interface StreamingMessage {
 
 interface GlobalStore {
 	chatContext: ChatContext;
+
 	streamingMessage?: StreamingMessage;
 
 	userConfig?: UserConfig;
@@ -75,6 +76,19 @@ createEffect(() => {
 	}
 });
 
+export const getCurrentChatOpts = () => {
+	const config = getUserConfig();
+	if (!config) {
+		throw new Error('No user config');
+	}
+	const opts = {
+		modelConfigs: config.models.slice(config.currentModelIdx),
+		toolConfigs: config.tools,
+		enableLLMFallback: config.enableLLMFallback,
+	};
+	return opts;
+};
+
 // Chat Context
 
 export const getChatContext = () => store.chatContext;
@@ -92,22 +106,10 @@ export const saveChatContextMeta = async () => {
 };
 
 export const loadChatContext = async (id: string) => {
-	const chatList = await chatListTx<ChatMeta>();
-	const m = await chatList.get(id);
-	if (!m) {
-		throw new Error(`Chat not found: ${id}`);
-	}
-	// Update lastUsedAt
-	m.lastUsedAt = Date.now();
-	await chatList.put(m);
-	const msgDB = await chatTx<MsgPair>(id);
-	const msgs = await msgDB.getAll();
-	setChatContext(() => ({
-		...m,
-		history: {
-			msgPairs: msgs,
-		},
-	}));
+	// Load chat
+	const ctx = await chatManager.loadChat(id, getCurrentChatOpts());
+	setChatContext(ctx);
+	chatManager.focusAndCheck(id);
 };
 
 // Streaming message

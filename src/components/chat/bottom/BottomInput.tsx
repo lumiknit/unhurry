@@ -4,7 +4,7 @@ import { toast } from 'solid-toast';
 import { getBEService, ISpeechRecognizer } from '@/lib/be';
 import { logr } from '@/lib/logr';
 import {
-	cancelAllChats,
+	cancelCurrentChat,
 	chat,
 	generateChatTitle,
 } from '@/store/global_actions';
@@ -407,7 +407,7 @@ const BottomInput: Component = () => {
 					stopSpeechRecognition={stopSpeechRecognition}
 					onSend={send}
 					onCancel={() => {
-						cancelAllChats();
+						cancelCurrentChat();
 					}}
 				/>
 			</div>

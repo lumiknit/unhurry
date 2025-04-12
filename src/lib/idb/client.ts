@@ -1,3 +1,7 @@
+type WithID = {
+	_id?: IDBValidKey;
+};
+
 class SimpleTransaction<T> {
 	tx: IDBTransaction;
 	store: IDBObjectStore;
@@ -132,14 +136,14 @@ export class SimpleIDB {
 		mode: IDBTransactionMode = 'readonly',
 		options?: IDBTransactionOptions,
 		store?: string
-	): Promise<SimpleTransaction<T>> {
+	): Promise<SimpleTransaction<WithID & T>> {
 		if (!this.db) {
 			await this.open();
 		}
 		if (!store) {
 			store = this.stores[0];
 		}
-		return new SimpleTransaction<T>(
+		return new SimpleTransaction<WithID & T>(
 			this.db!.transaction(store, mode, options),
 			store
 		);

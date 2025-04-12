@@ -1,5 +1,9 @@
 import { useNavigate } from '@solidjs/router';
-import { BiRegularCalendar, BiRegularPlus } from 'solid-icons/bi';
+import {
+	BiRegularCalendar,
+	BiRegularCalendarExclamation,
+	BiRegularPlus,
+} from 'solid-icons/bi';
 import { TbTrash } from 'solid-icons/tb';
 import { Component, createSignal, For, Match, onMount, Switch } from 'solid-js';
 import { toast } from 'solid-toast';
@@ -7,7 +11,7 @@ import { toast } from 'solid-toast';
 import { shortRelativeDateFormat } from '@/lib/intl';
 import { gotoNewChat } from '@/store/chat';
 
-import { ChatMeta } from '@lib/chat';
+import { ChatMeta, hasChatUpdate } from '@lib/chat';
 import { chatListTx, clearAllChats, deleteChatByID } from '@lib/idb';
 
 import { loadChatContext } from '@store/index';
@@ -42,7 +46,7 @@ const ChatListPage: Component = () => {
 
 	const sortByLastUsed = () => {
 		setFilteredList(
-			filtered().sort((a, b) => (b.lastUsedAt || 0) - (a.lastUsedAt || 0))
+			filtered().sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))
 		);
 	};
 
@@ -157,7 +161,12 @@ const ChatListPage: Component = () => {
 							<For each={page().items}>
 								{(chat) => (
 									<a
-										class="panel-block panel-item is-active"
+										class={
+											'panel-block panel-item is-active ' +
+											(hasChatUpdate(chat)
+												? 'has-background-warning-soft'
+												: '')
+										}
 										onClick={openChat(chat._id)}
 									>
 										<div class="panel-item-content">
@@ -180,6 +189,14 @@ const ChatListPage: Component = () => {
 													<BiRegularCalendar />
 													{shortRelativeDateFormat(
 														new Date(chat.createdAt)
+													)}
+												</div>
+												<div>
+													<BiRegularCalendarExclamation />
+													{shortRelativeDateFormat(
+														new Date(
+															chat.updatedAt || 0
+														)
 													)}
 												</div>
 											</div>

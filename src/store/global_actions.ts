@@ -1,27 +1,21 @@
 // Store-based actions
-import { unwrap } from 'solid-js/store';
-import { toast } from 'solid-toast';
-
 import { getBEService, VibrationPattern } from '@/lib/be';
 import { chatManager } from '@/lib/chat-manager/manager';
 import { logr } from '@/lib/logr';
 
 import {
 	getChatContext,
+	getCurrentChatOpts,
 	getUserConfig,
 	setChatContext,
 	setStreamingMessage,
 } from './store';
 import {
 	convertChatHistoryForLLM,
-	ChatMeta,
 	emptyChatContext,
-	extractChatMeta,
-	MsgPair,
 	MsgPartsParser,
 	MSG_PART_TYPE_FILE,
 } from '../lib/chat';
-import { chatListTx, chatTx } from '../lib/idb';
 import { LLMMessage, newClientFromConfig } from '../lib/llm';
 
 /**
@@ -90,32 +84,6 @@ const getLLMHistory = async () => {
 	return await convertChatHistoryForLLM(context.history);
 };
 
-export const saveCurrentChatToDB = async () => {
-	// Using DB, save the chat history
-	try {
-		const ctx = getChatContext();
-		await Promise.all([
-			(async () => {
-				const chatList = await chatListTx<ChatMeta>();
-				const m = await chatList.get(ctx._id);
-				if (!m) {
-					await chatList.put(extractChatMeta(unwrap(ctx)));
-				}
-			})(),
-			(async () => {
-				const chatDB = await chatTx<MsgPair>(ctx._id);
-				const lastPair = unwrap(
-					ctx.history.msgPairs[ctx.history.msgPairs.length - 1]
-				);
-				chatDB.put(lastPair);
-			})(),
-		]);
-	} catch (e) {
-		toast.error('Failed to push history into IDB');
-		logr.error(e);
-	}
-};
-
 chatManager.onChunk = (parts, rest) => {
 	vibrate(4);
 	setStreamingMessage({
@@ -158,26 +126,17 @@ export const chat = async (text: string, fileIDs?: string[]) => {
 		}
 	}
 
-	const opts = {
-		modelConfigs: config.models.slice(config.currentModelIdx),
-		toolConfigs: config.tools,
-		enableLLMFallback: config.enableLLMFallback,
-	}
-
-	const id = await chatManager.loadChat(
+	const ctx = await chatManager.loadChat(
 		chatContext._id,
-		opts
+		getCurrentChatOpts()
 	);
-	chatManager.setChatRequest(
-		id,
-		{
-			type: 'user-msg',
-			message: parts,
-		}
-	);
-	chatManager.focusAndCheck(id);
+	chatManager.setChatRequest(ctx._id, {
+		type: 'user-msg',
+		message: parts,
+	});
+	chatManager.focusAndCheck(ctx._id);
 };
 
-export const cancelAllChats = () => {
+export const cancelCurrentChat = () => {
 	chatManager.cancelChat();
 };

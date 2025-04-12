@@ -32,9 +32,7 @@ const tabComponents = new Map<TabID, Component>([
 const SettingsPage: Component = () => {
 	const query = new URLSearchParams(window.location.search);
 	let initialTab = query.get('tab') as TabID;
-	console.log(initialTab);
 	if (!tabComponents.has(initialTab)) {
-		console.log(`Invalid tab: ${initialTab}`);
 		initialTab = 'general';
 	}
 	const [activeTab, setActiveTab] = createSignal<TabID>(initialTab);

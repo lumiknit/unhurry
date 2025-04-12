@@ -319,7 +319,6 @@ export class OpenAIClient implements ILLMService {
 			'Content-Type': 'application/json',
 			Authorization: `Bearer ${this.config.apiKey}`,
 		};
-		console.log('OpenAI History', this.convertHistory(history));
 		// Use SSE
 		const resp = await fetch(url, {
 			method: 'POST',
