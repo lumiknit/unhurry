@@ -18,6 +18,7 @@
 		"bundle-report": "vite-bundle-visualizer",
 		"preview": "vite preview",
 		"format": "eslint --fix ./src && prettier --write .",
+		"lint": "eslint --ext .ts,.tsx,.js,.jsx ./src",
 		"tauri": "tauri"
 	},
 	"dependencies": {

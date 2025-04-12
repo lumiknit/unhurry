@@ -89,7 +89,7 @@ export class ChatManager {
 
 	private checkInterval: number | null = null;
 	private checkIntervalDelay = 5000;
-	private maxRetries = 3;
+	private maxRetries = 5;
 
 	/**
 	 * Watching contexts
@@ -436,7 +436,6 @@ export class ChatManager {
 
 		this.onProgressChange(id, true);
 
-		let err: any = undefined;
 		try {
 			switch (req.type) {
 				case 'user-msg':
@@ -448,15 +447,9 @@ export class ChatManager {
 					// TODO: Generate new message, then run
 					break;
 			}
-		} catch (e) {
-			err = e;
-		}
-
-		item.action = undefined;
-		this.onProgressChange(id, false);
-
-		if (err) {
-			throw err;
+		} finally {
+			item.action = undefined;
+			this.onProgressChange(id, false);
 		}
 
 		if (isFirst) {

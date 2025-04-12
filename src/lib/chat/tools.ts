@@ -11,7 +11,10 @@ const turndownService = new TurndownService();
 const jsonValidator = new Validator();
 
 export const fnTools: FunctionTool[] = [];
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Impl = (args: any) => Promise<string>;
+
 export const fnImpls: Record<string, Impl> = {};
 
 export const getFnTools = (configs: ToolConfigs) => {

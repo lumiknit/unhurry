@@ -1,6 +1,7 @@
 import { Component, For, Match, Switch } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type StatItem<T extends Record<string, any>> = {
 	title: string;
 	value: string | Component<T>;
@@ -9,6 +10,7 @@ export type StatItem<T extends Record<string, any>> = {
 	class?: string;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Item: Component<StatItem<any>> = (props) => {
 	return (
 		<div class={'column ' + (props.class || '')}>
@@ -33,6 +35,7 @@ const Item: Component<StatItem<any>> = (props) => {
 };
 
 type Props = {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	stats: StatItem<any>[];
 	class?: string;
 };

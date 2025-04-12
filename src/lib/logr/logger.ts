@@ -20,20 +20,23 @@ export interface LogItem {
 class Logger {
 	items: LogItem[] = [];
 
-	log(level: LogLevel, ...msgs: any[]): void {
+	log(level: LogLevel, ...msgs: unknown[]): void {
 		const timestamp = Date.now();
 		this.items.push({ level, message: msgs.join('\t'), timestamp });
 		console[level](...msgs);
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	info(...msgs: any[]): void {
 		this.log('info', ...msgs);
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	warn(...msgs: any[]): void {
 		this.log('warn', ...msgs);
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	error(...msgs: any[]): void {
 		this.log('error', ...msgs);
 	}

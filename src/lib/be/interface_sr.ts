@@ -55,6 +55,7 @@ type SpeechRecognitionEvent = Event & {
 export class BrowserSpeechRecognizer implements ISpeechRecognizer {
 	recognizing: boolean = false;
 	languages: string[] = [];
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	recognition: any | null = null;
 
 	accumulatedText: string = '';
@@ -69,7 +70,9 @@ export class BrowserSpeechRecognizer implements ISpeechRecognizer {
 
 	constructor() {
 		const w = window as {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			SpeechRecognition?: any;
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			webkitSpeechRecognition?: any;
 		};
 		const cls = w.SpeechRecognition || w.webkitSpeechRecognition;
