@@ -7,7 +7,12 @@ import {
 } from './structs';
 import { fnImpls, getFnTools } from './tools';
 import { ToolConfigs } from '../config/tool';
-import { FunctionCallContent, ModelConfig, newClientFromConfig } from '../llm';
+import {
+	FunctionCallContent,
+	LLMError,
+	ModelConfig,
+	newClientFromConfig,
+} from '../llm';
 import { FunctionTool } from '../llm/function';
 import { logr } from '../logr';
 
@@ -242,6 +247,7 @@ export abstract class SingleLLMAction {
 	}
 
 	protected async run(): Promise<void> {
+		let lastError: LLMError | undefined;
 		for (let idx = 0; idx < this.modelConfigs.length; idx++) {
 			if (this.cancelled) {
 				logr.info('[chat/SingleChatAction/run] Cancelled');
@@ -257,6 +263,11 @@ export abstract class SingleLLMAction {
 					`[chat/SingleChatAction/run] Failed to chat completion with model '${mc.name}', use fallback`,
 					e
 				);
+				if (e instanceof LLMError) {
+					if (lastError === undefined || e.level < lastError.level) {
+						lastError = e;
+					}
+				}
 				const v = this.onLLMFallback?.(err, idx, mc);
 				if (v === false) {
 					logr.info(
@@ -269,7 +280,7 @@ export abstract class SingleLLMAction {
 
 		logr.error('[chat/SingleChatAction/run] All fallbacks are failed');
 
-		throw new Error('All fallbacks are failed');
+		throw lastError ?? new Error('All fallbacks are failed');
 	}
 
 	/**

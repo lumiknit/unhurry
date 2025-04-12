@@ -65,6 +65,9 @@ export type OngoingChat = {
 
 	/** Current onging chat action */
 	action?: SingleChatAction;
+
+	/** Max retries */
+	retries: number;
 };
 
 /**
@@ -85,7 +88,8 @@ export class ChatManager {
 	static instance: ChatManager | null = null;
 
 	private checkInterval: number | null = null;
-	private checkIntervalDelay = 1000;
+	private checkIntervalDelay = 5000;
+	private maxRetries = 3;
 
 	/**
 	 * Watching contexts
@@ -201,6 +205,7 @@ export class ChatManager {
 			},
 			ctx,
 			opts: options,
+			retries: 0,
 		};
 		this.chats.set(ctx._id, oc);
 		this.saveState();
@@ -291,12 +296,13 @@ export class ChatManager {
 	 * Try to set the chat request.
 	 * If the chat already has a request, it'll do nothing and return false.
 	 */
-	setChatRequest(id: string, req: ChatRequest): boolean {
+	setChatRequest(id: string, req: ChatRequest, force?: boolean): boolean {
 		const ch = this.chat(id);
-		if (ch.meta.request) {
+		if (ch.meta.request && !force) {
 			return false;
 		}
 		ch.meta.request = req;
+		ch.retries = 0;
 		this.saveState();
 		return true;
 	}
@@ -469,14 +475,20 @@ export class ChatManager {
 			item = this.chat(item);
 		}
 		try {
-			if (item.lock) {
+			if (item.lock || item.retries > this.maxRetries) {
 				return;
 			}
 			item.lock = true;
 			await this.checkChatInner(item);
+
+			item.retries = 0;
 		} catch (e) {
-			logr.error('[ChatManager] Error checking chat', e);
-			toast.error('ChatManager error: ' + item.ctx.title);
+			item.retries = (item.retries || 0) + 1;
+			if (item.retries > this.maxRetries) {
+				const title = item.ctx.title || 'untitled';
+				logr.error('[ChatManager] Error checking chat', e);
+				toast.error(`[chat '${title}'] ${e}`);
+			}
 		}
 		item.lock = false;
 	}
