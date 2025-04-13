@@ -1,3 +1,4 @@
+import { BiSolidChevronsRight } from 'solid-icons/bi';
 import {
 	Component,
 	createEffect,
@@ -11,13 +12,12 @@ import {
 } from 'solid-js';
 import { toast } from 'solid-toast';
 
+import { createIsMobile } from '@/components/utils/media';
 import { vibrate } from '@/store/global_actions';
 
 import { PromptTag } from '@lib/config';
 
 import { getUserConfig, setUserConfig } from '@store';
-import { createIsMobile } from '@/components/utils/media';
-import { BiSolidChevronsRight } from 'solid-icons/bi';
 
 type TagProps = JSX.HTMLAttributes<HTMLButtonElement> & {
 	class?: string;
