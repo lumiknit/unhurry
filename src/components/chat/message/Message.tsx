@@ -290,7 +290,11 @@ const Message: Component<Props> = (props) => {
 		'msg ' + (props.msg.role === 'user' ? 'msg-user' : 'msg-assistant');
 	return (
 		<div class={cls}>
-			<div class="message-body">
+			<div
+				class={
+					'message-body ' + (props.msg.uphurry ? ' is-uphurry' : '')
+				}
+			>
 				<For each={props.msg.parts}>
 					{(part) => (
 						<Dynamic

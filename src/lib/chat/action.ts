@@ -2,6 +2,7 @@ import { MsgPartsParser } from './parser';
 import {
 	ChatHistory,
 	convertChatHistoryForLLM,
+	Msg,
 	MSG_PART_TYPE_FUNCTION_CALL,
 	MsgPart,
 } from './structs';
@@ -106,10 +107,11 @@ export abstract class SingleLLMAction {
 		this.cancelled = true;
 	}
 
-	protected pushUserMessage(parts: MsgPart[]) {
+	protected pushUserMessage(parts: MsgPart[], options?: Partial<Msg>) {
 		// Push new user message
 		this.history.msgPairs.push({
 			user: {
+				...options,
 				role: 'user',
 				parts,
 				timestamp: Date.now(),
@@ -290,10 +292,13 @@ export abstract class SingleLLMAction {
 	 * Run the action.
 	 * This will change the given history inplace.
 	 */
-	async runWithUserMessage(userParts: MsgPart[]): Promise<void> {
+	async runWithUserMessage(
+		userParts: MsgPart[],
+		options?: Partial<Msg>
+	): Promise<void> {
 		logr.info('[chat/SingleChatAction/run] ', userParts);
 
-		this.pushUserMessage(userParts);
+		this.pushUserMessage(userParts, options);
 
 		try {
 			await this.run();

@@ -37,7 +37,7 @@ const SendButton: Component<Props> = (props) => {
 		} else {
 			additional = 'is-primary';
 		}
-		return 'button button-send p-3 ' + additional;
+		return 'button button-send p-2 is-size-5 ' + additional;
 	};
 
 	const icon = () =>

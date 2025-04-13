@@ -13,6 +13,7 @@ import SpeechButton from './SpeechButton';
 import UploadedFiles from './UploadedFiles';
 import UploadFileButton from './UploadFileButton';
 import { scrollToLastUserMessage } from '../lib';
+import UphurryButton from './UpHurryButton';
 
 interface FileInput {
 	name: string;
@@ -29,6 +30,7 @@ const BottomInput: Component = () => {
 	let composing = false;
 	let lastSent = 0;
 
+	const [uphurry, setUphurry] = createSignal(false);
 	const [files, setFiles] = createSignal<FileInput[]>([]);
 
 	const [inputTriple, setInputTriple] = createSignal<
@@ -107,7 +109,8 @@ const BottomInput: Component = () => {
 			setTimeout(scrollToLastUserMessage, 33);
 			await chat(
 				v,
-				fs.map((f) => f.id)
+				fs.map((f) => f.id),
+				uphurry()
 			);
 		} catch (e) {
 			toast.error('Failed to send: ' + e);
@@ -329,7 +332,11 @@ const BottomInput: Component = () => {
 	});
 
 	return (
-		<div ref={topRef!} class="bottom-input" onClick={handleClickMargin}>
+		<div
+			ref={topRef!}
+			class={'bottom-input ' + (uphurry() ? 'is-uphurry' : '')}
+			onClick={handleClickMargin}
+		>
 			<textarea
 				ref={taRef!}
 				onBeforeInput={handleBeforeInput}
@@ -347,6 +354,12 @@ const BottomInput: Component = () => {
 					}
 				/>
 			</Show>
+			<Show when={uphurry()}>
+				<p class="is-size-7">
+					UpHurry is enabled. Based on your input, it will
+					automatically send the message to achieve goal.
+				</p>
+			</Show>
 			<div class="buttons gap-1 no-user-select">
 				<SpeechButton
 					class="control is-size-6 py-1 button-mic"
@@ -358,6 +371,12 @@ const BottomInput: Component = () => {
 					onFile={(name, id) =>
 						setFiles((fs) => [...fs, { name, id }])
 					}
+				/>
+				<UphurryButton
+					enabled={uphurry()}
+					onToggle={() => {
+						setUphurry((v) => !v);
+					}}
 				/>
 				<InputTags
 					textState={inputTriple()}

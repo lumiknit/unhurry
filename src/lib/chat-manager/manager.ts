@@ -259,7 +259,7 @@ export class ChatManager {
 	 * Unload the chat.
 	 */
 	async unloadChat(id: string) {
-		//TODO: cancel the chat action then unload
+		this.cancelChat(id);
 		this.chats.delete(id);
 		await this.saveState();
 	}
@@ -335,6 +335,8 @@ export class ChatManager {
 		if (ch.action) {
 			ch.action.cancel();
 		}
+		ch.meta.request = undefined;
+		this.saveChatMeta(id);
 	}
 
 	updateChatMeta(id: string, meta: Partial<ChatMeta>) {
@@ -456,7 +458,8 @@ export class ChatManager {
 							item.meta.request = undefined;
 						} else {
 							await action.runWithUserMessage(
-								MsgPartsParser.parse(nextQuestion)
+								MsgPartsParser.parse(nextQuestion),
+								{ uphurry: true }
 							);
 						}
 					}

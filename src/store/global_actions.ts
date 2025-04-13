@@ -64,7 +64,11 @@ export const generateChatTitle = async () => {
 	await chatManager.generateChatTitle(ctx._id);
 };
 
-export const chat = async (text: string, fileIDs?: string[], uphurry?: boolean) => {
+export const chat = async (
+	text: string,
+	fileIDs?: string[],
+	uphurry?: boolean
+) => {
 	const config = getUserConfig();
 	if (!config) {
 		throw new Error('No user config');
