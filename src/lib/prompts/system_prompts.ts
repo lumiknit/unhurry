@@ -104,7 +104,7 @@ Most code blocks are displayed as text, except for the following:
 
 Note: code blocks are not executed. For execution, use the **runJS** tool.
 
-${toolCallSystemPrompt(useToolCall, functions)}
+${await toolCallSystemPrompt(useToolCall, functions)}
 
 # Additional info
 

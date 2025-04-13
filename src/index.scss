@@ -1,11 +1,12 @@
 // bulma
 
 $theme-color: #0b7f4e;
+$uphurry-color: #7f0b6b;
 
 @use 'bulma/sass' with (
 	$family-primary:
 		'Pretendard, Inter, SF Pro, Segoe UI, Roboto, Oxygen, Ubuntu, Helvetica Neue, Helvetica, Arial, sans-serif',
-	$primary: $theme-color
+	$primary: $theme-color,
 );
 @use './bulma-ext.scss';
 @use './switch.scss';
@@ -38,6 +39,11 @@ $theme-color: #0b7f4e;
 	--bulma-primary-s: 84%;
 	--bulma-primary-l: 27%;
 	--bulma-primary-invert-l: 95%;
+
+	--bulma-uphurry-h: 310;
+	--bulma-uphurry-s: 84%;
+	--bulma-uphurry-l: 27%;
+	--bulma-uphurry-invert-l: 95%;
 
 	--sans-serif-family:
 		Pretendard, Inter, SF Pro, Segoe UI, Roboto, Oxygen, Ubuntu,
@@ -309,6 +315,10 @@ span[aria-hidden='true'] {
 
 	&:has(textarea):has(.mic-recording) {
 		outline: 1px solid var(--bulma-danger);
+	}
+
+	&:has(textarea):has(.uphurry) {
+		outline: 2px solid var(--bulma-uphurry);
 	}
 
 	& textarea {

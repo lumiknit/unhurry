@@ -7,6 +7,7 @@ import {
 	extractChatMeta,
 	hasChatUpdate,
 } from '../chat/context';
+import { MsgPartsParser } from '../chat/parser';
 import { MsgPair, MsgPart } from '../chat/structs';
 import { chatListTx, chatTx, SimpleIDB } from '../idb';
 import {
@@ -16,7 +17,7 @@ import {
 	RequestEntityTooLargeError,
 } from '../llm';
 import { logr } from '../logr';
-import { generateChatTitle } from './manager-utils';
+import { generateChatTitle, generateNextQuestion } from './manager-utils';
 import { ChatOptions, ChatRequest, OngoingChatMeta } from './structs';
 import { uniqueID } from '../utils';
 
@@ -444,7 +445,21 @@ export class ChatManager {
 					item.meta.request = undefined;
 					break;
 				case 'uphurry':
-					// TODO: Generate new message, then run
+					{
+						const nextQuestion = await generateNextQuestion(
+							item.opts,
+							item.ctx.history,
+							req.comment
+						);
+						if (nextQuestion === null) {
+							// DONE
+							item.meta.request = undefined;
+						} else {
+							await action.runWithUserMessage(
+								MsgPartsParser.parse(nextQuestion)
+							);
+						}
+					}
 					break;
 			}
 		} finally {

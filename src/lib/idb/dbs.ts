@@ -46,8 +46,8 @@ export const chatTx = async <T>(id: string) => {
 	return await chatIDB(id).transaction<T>('readwrite');
 };
 
-export const clearAllChats = async (options?: { left?: number }) => {
-	if ((options?.left || 0) <= 0) {
+export const clearAllChats = async (ids?: string[]) => {
+	if (!ids) {
 		const tx = await chatListTx();
 		tx.clear();
 
@@ -60,20 +60,7 @@ export const clearAllChats = async (options?: { left?: number }) => {
 		}
 	} else {
 		// Keep n latest chats
-		const n = options!.left!;
-		type T = {
-			_id: string;
-			updatedAt: number;
-		};
-		const tx = await chatListTx<T>();
-		const all = await tx.getAll();
-		const sorted = all.sort(
-			(a, b) => (b.updatedAt || 0) - (a.updatedAt || 0)
-		);
-		const toDelete = sorted.slice(n);
-		for (const chat of toDelete) {
-			await deleteChatByID(chat._id);
-		}
+		await Promise.all(ids.map((id) => deleteChatByID(id)));
 	}
 };
 

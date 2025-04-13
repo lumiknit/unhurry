@@ -64,7 +64,7 @@ export const generateChatTitle = async () => {
 	await chatManager.generateChatTitle(ctx._id);
 };
 
-export const chat = async (text: string, fileIDs?: string[]) => {
+export const chat = async (text: string, fileIDs?: string[], uphurry?: boolean) => {
 	const config = getUserConfig();
 	if (!config) {
 		throw new Error('No user config');
@@ -90,10 +90,18 @@ export const chat = async (text: string, fileIDs?: string[]) => {
 		chatContext._id,
 		getCurrentChatOpts()
 	);
-	chatManager.setChatRequest(ctx._id, {
-		type: 'user-msg',
-		message: parts,
-	});
+	if (uphurry) {
+		chatManager.setChatRequest(ctx._id, {
+			type: 'uphurry',
+			comment: parts[0]?.content,
+		});
+	} else {
+		chatManager.setChatRequest(ctx._id, {
+			type: 'user-msg',
+			message: parts,
+		});
+	}
+
 	chatManager.checkChat(ctx._id);
 };
 

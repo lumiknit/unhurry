@@ -33,7 +33,7 @@ export const getFnTools = (configs: ToolConfigs) => {
 };
 
 const addFunc = (tool: FunctionTool, fn: Impl) => {
-	fnTools.push();
+	fnTools.push(tool);
 	fnImpls[normalizeToolName(tool.name)] = async (args) => {
 		const result = jsonValidator.validate(args, tool.parameters);
 		if (result.valid) return await fn(args);

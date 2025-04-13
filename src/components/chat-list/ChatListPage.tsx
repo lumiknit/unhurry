@@ -21,7 +21,11 @@ import { shortRelativeDateFormat } from '@/lib/intl';
 import { gotoNewChat } from '@/store/chat';
 
 import { ChatMeta, hasChatUpdate } from '@lib/chat';
-import { chatListTx, clearAllChats, deleteChatByID } from '@lib/idb';
+import {
+	chatListTx,
+	clearAllChats as clearChats,
+	deleteChatByID,
+} from '@lib/idb';
 
 import { loadChatContext } from '@store/global_actions';
 
@@ -183,16 +187,14 @@ const ChatListPage: Component = () => {
 	};
 
 	const handleClearAll = async (left: number) => {
-		await toast.promise(
-			clearAllChats({
-				left,
-			}),
-			{
-				loading: 'Clearing...',
-				success: 'Cleared',
-				error: 'Failed to clear',
-			}
-		);
+		const deleteIDs = filteredList()
+			.slice(left)
+			.map((x) => x._id);
+		await toast.promise(clearChats(deleteIDs), {
+			loading: 'Clearing...',
+			success: 'Cleared',
+			error: 'Failed to clear',
+		});
 		loadChatMeta();
 		setShowClearModal(false);
 	};
