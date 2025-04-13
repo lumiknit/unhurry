@@ -33,11 +33,3 @@ export type OngoingChatMeta = {
 
 	request?: ChatRequest;
 };
-
-export type ChatProgress = {
-	progressing: boolean;
-};
-
-export const emptyChatProgress = (): ChatProgress => ({
-	progressing: false,
-});

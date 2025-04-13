@@ -9,7 +9,7 @@ import {
 	getCurrentChatOpts,
 	getUserConfig,
 	setChatContext,
-	setFocusedChatState,
+	setFocusedChatProgressing,
 	setStreamingMessage,
 } from './store';
 import { MsgPartsParser, MSG_PART_TYPE_FILE } from '../lib/chat';
@@ -31,9 +31,7 @@ export const resetChatMessages = () => {
 	batch(() => {
 		setChatContext({ ...chatManager.emptyChat(getCurrentChatOpts()) });
 		setStreamingMessage();
-		setFocusedChatState({
-			progressing: false,
-		});
+		setFocusedChatProgressing(false);
 	});
 };
 
@@ -43,9 +41,7 @@ export const loadChatContext = async (id: string) => {
 	batch(() => {
 		setChatContext({ ...ctx });
 		setStreamingMessage();
-		setFocusedChatState({
-			progressing: chatManager.isProgressing(id),
-		});
+		setFocusedChatProgressing(chatManager.isProgressing(id));
 	});
 	chatManager.checkChat(id);
 };
@@ -146,10 +142,7 @@ chatManager.onProgressChange = (id, progress) => {
 	if (ctx._id !== id) {
 		return;
 	}
-	setFocusedChatState((state) => ({
-		...state,
-		progressing: progress,
-	}));
+	setFocusedChatProgressing(progress);
 };
 
 chatManager.start();

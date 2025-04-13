@@ -4,7 +4,7 @@ import { MsgPair } from '@/lib/chat';
 
 import {
 	getChatContext,
-	getFocusedChatState,
+	getFocusedChatProgressing,
 	getStreamingMessage,
 } from '@store';
 
@@ -39,7 +39,7 @@ const MessagePair: Component<Props> = (props) => {
 						{getStreamingMessage()!.rest}
 					</div>
 				</Show>
-				<Show when={getFocusedChatState().progressing}>
+				<Show when={getFocusedChatProgressing()}>
 					<div class="text-center">
 						<span class="spinner" />
 					</div>

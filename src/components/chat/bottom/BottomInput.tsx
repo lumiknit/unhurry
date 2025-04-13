@@ -5,7 +5,7 @@ import { getBEService, ISpeechRecognizer } from '@/lib/be';
 import { logr } from '@/lib/logr';
 import { cancelCurrentChat, chat } from '@/store/global_actions';
 
-import { getFocusedChatState, getUserConfig, setStore } from '@store';
+import { getFocusedChatProgressing, getUserConfig, setStore } from '@store';
 
 import InputTags from './PromptTags';
 import SendButton from './SendButton';
@@ -155,7 +155,7 @@ const BottomInput: Component = () => {
 		if (
 			!getUserConfig()?.enableAutoSend ||
 			!as ||
-			getFocusedChatState().progressing
+			getFocusedChatProgressing()
 		)
 			return;
 

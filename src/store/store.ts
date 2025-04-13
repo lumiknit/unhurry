@@ -5,7 +5,6 @@ import { createStore, StoreSetter, unwrap } from 'solid-js/store';
 import { toast } from 'solid-toast';
 
 import { chatManager } from '@/lib/chat-manager/manager';
-import { emptyChatProgress, ChatProgress } from '@/lib/chat-manager/structs';
 import { logr } from '@/lib/logr';
 
 import { ChatContext, MsgPart } from '../lib/chat';
@@ -21,8 +20,8 @@ export const [getStreamingMessage, setStreamingMessage] = createSignal<
 	StreamingMessage | undefined
 >(undefined);
 
-export const [getFocusedChatState, setFocusedChatState] =
-	createSignal<ChatProgress>(emptyChatProgress());
+export const [getFocusedChatProgressing, setFocusedChatProgressing] =
+	createSignal<boolean>(false);
 
 interface GlobalStore {
 	// Configurations
