@@ -18,7 +18,7 @@ import { toast } from 'solid-toast';
 
 import { chatManager, OngoingChatSummary } from '@/lib/chat-manager/manager';
 import { shortRelativeDateFormat } from '@/lib/intl';
-import { gotoNewChat } from '@/store/chat';
+import { gotoNewChat, openChat } from '@/store/global_actions';
 
 import { ChatMeta, hasChatUpdate } from '@lib/chat';
 import {
@@ -27,9 +27,6 @@ import {
 	deleteChatByID,
 } from '@lib/idb';
 
-import { loadChatContext } from '@store/global_actions';
-
-import { rootPath } from '../../env';
 import { openConfirm } from '../modal-confirm';
 import Pagination, { createPaginatedList } from '../utils/Pagination';
 
@@ -213,19 +210,12 @@ const ChatListPage: Component = () => {
 		loadChatMeta();
 	};
 
-	const openChat = async (id: string) => {
-		toast.promise(
-			(async () => {
-				await loadChatContext(id);
-				// Navigate to chat view
-				navigate(`${rootPath}/`);
-			})(),
-			{
-				loading: 'Loading...',
-				success: 'Loaded',
-				error: 'Failed to load',
-			}
-		);
+	const handleOpenChat = async (id: string) => {
+		toast.promise(openChat(navigate, id), {
+			loading: 'Loading...',
+			success: 'Loaded',
+			error: 'Failed to load',
+		});
 	};
 	onMount(() => loadChatMeta());
 
@@ -246,7 +236,7 @@ const ChatListPage: Component = () => {
 						{(chat) => (
 							<Item
 								chat={chat.ctx}
-								onOpen={openChat}
+								onOpen={handleOpenChat}
 								onDelete={deleteChat}
 							/>
 						)}
@@ -287,7 +277,7 @@ const ChatListPage: Component = () => {
 								{(chat) => (
 									<Item
 										chat={chat}
-										onOpen={openChat}
+										onOpen={handleOpenChat}
 										onDelete={deleteChat}
 									/>
 								)}

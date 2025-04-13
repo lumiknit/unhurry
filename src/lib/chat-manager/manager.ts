@@ -119,6 +119,11 @@ export class ChatManager {
 	 */
 	onMessage: (id: string, msgPairs: MsgPair[]) => void = () => {};
 
+	/**
+	 * Callback when the chat is finished.
+	 */
+	onFinish: (id: string, ctx: ChatContext) => void = () => {};
+
 	// Methods
 
 	private constructor() {}
@@ -445,6 +450,8 @@ export class ChatManager {
 					// Consume the message, then run the action
 					await action.runWithUserMessage(req.message);
 					item.meta.request = undefined;
+					this.onFinish(id, item.ctx);
+					this.saveChatMeta(id);
 					break;
 				case 'uphurry':
 					{
@@ -456,6 +463,8 @@ export class ChatManager {
 						if (nextQuestion === null) {
 							// DONE
 							item.meta.request = undefined;
+							this.onFinish(id, item.ctx);
+							this.saveChatMeta(id);
 						} else {
 							await action.runWithUserMessage(
 								MsgPartsParser.parse(nextQuestion),

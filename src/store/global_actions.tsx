@@ -1,6 +1,9 @@
 // Store-based actions
+import { Navigator, useNavigate } from '@solidjs/router';
 import { batch } from 'solid-js';
+import { toast } from 'solid-toast';
 
+import { rootPath } from '@/env';
 import { getBEService, VibrationPattern } from '@/lib/be';
 import { chatManager } from '@/lib/chat-manager/manager';
 
@@ -114,6 +117,17 @@ export const cancelCurrentChat = () => {
 	chatManager.cancelChat(chatContext._id);
 };
 
+export const gotoNewChat = (navigate: Navigator) => {
+	navigate(`${rootPath}/`);
+	resetChatMessages();
+	toast.success('New notebook created');
+};
+
+export const openChat = async (navigate: Navigator, id: string) => {
+	await loadChatContext(id);
+	navigate(`${rootPath}/`);
+};
+
 // ChatManager
 chatManager.onContextUpdate = (ctx) => {
 	if (ctx._id !== getChatContext()._id) {
@@ -156,5 +170,35 @@ chatManager.onProgressChange = (id, progress) => {
 	}
 	setFocusedChatProgressing(progress);
 };
+
+chatManager.onFinish = (id, ctx) => {
+	const curr = getChatContext();
+	if (curr._id === id) {
+		return;
+	}
+	const title = ctx.title || 'untitled';
+	toast.success((t) => {
+		const navigate = useNavigate();
+		const handle = () =>
+			toast.promise(
+				(async () => {
+					toast.dismiss(t.id);
+					await openChat(navigate, id);
+					return true;
+				})(),
+				{
+					loading: 'Loading...',
+					success: 'Chat loaded',
+					error: 'Failed to load chat',
+				}
+			);
+		return (
+			<a href="#" class="text-sm" onClick={handle}>
+				New message: <b class="is-underlined">{title}</b>
+			</a>
+		);
+	});
+};
+
 
 chatManager.start();
