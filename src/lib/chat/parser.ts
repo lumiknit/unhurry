@@ -1,6 +1,5 @@
-import { FunctionCallContent } from '../llm';
+import { BLOCK_PREFIX_FN_CALL, FunctionCallContent } from '../llm';
 import {
-	MSG_PART_TYPE_CALL_PREFIX,
 	MSG_PART_TYPE_FUNCTION_CALL,
 	MSG_PART_TYPE_TEXT,
 	MSG_PART_TYPE_THINK,
@@ -55,24 +54,18 @@ export class MsgPartsParser {
 	}
 
 	private checkCallPart(part: MsgPart): MsgPart {
-		if (!part.type.startsWith(MSG_PART_TYPE_CALL_PREFIX)) {
+		if (!part.type.startsWith(BLOCK_PREFIX_FN_CALL)) {
 			return part;
 		}
 
 		// Parse call (*call:toolName(...))
 		try {
 			console.log(part.type);
-			let callEnd = part.type.indexOf(
-				'(',
-				MSG_PART_TYPE_CALL_PREFIX.length
-			);
+			let callEnd = part.type.indexOf('(', BLOCK_PREFIX_FN_CALL.length);
 			if (callEnd < 0) {
 				callEnd = part.type.length;
 			}
-			const name = part.type.slice(
-				MSG_PART_TYPE_CALL_PREFIX.length,
-				callEnd
-			);
+			const name = part.type.slice(BLOCK_PREFIX_FN_CALL.length, callEnd);
 			const args = JSON.parse(part.content);
 
 			const content: FunctionCallContent = {

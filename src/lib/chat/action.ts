@@ -2,12 +2,18 @@ import { MsgPartsParser } from './parser';
 import {
 	ChatHistory,
 	convertChatHistoryForLLM,
+	Msg,
 	MSG_PART_TYPE_FUNCTION_CALL,
 	MsgPart,
 } from './structs';
-import { fnImpls, getFnTools } from './tools';
+import { fnImpls, getFnTools, normalizeToolName } from './tools';
 import { ToolConfigs } from '../config/tool';
-import { FunctionCallContent, ModelConfig, newClientFromConfig } from '../llm';
+import {
+	FunctionCallContent,
+	LLMError,
+	ModelConfig,
+	newClientFromConfig,
+} from '../llm';
 import { FunctionTool } from '../llm/function';
 import { logr } from '../logr';
 
@@ -101,10 +107,11 @@ export abstract class SingleLLMAction {
 		this.cancelled = true;
 	}
 
-	protected pushUserMessage(parts: MsgPart[]) {
+	protected pushUserMessage(parts: MsgPart[], options?: Partial<Msg>) {
 		// Push new user message
 		this.history.msgPairs.push({
 			user: {
+				...options,
 				role: 'user',
 				parts,
 				timestamp: Date.now(),
@@ -145,7 +152,9 @@ export abstract class SingleLLMAction {
 		const tools = getFnTools(this.toolConfigs);
 		const llm = newClientFromConfig(modelConfig);
 		llm.setFunctions(tools);
+		console.log(tools);
 		const sys = await this.systemPrompt(modelConfig, tools);
+		console.log(sys);
 
 		// Part parser
 		const parser = new MsgPartsParser();
@@ -201,7 +210,8 @@ export abstract class SingleLLMAction {
 				calls.map(async (fc) => {
 					try {
 						const a = JSON.parse(fc.args);
-						const result = await fnImpls[fc.name](a);
+						const result =
+							await fnImpls[normalizeToolName(fc.name)](a);
 						results.set(fc.id, result);
 					} catch (e) {
 						results.set(fc.id, `Error: ${e}`);
@@ -242,6 +252,7 @@ export abstract class SingleLLMAction {
 	}
 
 	protected async run(): Promise<void> {
+		let lastError: LLMError | undefined;
 		for (let idx = 0; idx < this.modelConfigs.length; idx++) {
 			if (this.cancelled) {
 				logr.info('[chat/SingleChatAction/run] Cancelled');
@@ -257,6 +268,11 @@ export abstract class SingleLLMAction {
 					`[chat/SingleChatAction/run] Failed to chat completion with model '${mc.name}', use fallback`,
 					e
 				);
+				if (e instanceof LLMError) {
+					if (lastError === undefined || e.level < lastError.level) {
+						lastError = e;
+					}
+				}
 				const v = this.onLLMFallback?.(err, idx, mc);
 				if (v === false) {
 					logr.info(
@@ -269,17 +285,20 @@ export abstract class SingleLLMAction {
 
 		logr.error('[chat/SingleChatAction/run] All fallbacks are failed');
 
-		throw new Error('All fallbacks are failed');
+		throw lastError ?? new Error('All fallbacks are failed');
 	}
 
 	/**
 	 * Run the action.
 	 * This will change the given history inplace.
 	 */
-	async runWithUserMessage(userParts: MsgPart[]): Promise<void> {
+	async runWithUserMessage(
+		userParts: MsgPart[],
+		options?: Partial<Msg>
+	): Promise<void> {
 		logr.info('[chat/SingleChatAction/run] ', userParts);
 
-		this.pushUserMessage(userParts);
+		this.pushUserMessage(userParts, options);
 
 		try {
 			await this.run();

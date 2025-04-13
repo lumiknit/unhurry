@@ -1,4 +1,4 @@
-import { jsonSchemaToTS, ObjectSchema } from '../json_schema';
+import { jsonSchemaToTS, ObjectSchema } from '../json';
 
 /**
  * Function tool.

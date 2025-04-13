@@ -1,6 +1,9 @@
 // Store-based actions
+import { Navigator, useNavigate } from '@solidjs/router';
 import { batch } from 'solid-js';
+import { toast } from 'solid-toast';
 
+import { rootPath } from '@/env';
 import { getBEService, VibrationPattern } from '@/lib/be';
 import { chatManager } from '@/lib/chat-manager/manager';
 
@@ -9,7 +12,7 @@ import {
 	getCurrentChatOpts,
 	getUserConfig,
 	setChatContext,
-	setFocusedChatState,
+	setFocusedChatProgressing,
 	setStreamingMessage,
 } from './store';
 import { MsgPartsParser, MSG_PART_TYPE_FILE } from '../lib/chat';
@@ -31,9 +34,7 @@ export const resetChatMessages = () => {
 	batch(() => {
 		setChatContext({ ...chatManager.emptyChat(getCurrentChatOpts()) });
 		setStreamingMessage();
-		setFocusedChatState({
-			progressing: false,
-		});
+		setFocusedChatProgressing(false);
 	});
 };
 
@@ -43,9 +44,7 @@ export const loadChatContext = async (id: string) => {
 	batch(() => {
 		setChatContext({ ...ctx });
 		setStreamingMessage();
-		setFocusedChatState({
-			progressing: chatManager.isProgressing(id),
-		});
+		setFocusedChatProgressing(chatManager.isProgressing(id));
 	});
 	chatManager.checkChat(id);
 };
@@ -68,7 +67,11 @@ export const generateChatTitle = async () => {
 	await chatManager.generateChatTitle(ctx._id);
 };
 
-export const chat = async (text: string, fileIDs?: string[]) => {
+export const chat = async (
+	text: string,
+	fileIDs?: string[],
+	uphurry?: boolean
+) => {
 	const config = getUserConfig();
 	if (!config) {
 		throw new Error('No user config');
@@ -94,16 +97,35 @@ export const chat = async (text: string, fileIDs?: string[]) => {
 		chatContext._id,
 		getCurrentChatOpts()
 	);
-	chatManager.setChatRequest(ctx._id, {
-		type: 'user-msg',
-		message: parts,
-	});
+	if (uphurry) {
+		chatManager.setChatRequest(ctx._id, {
+			type: 'uphurry',
+			comment: parts[0]?.content,
+		});
+	} else {
+		chatManager.setChatRequest(ctx._id, {
+			type: 'user-msg',
+			message: parts,
+		});
+	}
+
 	chatManager.checkChat(ctx._id);
 };
 
 export const cancelCurrentChat = () => {
 	const chatContext = getChatContext();
 	chatManager.cancelChat(chatContext._id);
+};
+
+export const gotoNewChat = (navigate: Navigator) => {
+	navigate(`${rootPath}/`);
+	resetChatMessages();
+	toast.success('New notebook created');
+};
+
+export const openChat = async (navigate: Navigator, id: string) => {
+	await loadChatContext(id);
+	navigate(`${rootPath}/`);
 };
 
 // ChatManager
@@ -146,10 +168,36 @@ chatManager.onProgressChange = (id, progress) => {
 	if (ctx._id !== id) {
 		return;
 	}
-	setFocusedChatState((state) => ({
-		...state,
-		progressing: progress,
-	}));
+	setFocusedChatProgressing(progress);
+};
+
+chatManager.onFinish = (id, ctx) => {
+	const curr = getChatContext();
+	if (curr._id === id) {
+		return;
+	}
+	const title = ctx.title || 'untitled';
+	toast.success((t) => {
+		const navigate = useNavigate();
+		const handle = () =>
+			toast.promise(
+				(async () => {
+					toast.dismiss(t.id);
+					await openChat(navigate, id);
+					return true;
+				})(),
+				{
+					loading: 'Loading...',
+					success: 'Chat loaded',
+					error: 'Failed to load chat',
+				}
+			);
+		return (
+			<a href="#" class="text-sm" onClick={handle}>
+				New message: <b class="is-underlined">{title}</b>
+			</a>
+		);
+	});
 };
 
 chatManager.start();

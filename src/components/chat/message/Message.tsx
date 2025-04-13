@@ -22,9 +22,6 @@ import {
 	Msg,
 	MSG_PART_TYPE_FILE,
 	MSG_PART_TYPE_FUNCTION_CALL,
-	MSG_PART_TYPE_MERMAID,
-	MSG_PART_TYPE_RUN_JS,
-	MSG_PART_TYPE_SVG,
 	MSG_PART_TYPE_TEXT,
 	MSG_PART_TYPE_THINK,
 } from '@lib/chat';
@@ -159,18 +156,37 @@ const BlockMessage: Component<ItemProps> = (props) => {
 const SvgMessage: Component<ItemProps> = (props) => {
 	const content = DOMPurify.sanitize(props.content);
 	const [raw, setRaw] = createSignal(false);
+
+	const handleCopy = () => {
+		if (navigator.clipboard) {
+			navigator.clipboard.writeText(props.content);
+		} else {
+			const el = document.createElement('textarea');
+			el.value = props.content;
+			document.body.appendChild(el);
+			el.select();
+			document.execCommand('copy');
+			document.body.removeChild(el);
+		}
+		toast.success('Copied to clipboard');
+	};
+
 	return (
 		<div class="msg-code">
 			<header class="flex-split" onClick={() => setRaw((r) => !r)}>
-				SVG
-				<Switch>
-					<Match when={raw()}>
-						<span>[raw]</span>
-					</Match>
-					<Match when>
-						<span>[img]</span>
-					</Match>
-				</Switch>
+				<span>SVG</span>
+				<span>
+					<button
+						class="px-2"
+						onClick={(e) => {
+							handleCopy();
+							e.stopPropagation();
+						}}
+					>
+						<VsCopy /> copy
+					</button>
+					<span>{raw() ? 'raw' : 'img'}</span>
+				</span>
 			</header>
 			<div class="msg-svg-body">
 				<Switch>
@@ -187,6 +203,21 @@ const SvgMessage: Component<ItemProps> = (props) => {
 const MermaidMessage: Component<ItemProps> = (props) => {
 	const [svg, setSvg] = createSignal('');
 	const [err, setErr] = createSignal('');
+	const [raw, setRaw] = createSignal(false);
+
+	const handleCopy = () => {
+		if (navigator.clipboard) {
+			navigator.clipboard.writeText(props.content);
+		} else {
+			const el = document.createElement('textarea');
+			el.value = props.content;
+			document.body.appendChild(el);
+			el.select();
+			document.execCommand('copy');
+			document.body.removeChild(el);
+		}
+		toast.success('Copied to clipboard');
+	};
 
 	onMount(async () => {
 		try {
@@ -208,7 +239,34 @@ const MermaidMessage: Component<ItemProps> = (props) => {
 				</div>
 			</Match>
 			<Match when>
-				<div class="msg-mermaid" innerHTML={svg()} />
+				<div class="msg-code">
+					<header
+						class="flex-split"
+						onClick={() => setRaw((r) => !r)}
+					>
+						<span>Mermaid</span>
+						<span>
+							<button
+								class="px-2"
+								onClick={(e) => {
+									handleCopy();
+									e.stopPropagation();
+								}}
+							>
+								<VsCopy /> copy
+							</button>
+							<span>{raw() ? 'raw' : 'diagram'}</span>
+						</span>
+					</header>
+					<div class="msg-mermaid-body">
+						<Switch>
+							<Match when={raw()}>{props.content}</Match>
+							<Match when>
+								<div class="msg-mermaid" innerHTML={svg()} />
+							</Match>
+						</Switch>
+					</div>
+				</div>
 			</Match>
 		</Switch>
 	);
@@ -218,9 +276,8 @@ const compMap = new Map([
 	[MSG_PART_TYPE_TEXT, TextMessage],
 	[MSG_PART_TYPE_FUNCTION_CALL, FnCallMessage],
 	[MSG_PART_TYPE_FILE, FileMessage],
-	[MSG_PART_TYPE_RUN_JS, BlockMessage],
-	[MSG_PART_TYPE_SVG, SvgMessage],
-	[MSG_PART_TYPE_MERMAID, MermaidMessage],
+	['svg', SvgMessage],
+	['mermaid', MermaidMessage],
 	['json', JSONLikeMessage],
 ]);
 
@@ -233,7 +290,11 @@ const Message: Component<Props> = (props) => {
 		'msg ' + (props.msg.role === 'user' ? 'msg-user' : 'msg-assistant');
 	return (
 		<div class={cls}>
-			<div class="message-body">
+			<div
+				class={
+					'message-body ' + (props.msg.uphurry ? ' is-uphurry' : '')
+				}
+			>
 				<For each={props.msg.parts}>
 					{(part) => (
 						<Dynamic

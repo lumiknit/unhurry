@@ -7,6 +7,14 @@ const shortRelativeTimeFormat = new Intl.RelativeTimeFormat(undefined, {
 	numeric: 'auto',
 });
 
+/**
+ * Formats a given date into a short relative time string (e.g., "5 minutes ago").
+ * If the date is more than 24 hours away from the current time, it falls back to a short date-time format.
+ *
+ * @param date - The date to be formatted.
+ * @returns A string representing the relative time difference if within 24 hours,
+ *          otherwise a formatted date-time string.
+ */
 export const shortRelativeDateFormat = (date: Date): string => {
 	let unit: Intl.RelativeTimeFormatUnit;
 	const now = new Date();
@@ -26,6 +34,17 @@ export const shortRelativeDateFormat = (date: Date): string => {
 	return shortRelativeTimeFormat.format(diff, unit);
 };
 
+/**
+ * Converts a duration in milliseconds to a colon-separated time format.
+ *
+ * The format varies depending on the duration:
+ * - For durations less than 1 hour: `MM:SS`
+ * - For durations less than 24 hours: `HH:MM:SS`
+ * - For durations of 24 hours or more: `D:HH:MM:SS`
+ *
+ * @param millis - The duration in milliseconds to be converted.
+ * @returns A string representing the duration in a colon-separated time format.
+ */
 export const millisToColonFormat = (millis: number): string => {
 	let seconds = Math.floor(millis / 1000);
 	let minutes = Math.floor(seconds / 60);

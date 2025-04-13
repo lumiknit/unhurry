@@ -9,7 +9,7 @@ import {
 import { Component, onMount } from 'solid-js';
 
 import { rootPath } from '@/env';
-import { gotoNewChat } from '@/store/chat';
+import { gotoNewChat } from '@/store/global_actions';
 
 import ModelDropdown from './ModelDropdown';
 

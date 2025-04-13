@@ -6,7 +6,7 @@ const useSW = false;
 if (
 	useSW &&
 	'serviceWorker' in navigator &&
-	!(window as any).__TAURI_INTERNALS__
+	!(window as { __TAURI_INTERNALS__?: undefined }).__TAURI_INTERNALS__
 ) {
 	logr.info('[service-worker] is supported, registering...');
 	navigator.serviceWorker

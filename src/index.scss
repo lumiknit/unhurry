@@ -1,6 +1,7 @@
 // bulma
 
 $theme-color: #0b7f4e;
+$uphurry-color: #7f0b6b;
 
 @use 'bulma/sass' with (
 	$family-primary:
@@ -39,6 +40,11 @@ $theme-color: #0b7f4e;
 	--bulma-primary-l: 27%;
 	--bulma-primary-invert-l: 95%;
 
+	--bulma-uphurry-h: 310;
+	--bulma-uphurry-s: 84%;
+	--bulma-uphurry-l: 27%;
+	--bulma-uphurry-invert-l: 95%;
+
 	--sans-serif-family:
 		Pretendard, Inter, SF Pro, Segoe UI, Roboto, Oxygen, Ubuntu,
 		Helvetica Neue, Helvetica, Arial, sans-serif !important;
@@ -70,6 +76,10 @@ $theme-color: #0b7f4e;
 
 		--bulma-body-background-color: hsl(0, 0%, 0%);
 	}
+}
+
+.is-uphurry {
+	--bulma-primary-h: var(--bulma-uphurry-h) !important;
 }
 
 // Components
@@ -159,8 +169,16 @@ textarea.textarea.inline {
 
 div.msg-user div.message-body {
 	margin-left: 2rem;
-	color: var(--bulma-primary-invert);
-	background-color: var(--bulma-primary);
+	color: hsl(
+		var(--bulma-primary-h),
+		var(--bulma-primary-s),
+		var(--bulma-primary-invert-l)
+	);
+	background-color: hsl(
+		var(--bulma-primary-h),
+		var(--bulma-primary-s),
+		var(--bulma-primary-l)
+	);
 	border-radius: 1.25rem 0.125rem 1.25rem 1.25rem;
 	padding: 0.25rem 1rem;
 }
@@ -263,6 +281,8 @@ span[aria-hidden='true'] {
 }
 
 .input-tags {
+	display: flex;
+
 	white-space: nowrap;
 	overflow-x: scroll;
 
@@ -304,11 +324,20 @@ span[aria-hidden='true'] {
 	backdrop-filter: var(--uh-blur);
 
 	&:has(textarea:focus) {
-		outline: 1px solid var(--bulma-primary);
+		outline: 1px solid
+			hsl(
+				var(--bulma-primary-h),
+				var(--bulma-primary-s),
+				var(--bulma-primary-l)
+			);
 	}
 
 	&:has(textarea):has(.mic-recording) {
 		outline: 1px solid var(--bulma-danger);
+	}
+
+	&:has(textarea):has(.uphurry) {
+		outline: 2px solid var(--bulma-uphurry);
 	}
 
 	& textarea {

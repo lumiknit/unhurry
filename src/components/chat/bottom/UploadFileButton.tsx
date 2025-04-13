@@ -4,9 +4,10 @@ import {
 	BiRegularImage,
 	BiRegularPaperclip,
 } from 'solid-icons/bi';
-import { Component, createSignal } from 'solid-js';
+import { Component, createSignal, Show } from 'solid-js';
 import { toast } from 'solid-toast';
 
+import { createIsMobile } from '@/components/utils/media';
 import { createFile } from '@/lib/idb/file_storage';
 import { logr } from '@/lib/logr';
 
@@ -15,6 +16,7 @@ interface Props {
 }
 
 const UploadFileButton: Component<Props> = (props) => {
+	const isMobile = createIsMobile();
 	const [isOpen, setIsOpen] = createSignal(false);
 
 	const toggleDropdown = () => setIsOpen(!isOpen());
@@ -82,7 +84,9 @@ const UploadFileButton: Component<Props> = (props) => {
 					<span class="icon">
 						<BiRegularPaperclip />
 					</span>
-					<span class="hide-mobile">Upload</span>
+					<Show when={!isMobile()}>
+						<span>Upload</span>
+					</Show>
 				</button>
 			</div>
 			<div class="dropdown-menu" id="dropdown-menu" role="menu">

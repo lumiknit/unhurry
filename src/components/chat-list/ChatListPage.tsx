@@ -4,7 +4,7 @@ import {
 	BiRegularCalendarExclamation,
 	BiRegularPlus,
 } from 'solid-icons/bi';
-import { TbTrash } from 'solid-icons/tb';
+import { TbTrash, TbX } from 'solid-icons/tb';
 import {
 	Component,
 	createSignal,
@@ -14,18 +14,21 @@ import {
 	Show,
 	Switch,
 } from 'solid-js';
+import { Dynamic } from 'solid-js/web';
 import { toast } from 'solid-toast';
 
 import { chatManager, OngoingChatSummary } from '@/lib/chat-manager/manager';
 import { shortRelativeDateFormat } from '@/lib/intl';
-import { gotoNewChat } from '@/store/chat';
+import { getChatContext } from '@/store';
+import { gotoNewChat, openChat } from '@/store/global_actions';
 
 import { ChatMeta, hasChatUpdate } from '@lib/chat';
-import { chatListTx, clearAllChats, deleteChatByID } from '@lib/idb';
+import {
+	chatListTx,
+	clearAllChats as clearChats,
+	deleteChatByID,
+} from '@lib/idb';
 
-import { loadChatContext } from '@store/global_actions';
-
-import { rootPath } from '../../env';
 import { openConfirm } from '../modal-confirm';
 import Pagination, { createPaginatedList } from '../utils/Pagination';
 
@@ -83,17 +86,23 @@ const ClearChatModal: Component<ClearModalProps> = (props) => {
 
 type ItemProps = {
 	chat: ChatMeta;
+
+	deleteIcon: Component;
+
 	onOpen: (id: string) => void;
 	onDelete: (id: string) => void;
 };
 
 const Item: Component<ItemProps> = (props) => {
+	let color = '';
+	if (hasChatUpdate(props.chat)) {
+		color = 'has-background-warning-soft';
+	} else if (getChatContext()._id === props.chat._id) {
+		color = 'has-background-info-soft';
+	}
 	return (
 		<a
-			class={
-				'panel-block panel-item is-active ' +
-				(hasChatUpdate(props.chat) ? 'has-background-warning-soft' : '')
-			}
+			class={'panel-block panel-item is-active ' + color}
 			onClick={() => props.onOpen(props.chat._id)}
 		>
 			<div class="panel-item-content">
@@ -125,11 +134,14 @@ const Item: Component<ItemProps> = (props) => {
 				</div>
 			</div>
 			<button
-				class="button is-danger is-outlined is-small"
-				onClick={() => props.onDelete(props.chat._id)}
+				class="button is-danger is-small"
+				onClick={(e) => {
+					e.stopPropagation();
+					props.onDelete(props.chat._id);
+				}}
 			>
 				<span class="icon">
-					<TbTrash />
+					<Dynamic component={props.deleteIcon} />
 				</span>
 			</button>
 		</a>
@@ -183,22 +195,27 @@ const ChatListPage: Component = () => {
 	};
 
 	const handleClearAll = async (left: number) => {
-		await toast.promise(
-			clearAllChats({
-				left,
-			}),
-			{
-				loading: 'Clearing...',
-				success: 'Cleared',
-				error: 'Failed to clear',
-			}
-		);
+		const deleteIDs = filteredList()
+			.slice(left)
+			.map((x) => x._id);
+		await toast.promise(clearChats(deleteIDs), {
+			loading: 'Clearing...',
+			success: 'Cleared',
+			error: 'Failed to clear',
+		});
 		loadChatMeta();
 		setShowClearModal(false);
 	};
 
 	const handleFilterChange = () => {
 		setFilteredList(filtered());
+	};
+
+	const unloadChat = async (id: string) => {
+		if (!(await openConfirm('Are you sure to unload this chat?'))) return;
+		chatManager.unloadChat(id);
+		toast.success('Canceled');
+		loadChatMeta();
 	};
 
 	const deleteChat = async (id: string) => {
@@ -211,19 +228,12 @@ const ChatListPage: Component = () => {
 		loadChatMeta();
 	};
 
-	const openChat = async (id: string) => {
-		toast.promise(
-			(async () => {
-				await loadChatContext(id);
-				// Navigate to chat view
-				navigate(`${rootPath}/`);
-			})(),
-			{
-				loading: 'Loading...',
-				success: 'Loaded',
-				error: 'Failed to load',
-			}
-		);
+	const handleOpenChat = async (id: string) => {
+		toast.promise(openChat(navigate, id), {
+			loading: 'Loading...',
+			success: 'Loaded',
+			error: 'Failed to load',
+		});
 	};
 	onMount(() => loadChatMeta());
 
@@ -244,8 +254,9 @@ const ChatListPage: Component = () => {
 						{(chat) => (
 							<Item
 								chat={chat.ctx}
-								onOpen={openChat}
-								onDelete={deleteChat}
+								deleteIcon={TbX}
+								onOpen={handleOpenChat}
+								onDelete={unloadChat}
 							/>
 						)}
 					</For>
@@ -285,7 +296,8 @@ const ChatListPage: Component = () => {
 								{(chat) => (
 									<Item
 										chat={chat}
-										onOpen={openChat}
+										deleteIcon={TbTrash}
+										onOpen={handleOpenChat}
 										onDelete={deleteChat}
 									/>
 								)}

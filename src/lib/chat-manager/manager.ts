@@ -7,6 +7,7 @@ import {
 	extractChatMeta,
 	hasChatUpdate,
 } from '../chat/context';
+import { MsgPartsParser } from '../chat/parser';
 import { MsgPair, MsgPart } from '../chat/structs';
 import { chatListTx, chatTx, SimpleIDB } from '../idb';
 import {
@@ -16,7 +17,7 @@ import {
 	RequestEntityTooLargeError,
 } from '../llm';
 import { logr } from '../logr';
-import { generateChatTitle } from './manager-utils';
+import { generateChatTitle, generateNextQuestion } from './manager-utils';
 import { ChatOptions, ChatRequest, OngoingChatMeta } from './structs';
 import { uniqueID } from '../utils';
 
@@ -65,6 +66,9 @@ export type OngoingChat = {
 
 	/** Current onging chat action */
 	action?: SingleChatAction;
+
+	/** Max retries */
+	retries: number;
 };
 
 /**
@@ -85,7 +89,8 @@ export class ChatManager {
 	static instance: ChatManager | null = null;
 
 	private checkInterval: number | null = null;
-	private checkIntervalDelay = 1000;
+	private checkIntervalDelay = 5000;
+	private maxRetries = 5;
 
 	/**
 	 * Watching contexts
@@ -113,6 +118,11 @@ export class ChatManager {
 	 * Callback for the chat completed and the message is given.
 	 */
 	onMessage: (id: string, msgPairs: MsgPair[]) => void = () => {};
+
+	/**
+	 * Callback when the chat is finished.
+	 */
+	onFinish: (id: string, ctx: ChatContext) => void = () => {};
 
 	// Methods
 
@@ -201,6 +211,7 @@ export class ChatManager {
 			},
 			ctx,
 			opts: options,
+			retries: 0,
 		};
 		this.chats.set(ctx._id, oc);
 		this.saveState();
@@ -253,7 +264,7 @@ export class ChatManager {
 	 * Unload the chat.
 	 */
 	async unloadChat(id: string) {
-		//TODO: cancel the chat action then unload
+		this.cancelChat(id);
 		this.chats.delete(id);
 		await this.saveState();
 	}
@@ -291,12 +302,13 @@ export class ChatManager {
 	 * Try to set the chat request.
 	 * If the chat already has a request, it'll do nothing and return false.
 	 */
-	setChatRequest(id: string, req: ChatRequest): boolean {
+	setChatRequest(id: string, req: ChatRequest, force?: boolean): boolean {
 		const ch = this.chat(id);
-		if (ch.meta.request) {
+		if (ch.meta.request && !force) {
 			return false;
 		}
 		ch.meta.request = req;
+		ch.retries = 0;
 		this.saveState();
 		return true;
 	}
@@ -328,6 +340,8 @@ export class ChatManager {
 		if (ch.action) {
 			ch.action.cancel();
 		}
+		ch.meta.request = undefined;
+		this.saveChatMeta(id);
 	}
 
 	updateChatMeta(id: string, meta: Partial<ChatMeta>) {
@@ -430,27 +444,39 @@ export class ChatManager {
 
 		this.onProgressChange(id, true);
 
-		let err: any = undefined;
 		try {
 			switch (req.type) {
 				case 'user-msg':
 					// Consume the message, then run the action
 					await action.runWithUserMessage(req.message);
 					item.meta.request = undefined;
+					this.onFinish(id, item.ctx);
+					this.saveChatMeta(id);
 					break;
 				case 'uphurry':
-					// TODO: Generate new message, then run
+					{
+						const nextQuestion = await generateNextQuestion(
+							item.opts,
+							item.ctx.history,
+							req.comment
+						);
+						if (nextQuestion === null) {
+							// DONE
+							item.meta.request = undefined;
+							this.onFinish(id, item.ctx);
+							this.saveChatMeta(id);
+						} else {
+							await action.runWithUserMessage(
+								MsgPartsParser.parse(nextQuestion),
+								{ uphurry: true }
+							);
+						}
+					}
 					break;
 			}
-		} catch (e) {
-			err = e;
-		}
-
-		item.action = undefined;
-		this.onProgressChange(id, false);
-
-		if (err) {
-			throw err;
+		} finally {
+			item.action = undefined;
+			this.onProgressChange(id, false);
 		}
 
 		if (isFirst) {
@@ -469,14 +495,20 @@ export class ChatManager {
 			item = this.chat(item);
 		}
 		try {
-			if (item.lock) {
+			if (item.lock || item.retries > this.maxRetries) {
 				return;
 			}
 			item.lock = true;
 			await this.checkChatInner(item);
+
+			item.retries = 0;
 		} catch (e) {
-			logr.error('[ChatManager] Error checking chat', e);
-			toast.error('ChatManager error: ' + item.ctx.title);
+			item.retries = (item.retries || 0) + 1;
+			if (item.retries > this.maxRetries) {
+				const title = item.ctx.title || 'untitled';
+				logr.error('[ChatManager] Error checking chat', e);
+				toast.error(`[chat '${title}'] ${e}`);
+			}
 		}
 		item.lock = false;
 	}
