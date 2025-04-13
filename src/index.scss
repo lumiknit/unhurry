@@ -281,6 +281,8 @@ span[aria-hidden='true'] {
 }
 
 .input-tags {
+	display: flex;
+
 	white-space: nowrap;
 	overflow-x: scroll;
 

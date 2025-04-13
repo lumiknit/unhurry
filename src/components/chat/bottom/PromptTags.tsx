@@ -5,6 +5,7 @@ import {
 	For,
 	JSX,
 	Match,
+	Show,
 	splitProps,
 	Switch,
 } from 'solid-js';
@@ -15,6 +16,8 @@ import { vibrate } from '@/store/global_actions';
 import { PromptTag } from '@lib/config';
 
 import { getUserConfig, setUserConfig } from '@store';
+import { createIsMobile } from '@/components/utils/media';
+import { BiSolidChevronsRight } from 'solid-icons/bi';
 
 type TagProps = JSX.HTMLAttributes<HTMLButtonElement> & {
 	class?: string;
@@ -43,6 +46,8 @@ const Tag: Component<TagProps> = (props) => {
 };
 
 const AutoSendTag: Component = () => {
+	const isMobile = createIsMobile();
+
 	const autoSendTimeout = (): number | undefined => {
 		const v = getUserConfig()?.autoSendMillis;
 		if (v && v > 0) {
@@ -63,12 +68,17 @@ const AutoSendTag: Component = () => {
 			class={getUserConfig()?.enableAutoSend ? 'is-primary' : ''}
 			onClick={toggleAutoSend}
 		>
-			<Switch>
-				<Match when={getUserConfig()?.enableAutoSend}>
-					Auto: {(autoSendTimeout()! / 1000).toFixed(1)}s
-				</Match>
-				<Match when>No-auto</Match>
-			</Switch>
+			<span class="icon">
+				<BiSolidChevronsRight />
+			</span>
+			<Show when={!isMobile()}>
+				<Switch>
+					<Match when={getUserConfig()?.enableAutoSend}>
+						Auto: {(autoSendTimeout()! / 1000).toFixed(1)}s
+					</Match>
+					<Match when>No-auto</Match>
+				</Switch>
+			</Show>
 		</Tag>
 	);
 };

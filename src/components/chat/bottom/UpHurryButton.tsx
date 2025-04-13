@@ -1,5 +1,7 @@
 import { BiRegularCommand } from 'solid-icons/bi';
-import { Component } from 'solid-js';
+import { Component, Show } from 'solid-js';
+
+import { createIsMobile } from '@/components/utils/media';
 
 interface Props {
 	onToggle: () => void;
@@ -7,6 +9,7 @@ interface Props {
 }
 
 const UphurryButton: Component<Props> = (props) => {
+	const isMobile = createIsMobile();
 	return (
 		<button
 			class={`tag h-full is-uphurry ${props.enabled ? 'is-primary ' : ''}`}
@@ -17,7 +20,9 @@ const UphurryButton: Component<Props> = (props) => {
 			<span class="icon">
 				<BiRegularCommand />
 			</span>
-			<span class="hide-mobile">UpHurry</span>
+			<Show when={!isMobile()}>
+				<span>UpHurry</span>
+			</Show>
 		</button>
 	);
 };

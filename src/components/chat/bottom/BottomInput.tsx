@@ -362,7 +362,7 @@ const BottomInput: Component = () => {
 			</Show>
 			<div class="buttons gap-1 no-user-select">
 				<SpeechButton
-					class="control is-size-6 py-1 button-mic"
+					class="control is-size-6 px-1 button-mic"
 					startRecognition={startSpeechRecognition}
 					stopRecognition={stopSpeechRecognition}
 					recognizing={() => speechRecognizing()}
