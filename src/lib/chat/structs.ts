@@ -16,9 +16,6 @@ import { LLMMessages, LLMMessage, Role, TypedContent } from '../llm';
  * Some special types may be displayed to the user in a special way.
  * - '*fn:call', '*fn:ret': LLM function calling
  * - '*think': Think block, which is used for reasoning model.
- * - 'run-js': JavaScript code block
- * - 'svg: Show the SVG tag as an image
- * - 'mermaid': Show the Mermaid diagram
  * Asterisk prefix is used when the type is not a real markdown block.
  */
 
@@ -41,18 +38,6 @@ export const MSG_PART_TYPE_TEXT = '';
 export const MSG_PART_TYPE_FUNCTION_CALL = '*fn:call';
 
 /**
- * Tool call prefix
- * The content type is FunctionCallInfo.
- */
-export const MSG_PART_TYPE_CALL_PREFIX = '*call:';
-
-/**
- * Return prefix
- * The content type is FunctionCallInfo.
- */
-export const MSG_PART_TYPE_RETURN_PREFIX = '*return:';
-
-/**
  * MSG_PART_TYPE_FILE is a file.
  * The content type is ID, which is used for IndexedDB.
  */
@@ -62,21 +47,6 @@ export const MSG_PART_TYPE_FILE = '*file';
  * MSG_PART_TYPE_THINK is a think block.
  */
 export const MSG_PART_TYPE_THINK = '*think';
-
-/**
- * MSG_PART_TYPE_RUN_JS is a javascript code which should be executed.
- */
-export const MSG_PART_TYPE_RUN_JS = 'run-js';
-
-/**
- * MSG_PART_TYPE_SVG is a SVG image, which will be rendered.
- */
-export const MSG_PART_TYPE_SVG = 'svg';
-
-/**
- * MSG_PART_TYPE_MERMAID is a Mermaid diagram, which will be rendered.
- */
-export const MSG_PART_TYPE_MERMAID = 'mermaid';
 
 /**
  * Message part.

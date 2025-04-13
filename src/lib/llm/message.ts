@@ -1,4 +1,14 @@
 /**
+ * Prefix for code block language.
+ */
+export const BLOCK_PREFIX_FN_CALL = '*call:';
+
+/**
+ * Prefix for code block language.
+ */
+export const BLOCK_PREFIX_FN_RETURN = '*return:';
+
+/**
  * Role of a message.
  * Based on OpenAI.
  */
@@ -37,16 +47,8 @@ export interface FunctionCallContent {
 export const fnCallMsgPartToMD = (
 	info: FunctionCallContent
 ): [string, string] => {
-	const call =
-		'```*call:' + info.name + '(' + info.id + ')\n' + info.args + '\n```';
-	const ret =
-		'```*return:' +
-		info.name +
-		'(' +
-		info.id +
-		')\n' +
-		(info.result || '<NO RESULT>') +
-		'\n```';
+	const call = `\`\`\`${BLOCK_PREFIX_FN_CALL}${info.name}(${info.id})\n${info.args}\n\`\`\``;
+	const ret = `\`\`\`${BLOCK_PREFIX_FN_RETURN}${info.name}(${info.id})\n${info.result || '<NO RESULT>'}\n\`\`\``;
 	return [call, ret];
 };
 

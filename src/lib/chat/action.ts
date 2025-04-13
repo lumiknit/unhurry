@@ -5,7 +5,7 @@ import {
 	MSG_PART_TYPE_FUNCTION_CALL,
 	MsgPart,
 } from './structs';
-import { fnImpls, getFnTools } from './tools';
+import { fnImpls, getFnTools, normalizeToolName } from './tools';
 import { ToolConfigs } from '../config/tool';
 import {
 	FunctionCallContent,
@@ -206,7 +206,8 @@ export abstract class SingleLLMAction {
 				calls.map(async (fc) => {
 					try {
 						const a = JSON.parse(fc.args);
-						const result = await fnImpls[fc.name](a);
+						const result =
+							await fnImpls[normalizeToolName(fc.name)](a);
 						results.set(fc.id, result);
 					} catch (e) {
 						results.set(fc.id, `Error: ${e}`);

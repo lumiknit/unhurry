@@ -210,7 +210,7 @@ const BottomInput: Component = () => {
 		setAutoSend();
 	};
 
-	const handleKeyUp = (e: KeyboardEvent) => {
+	const handleKeyDown = (e: KeyboardEvent) => {
 		updateInputTriple();
 		if (e.isComposing) return;
 		switch (e.key) {
@@ -336,7 +336,7 @@ const BottomInput: Component = () => {
 				onCompositionEnd={handleCompositionEnd}
 				onInput={handleInput}
 				onChange={autosizeTextarea}
-				onKeyUp={handleKeyUp}
+				onKeyDown={handleKeyDown}
 				placeholder="Type your message here..."
 			/>
 			<Show when={files().length > 0}>

@@ -17,6 +17,13 @@ type Impl = (args: any) => Promise<string>;
 
 export const fnImpls: Record<string, Impl> = {};
 
+/**
+ * Remove non-alphanumeric characters from the tool name and convert it to lowercase.
+ */
+export const normalizeToolName = (name: string) => {
+	return name.replace(/[^a-zA-Z0-9]+/g, '').toLowerCase();
+};
+
 export const getFnTools = (configs: ToolConfigs) => {
 	return fnTools.filter((tool) => {
 		const c = configs[tool.name];
@@ -26,8 +33,8 @@ export const getFnTools = (configs: ToolConfigs) => {
 };
 
 const addFunc = (tool: FunctionTool, fn: Impl) => {
-	fnTools.push(tool);
-	fnImpls[tool.name] = async (args) => {
+	fnTools.push();
+	fnImpls[normalizeToolName(tool.name)] = async (args) => {
 		const result = jsonValidator.validate(args, tool.parameters);
 		if (result.valid) return await fn(args);
 		return (
