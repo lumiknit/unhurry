@@ -11,11 +11,13 @@ import { ItemProps } from './message_types';
 
 const FileMessage: Component<ItemProps> = (props) => {
 	const [meta, setMeta] = createSignal<FileMeta | null | undefined>();
+
 	const [imageDataURL, setImageDataURL] = createSignal('');
 	const [objURL, setObjURL] = createSignal<string | undefined>();
 
 	onMount(async () => {
 		const meta = await getFile(props.content);
+		console.log(meta);
 		if (!meta) {
 			setMeta(null);
 			return;
@@ -32,11 +34,12 @@ const FileMessage: Component<ItemProps> = (props) => {
 			}
 		}
 	});
+
 	return (
 		<div class="msg-code">
 			<header class="flex-split">
 				<span>
-					<b>File</b> {props.content}
+					<b>File</b> {meta()?.name} ({props.content})
 				</span>
 			</header>
 			<div class="msg-code-body">

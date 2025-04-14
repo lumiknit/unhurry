@@ -1,4 +1,4 @@
-import { getFile, getFileDataURL } from '../idb/file_storage';
+import { getFile, getFileBlob, getFileDataURL } from '../idb/file_storage';
 import { LLMMessages, LLMMessage, Role, TypedContent } from '../llm';
 
 /*
@@ -114,12 +114,39 @@ export const convertMsgForLLM = async (msg: Msg): Promise<LLMMessage> => {
 			case MSG_PART_TYPE_FILE:
 				{
 					const f = await getFile(part.content);
-					if (f && f.mimeType.startsWith('image/')) {
-						const dataURL = await getFileDataURL(part.content);
-						if (dataURL) {
+					if (f) {
+						if (f.mimeType.startsWith('image/')) {
+							const dataURL = await getFileDataURL(part.content);
+							if (dataURL) {
+								content.push({
+									type: 'image_url',
+									image_url: { url: dataURL },
+								});
+							}
+						} else {
+							let textContent = '';
+							const v = await getFileBlob(part.content);
+							if (v) {
+								const bytes = new Uint8Array(
+									await v.arrayBuffer()
+								);
+								if (bytes.length === 0) {
+									textContent = '<EMPTY FILE>';
+								} else {
+									const decoder = new TextDecoder('utf-8');
+									textContent = decoder.decode(bytes);
+								}
+							} else {
+								textContent = '<FILE NOT FOUND>';
+							}
 							content.push({
-								type: 'image_url',
-								image_url: { url: dataURL },
+								type: 'text',
+								text:
+									'```artifact(' +
+									f.name +
+									';text)\n' +
+									textContent +
+									'\n```',
 							});
 						}
 					}

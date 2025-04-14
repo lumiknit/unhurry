@@ -4,10 +4,11 @@ import {
 	BiRegularImage,
 	BiRegularPaperclip,
 } from 'solid-icons/bi';
-import { Component, createSignal, Show } from 'solid-js';
+import { Component, createSignal, Show, onCleanup, onMount } from 'solid-js';
 import { toast } from 'solid-toast';
 
 import { createIsMobile } from '@/components/utils/media';
+import { getBEService } from '@/lib/be';
 import { createFile } from '@/lib/idb/file_storage';
 import { logr } from '@/lib/logr';
 
@@ -21,6 +22,22 @@ const UploadFileButton: Component<Props> = (props) => {
 
 	const toggleDropdown = () => setIsOpen(!isOpen());
 
+	const makeArtifact = async (
+		name: string,
+		mimeType: string,
+		data: Uint8Array
+	) => {
+		try {
+			const id = await createFile(name, mimeType, data);
+			logr.info('File uploaded:', id);
+			toast.success('File uploaded: ' + id);
+			props.onFile(name, id);
+		} catch (err) {
+			logr.error('Failed to upload file:', err);
+			toast.error('Failed to upload file: ' + err);
+		}
+	};
+
 	const handleFile = (mimeType: string, file: File) => {
 		// Read file content as Uint8Array
 		const reader = new FileReader();
@@ -31,16 +48,7 @@ const UploadFileButton: Component<Props> = (props) => {
 			);
 
 			// Upload to IDB
-			createFile(file.name, mimeType, data)
-				.then((id) => {
-					logr.info('File uploaded:', id);
-					toast.success('File uploaded: ' + id);
-					props.onFile(file.name, id);
-				})
-				.catch((err) => {
-					logr.error('Failed to upload file:', err);
-					toast.error('Failed to upload file: ' + err);
-				});
+			makeArtifact(file.name, mimeType, data);
 		};
 		reader.readAsArrayBuffer(file);
 	};
@@ -71,6 +79,20 @@ const UploadFileButton: Component<Props> = (props) => {
 	const uploadImage = () => upload('image/*');
 	const uploadCamera = () => upload('image/*', 'environment');
 	const uploadFile = () => upload('*/*');
+
+	// Window drag & drop event
+	onMount(async () => {
+		console.log('Mounted');
+		const be = await getBEService();
+		be.mountDragAndDrop((artifacts) => {
+			artifacts.map((x) => makeArtifact(x.name, x.mimeType, x.data));
+		});
+	});
+
+	onCleanup(async () => {
+		const be = await getBEService();
+		be.unmountDragAndDrop();
+	});
 
 	return (
 		<div class={`dropdown ${isOpen() ? 'is-active' : ''} is-up`}>

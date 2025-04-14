@@ -1,5 +1,7 @@
 import { FetchResult, IBEService, VibrationPattern } from './interface';
 import { BrowserSpeechRecognizer, ISpeechRecognizer } from './interface_sr';
+import { getMimeTypeFromFileName } from '../artifact/mime';
+import { UploadedArtifact } from '../artifact/structs';
 
 const vibePatterns = new Map<string, number[]>([
 	['light', [10]],
@@ -65,6 +67,57 @@ export class BrowserService implements IBEService {
 				navigator.vibrate(vibes);
 			}
 		}
+	}
+
+	private onDrop?: (artifacts: UploadedArtifact[]) => void;
+
+	private onDragOver = (e: DragEvent): void => {
+		e.preventDefault();
+		e.stopPropagation();
+	};
+
+	private onDropFiles = async (e: DragEvent): Promise<void> => {
+		e.preventDefault();
+		e.stopPropagation();
+		if (!this.onDrop) {
+			return;
+		}
+		if (!e.dataTransfer) {
+			return;
+		}
+		const artifacts = await Promise.all(
+			Array.from(e.dataTransfer.files).map(async (file) => {
+				const lastSliceIdx = Math.max(
+					file.name.lastIndexOf('\\'),
+					file.name.lastIndexOf('/')
+				);
+				const name =
+					lastSliceIdx >= 0
+						? file.name.slice(lastSliceIdx + 1)
+						: file.name;
+				const mimeType =
+					file.type || getMimeTypeFromFileName(file.name);
+				const artifact: UploadedArtifact = {
+					name,
+					mimeType,
+					data: new Uint8Array(await file.arrayBuffer()),
+				};
+				return artifact;
+			})
+		);
+		this.onDrop(artifacts);
+	};
+
+	mountDragAndDrop(onDrop: (artifacts: UploadedArtifact[]) => void) {
+		this.onDrop = onDrop;
+		window.addEventListener('dragover', this.onDragOver);
+		window.addEventListener('drop', this.onDropFiles);
+	}
+
+	unmountDragAndDrop() {
+		window.removeEventListener('dragover', this.onDragOver);
+		window.removeEventListener('drop', this.onDropFiles);
+		this.onDrop = undefined;
 	}
 
 	async speechRecognizer(): Promise<ISpeechRecognizer> {

@@ -1,4 +1,6 @@
 import { invoke } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
+import { readFile } from '@tauri-apps/plugin-fs';
 import {
 	vibrate,
 	impactFeedback,
@@ -15,6 +17,8 @@ import {
 	VibrationPattern,
 } from './interface';
 import { BrowserSpeechRecognizer, ISpeechRecognizer } from './interface_sr';
+import { getMimeTypeFromFileName } from '../artifact/mime';
+import { UploadedArtifact } from '../artifact/structs';
 
 type WithError = {
 	error?: string;
@@ -59,6 +63,60 @@ export class TauriService implements IBEService {
 		} else if (impactVibes.has(pattern)) {
 			impactFeedback(pattern as ImpactVibePattern);
 		}
+	}
+
+	// File drag & drop
+
+	unlistens: (() => void)[] = [];
+
+	async mountDragAndDrop(
+		onDrop: (artifacts: UploadedArtifact[]) => void
+	): Promise<void> {
+		console.log('Mounted file drop');
+		type DragAndDropType = {
+			paths: string[];
+			position: {
+				x: number;
+				y: number;
+			};
+		};
+		this.unlistens.push(
+			await listen<DragAndDropType>(
+				'tauri://drag-drop',
+				async (event) => {
+					// Convert paths to File objects
+					const artifacts = await Promise.all(
+						event.payload.paths.map(async (path) => {
+							const data = await readFile(path);
+							const lastSliceIdx = Math.max(
+								path.lastIndexOf('\\'),
+								path.lastIndexOf('/')
+							);
+							const name =
+								lastSliceIdx >= 0
+									? path.slice(lastSliceIdx + 1)
+									: path;
+							const mimeType = getMimeTypeFromFileName(path);
+							return {
+								name,
+								mimeType,
+								data,
+							};
+						})
+					);
+					// Call the onDrop callback with the artifacts
+					onDrop(artifacts);
+				}
+			)
+		);
+	}
+
+	async unmountDragAndDrop(): Promise<void> {
+		console.log('Unmounted file drop');
+		for (const unlisten of this.unlistens) {
+			unlisten();
+		}
+		this.unlistens = [];
 	}
 
 	async speechRecognizer(): Promise<ISpeechRecognizer> {

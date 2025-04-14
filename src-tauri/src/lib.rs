@@ -24,7 +24,10 @@ async fn fetch_http(
     headers: Option<Vec<(String, String)>>,
     body: Option<String>,
 ) -> Result<FetchResult, String> {
-    let client = reqwest::Client::builder().http1_only().build().map_err(|e| e.to_string())?;
+    let client = reqwest::Client::builder()
+        .http1_only()
+        .build()
+        .map_err(|e| e.to_string())?;
     let mut request = client.request(
         reqwest::Method::from_bytes(method.as_bytes())
             .map_err(|e| format!("Invalid method: {}", e))?,
@@ -85,7 +88,12 @@ async fn fetch_http(
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
+    let builder = tauri::Builder::default();
+
+    #[cfg(any(target_os = "windows", target_os = "linux", target_os = "macos"))]
+    let builder = builder.plugin(tauri_plugin_window_state::Builder::new().build());
+
+    builder.plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_haptics::init())

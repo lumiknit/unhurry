@@ -16,6 +16,9 @@ importers:
             '@tauri-apps/api':
                 specifier: ^2.4.1
                 version: 2.4.1
+            '@tauri-apps/plugin-fs':
+                specifier: ~2
+                version: 2.2.1
             '@tauri-apps/plugin-haptics':
                 specifier: ^2.2.4
                 version: 2.2.4
@@ -25,6 +28,9 @@ importers:
             '@tauri-apps/plugin-opener':
                 specifier: ^2.2.6
                 version: 2.2.6
+            '@tauri-apps/plugin-window-state':
+                specifier: ~2
+                version: 2.2.2
             '@types/turndown':
                 specifier: ^5.0.5
                 version: 5.0.5
@@ -1361,6 +1367,12 @@ packages:
         engines: { node: '>= 10' }
         hasBin: true
 
+    '@tauri-apps/plugin-fs@2.2.1':
+        resolution:
+            {
+                integrity: sha512-KdGzvvA4Eg0Dhw55MwczFbjxLxsTx0FvwwC/0StXlr6IxwPUxh5ziZQoaugkBFs8t+wfebdQrjBEzd8NmmDXNw==,
+            }
+
     '@tauri-apps/plugin-haptics@2.2.4':
         resolution:
             {
@@ -1377,6 +1389,12 @@ packages:
         resolution:
             {
                 integrity: sha512-bSdkuP71ZQRepPOn8BOEdBKYJQvl6+jb160QtJX/i2H9BF6ZySY/kYljh76N2Ne5fJMQRge7rlKoStYQY5Jq1w==,
+            }
+
+    '@tauri-apps/plugin-window-state@2.2.2':
+        resolution:
+            {
+                integrity: sha512-7pFwmMtGhhhE/WgmM7PUrj0BSSWVAQMfDdYbRalphIqqF1tWBvxtlxclx8bTutpXHLJTQoCpIeWtBEIXsoAlGw==,
             }
 
     '@tybys/wasm-util@0.9.0':
@@ -5288,6 +5306,10 @@ snapshots:
             '@tauri-apps/cli-win32-ia32-msvc': 2.4.1
             '@tauri-apps/cli-win32-x64-msvc': 2.4.1
 
+    '@tauri-apps/plugin-fs@2.2.1':
+        dependencies:
+            '@tauri-apps/api': 2.4.1
+
     '@tauri-apps/plugin-haptics@2.2.4':
         dependencies:
             '@tauri-apps/api': 2.4.1
@@ -5297,6 +5319,10 @@ snapshots:
             '@tauri-apps/api': 2.4.1
 
     '@tauri-apps/plugin-opener@2.2.6':
+        dependencies:
+            '@tauri-apps/api': 2.4.1
+
+    '@tauri-apps/plugin-window-state@2.2.2':
         dependencies:
             '@tauri-apps/api': 2.4.1
 

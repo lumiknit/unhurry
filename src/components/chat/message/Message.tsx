@@ -64,7 +64,7 @@ const TextMessage: Component<ItemProps> = (props) => {
 const BlockMessage: Component<ItemProps> = (props) => {
 	const [html, setHtml] = createSignal('');
 	const [fold, setFold] = createSignal(
-		props.type === MSG_PART_TYPE_THINK || props.content.length > 1000
+		props.type === MSG_PART_TYPE_THINK || props.content.length > 32000
 	);
 	const [lines, setLines] = createSignal(0);
 	// Use highlight.js to highlight code
