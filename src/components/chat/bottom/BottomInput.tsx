@@ -79,7 +79,6 @@ const BottomInput: Component = () => {
 	};
 
 	const send = async () => {
-		console.log('Send');
 		unsetAutoSend();
 		let v: string = taRef!.value;
 		if (lastSent > 0) {

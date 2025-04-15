@@ -82,7 +82,6 @@ const UploadFileButton: Component<Props> = (props) => {
 
 	// Window drag & drop event
 	onMount(async () => {
-		console.log('Mounted');
 		const be = await getBEService();
 		be.mountDragAndDrop((artifacts) => {
 			artifacts.map((x) => makeArtifact(x.name, x.mimeType, x.data));

@@ -60,6 +60,11 @@ export interface IBEService {
 	): void | Promise<void>;
 
 	/**
+	 * Download File
+	 */
+	downloadFile(name: string, blob: Blob): Promise<void>;
+
+	/**
 	 * Unmount file drag and drop event.
 	 */
 	unmountDragAndDrop(): void | Promise<void>;

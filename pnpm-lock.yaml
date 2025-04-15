@@ -16,6 +16,9 @@ importers:
             '@tauri-apps/api':
                 specifier: ^2.4.1
                 version: 2.4.1
+            '@tauri-apps/plugin-dialog':
+                specifier: ~2
+                version: 2.2.1
             '@tauri-apps/plugin-fs':
                 specifier: ~2
                 version: 2.2.1
@@ -28,6 +31,9 @@ importers:
             '@tauri-apps/plugin-opener':
                 specifier: ^2.2.6
                 version: 2.2.6
+            '@tauri-apps/plugin-upload':
+                specifier: ~2
+                version: 2.2.1
             '@tauri-apps/plugin-window-state':
                 specifier: ~2
                 version: 2.2.2
@@ -1367,6 +1373,12 @@ packages:
         engines: { node: '>= 10' }
         hasBin: true
 
+    '@tauri-apps/plugin-dialog@2.2.1':
+        resolution:
+            {
+                integrity: sha512-wZmCouo4PgTosh/UoejPw9DPs6RllS5Pp3fuOV2JobCu36mR5AXU2MzU9NZiVaFi/5Zfc8RN0IhcZHnksJ1o8A==,
+            }
+
     '@tauri-apps/plugin-fs@2.2.1':
         resolution:
             {
@@ -1389,6 +1401,12 @@ packages:
         resolution:
             {
                 integrity: sha512-bSdkuP71ZQRepPOn8BOEdBKYJQvl6+jb160QtJX/i2H9BF6ZySY/kYljh76N2Ne5fJMQRge7rlKoStYQY5Jq1w==,
+            }
+
+    '@tauri-apps/plugin-upload@2.2.1':
+        resolution:
+            {
+                integrity: sha512-2EyVhJYLAp2mJH0UzO3QGU0vPk/YWvAfdI2wXbczyzEZY/AZVa9wConyB1TV/NGhyJRim4LwWgkmnEvcKLkECw==,
             }
 
     '@tauri-apps/plugin-window-state@2.2.2':
@@ -5306,6 +5324,10 @@ snapshots:
             '@tauri-apps/cli-win32-ia32-msvc': 2.4.1
             '@tauri-apps/cli-win32-x64-msvc': 2.4.1
 
+    '@tauri-apps/plugin-dialog@2.2.1':
+        dependencies:
+            '@tauri-apps/api': 2.4.1
+
     '@tauri-apps/plugin-fs@2.2.1':
         dependencies:
             '@tauri-apps/api': 2.4.1
@@ -5319,6 +5341,10 @@ snapshots:
             '@tauri-apps/api': 2.4.1
 
     '@tauri-apps/plugin-opener@2.2.6':
+        dependencies:
+            '@tauri-apps/api': 2.4.1
+
+    '@tauri-apps/plugin-upload@2.2.1':
         dependencies:
             '@tauri-apps/api': 2.4.1
 

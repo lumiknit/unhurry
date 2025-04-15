@@ -1,5 +1,6 @@
 import { Component, createSignal, Match, onMount, Switch } from 'solid-js';
 
+import { getBEService } from '@/lib/be';
 import {
 	ArtifactMeta,
 	getArtifactBlob,
@@ -14,6 +15,14 @@ interface Props {
 const ArtifactPreviewModal: Component<Props> = (props) => {
 	const [imageDataURL, setImageDataURL] = createSignal('');
 	const [objURL, setObjURL] = createSignal<string | undefined>();
+
+	const handleDownload = async () => {
+		const be = await getBEService();
+		const blob = await getArtifactBlob(props.meta._id);
+		if (blob) {
+			be.downloadFile(props.meta.name, blob);
+		}
+	};
 
 	onMount(async () => {
 		if (props.meta.mimeType.startsWith('image/')) {
@@ -53,7 +62,7 @@ const ArtifactPreviewModal: Component<Props> = (props) => {
 								/>
 							</Match>
 							<Match when={objURL()}>
-								<a href={objURL()} download={props.meta.name}>
+								<a href="#" onClick={handleDownload}>
 									Download {props.meta.name}
 								</a>
 							</Match>

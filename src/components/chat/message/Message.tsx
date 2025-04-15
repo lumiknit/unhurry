@@ -16,8 +16,6 @@ import {
 import { Dynamic } from 'solid-js/web';
 import { toast } from 'solid-toast';
 
-import { logr } from '@/lib/logr';
-
 import {
 	Msg,
 	MSG_PART_TYPE_ARTIFACT,
@@ -25,6 +23,8 @@ import {
 	MSG_PART_TYPE_TEXT,
 	MSG_PART_TYPE_THINK,
 } from '@lib/chat';
+import { copyToClipboard } from '@lib/clipboard';
+import { logr } from '@lib/logr';
 
 import ArtifactMessage from './ArtifactMessage';
 import FnCallMessage from './FnCallMessage';
@@ -81,21 +81,6 @@ const BlockMessage: Component<ItemProps> = (props) => {
 		setLines(props.content.split('\n').length);
 	});
 
-	const handleCopy = () => {
-		if (navigator.clipboard) {
-			navigator.clipboard.writeText(props.content);
-		} else {
-			// Fallback for older browsers
-			const el = document.createElement('textarea');
-			el.value = props.content;
-			document.body.appendChild(el);
-			el.select();
-			document.execCommand('copy');
-			document.body.removeChild(el);
-		}
-		toast.success('Copied to clipboard');
-	};
-
 	return (
 		<Switch>
 			<Match when={fold()}>
@@ -119,7 +104,8 @@ const BlockMessage: Component<ItemProps> = (props) => {
 							<button
 								class="px-2"
 								onClick={(e) => {
-									handleCopy();
+									copyToClipboard(props.content);
+									toast.success('Copied!');
 									e.stopPropagation();
 								}}
 							>
@@ -157,20 +143,6 @@ const SvgMessage: Component<ItemProps> = (props) => {
 	const content = DOMPurify.sanitize(props.content);
 	const [raw, setRaw] = createSignal(false);
 
-	const handleCopy = () => {
-		if (navigator.clipboard) {
-			navigator.clipboard.writeText(props.content);
-		} else {
-			const el = document.createElement('textarea');
-			el.value = props.content;
-			document.body.appendChild(el);
-			el.select();
-			document.execCommand('copy');
-			document.body.removeChild(el);
-		}
-		toast.success('Copied to clipboard');
-	};
-
 	return (
 		<div class="msg-code">
 			<header class="flex-split" onClick={() => setRaw((r) => !r)}>
@@ -179,7 +151,8 @@ const SvgMessage: Component<ItemProps> = (props) => {
 					<button
 						class="px-2"
 						onClick={(e) => {
-							handleCopy();
+							copyToClipboard(props.content);
+							toast.success('Copied!');
 							e.stopPropagation();
 						}}
 					>
@@ -204,20 +177,6 @@ const MermaidMessage: Component<ItemProps> = (props) => {
 	const [svg, setSvg] = createSignal('');
 	const [err, setErr] = createSignal('');
 	const [raw, setRaw] = createSignal(false);
-
-	const handleCopy = () => {
-		if (navigator.clipboard) {
-			navigator.clipboard.writeText(props.content);
-		} else {
-			const el = document.createElement('textarea');
-			el.value = props.content;
-			document.body.appendChild(el);
-			el.select();
-			document.execCommand('copy');
-			document.body.removeChild(el);
-		}
-		toast.success('Copied to clipboard');
-	};
 
 	onMount(async () => {
 		try {
@@ -249,7 +208,8 @@ const MermaidMessage: Component<ItemProps> = (props) => {
 							<button
 								class="px-2"
 								onClick={(e) => {
-									handleCopy();
+									copyToClipboard(props.content);
+									toast.success('Copied!');
 									e.stopPropagation();
 								}}
 							>

@@ -10,6 +10,10 @@
     "opener:default",
     "http:default",
 
+    "dialog:allow-open",
+    "dialog:allow-save",
+    "fs:allow-write-file",
+
     "haptics:allow-impact-feedback",
     "haptics:allow-notification-feedback",
     "haptics:allow-selection-feedback",

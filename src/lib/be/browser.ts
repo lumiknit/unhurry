@@ -120,6 +120,18 @@ export class BrowserService implements IBEService {
 		this.onDrop = undefined;
 	}
 
+	/**
+	 * Download File
+	 */
+	async downloadFile(name: string, blob: Blob): Promise<void> {
+		const url = URL.createObjectURL(blob);
+		const link = document.createElement('a');
+		link.href = url;
+		link.download = name;
+		link.click();
+		URL.revokeObjectURL(url);
+	}
+
 	async speechRecognizer(): Promise<ISpeechRecognizer> {
 		return new BrowserSpeechRecognizer();
 	}

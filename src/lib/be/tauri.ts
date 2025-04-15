@@ -1,6 +1,7 @@
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
-import { readFile } from '@tauri-apps/plugin-fs';
+import { save } from '@tauri-apps/plugin-dialog';
+import { readFile, writeFile } from '@tauri-apps/plugin-fs';
 import {
 	vibrate,
 	impactFeedback,
@@ -115,6 +116,18 @@ export class TauriService implements IBEService {
 			unlisten();
 		}
 		this.unlistens = [];
+	}
+
+	/**
+	 * Download File
+	 */
+	async downloadFile(name: string, blob: Blob): Promise<void> {
+		const filePath = await save({ defaultPath: name });
+		if (filePath === null) {
+			throw new Error('User canceled the file save dialog');
+		}
+		const data = new Uint8Array(await blob.arrayBuffer());
+		await writeFile(filePath, data);
 	}
 
 	async speechRecognizer(): Promise<ISpeechRecognizer> {

@@ -38,7 +38,7 @@ const FileMessage: Component<ItemProps> = (props) => {
 		<div class="msg-code">
 			<header class="flex-split">
 				<span>
-					<b>File</b> {meta()?.name} ({props.content})
+					<b>Artifact</b> {meta()?.name} ({props.content})
 				</span>
 			</header>
 			<div class="msg-code-body">
