@@ -100,15 +100,23 @@ export const chat = async (
 		getCurrentChatOpts()
 	);
 	if (uphurry) {
-		chatManager.setChatRequest(ctx._id, {
-			type: 'uphurry',
-			comment: parts[0]?.content,
-		});
+		chatManager.setChatRequest(
+			ctx._id,
+			{
+				type: 'uphurry',
+				comment: parts[0]?.content,
+			},
+			true
+		);
 	} else {
-		chatManager.setChatRequest(ctx._id, {
-			type: 'user-msg',
-			message: parts,
-		});
+		chatManager.setChatRequest(
+			ctx._id,
+			{
+				type: 'user-msg',
+				message: parts,
+			},
+			true
+		);
 	}
 
 	chatManager.checkChat(ctx._id);

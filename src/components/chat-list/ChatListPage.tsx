@@ -172,9 +172,7 @@ const ChatListPage: Component = () => {
 
 		const db = await chatListTx<ChatMeta>();
 		const all = await db.getAll();
-		console.log('all chats', all, ongoingIDs);
 		const notGoings = all.filter((x) => !ongoingIDs.has(x._id));
-		console.log('not goings', notGoings);
 
 		setOngoing(
 			ogs.sort((a, b) => {

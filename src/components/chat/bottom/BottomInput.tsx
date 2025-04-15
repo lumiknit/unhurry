@@ -79,6 +79,8 @@ const BottomInput: Component = () => {
 	};
 
 	const send = async () => {
+		console.log('Send');
+		unsetAutoSend();
 		let v: string = taRef!.value;
 		if (lastSent > 0) {
 			v = v.slice(lastSent);
@@ -146,8 +148,7 @@ const BottomInput: Component = () => {
 	 */
 	const clearAutoSend = () => {
 		autoSendTimeoutId = undefined;
-		setStore('autoSendSetAt', undefined);
-		setStore('autoSendLaunchAt', undefined);
+		setStore('autoSendLaunchAt', null);
 	};
 
 	/**
@@ -163,7 +164,6 @@ const BottomInput: Component = () => {
 			return;
 
 		const now = Date.now();
-		setStore('autoSendSetAt', now);
 		setStore('autoSendLaunchAt', now + as);
 		autoSendAt = now + as;
 		if (autoSendTimeoutId === undefined) {
@@ -178,6 +178,7 @@ const BottomInput: Component = () => {
 		if (autoSendTimeoutId) {
 			clearTimeout(autoSendTimeoutId);
 		}
+		setStore('autoSendLaunchAt', null);
 		clearAutoSend();
 	};
 

@@ -30,9 +30,12 @@ type Props = {
 const SendButton: Component<Props> = (props) => {
 	let circleRef: SVGCircleElement;
 
+	let animation: Animation | undefined;
+
 	const animateProgress = (ms: number) => {
 		if (!circleRef!) return;
-		circleRef.animate(
+		if (animation) animation.cancel();
+		animation = circleRef.animate(
 			[
 				{
 					strokeDashoffset: 0.9 * 2 * Math.PI,
@@ -46,6 +49,8 @@ const SendButton: Component<Props> = (props) => {
 	};
 
 	const resetProgress = () => {
+		if (animation) animation.cancel();
+		animation = undefined;
 		circleRef!.style.strokeDashoffset = `${0.9 * 2 * Math.PI}`;
 	};
 

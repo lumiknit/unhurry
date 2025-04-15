@@ -17,7 +17,6 @@ const FileMessage: Component<ItemProps> = (props) => {
 
 	onMount(async () => {
 		const meta = await getArtifact(props.content);
-		console.log(meta);
 		if (!meta) {
 			setMeta(null);
 			return;

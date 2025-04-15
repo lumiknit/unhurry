@@ -154,7 +154,6 @@ export abstract class SingleLLMAction {
 		llm.setFunctions(tools);
 		console.log(tools);
 		const sys = await this.systemPrompt(modelConfig, tools);
-		console.log(sys);
 
 		// Part parser
 		const parser = new MsgPartsParser();

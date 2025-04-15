@@ -72,7 +72,6 @@ export class TauriService implements IBEService {
 	async mountDragAndDrop(
 		onDrop: (artifacts: UploadedArtifact[]) => void
 	): Promise<void> {
-		console.log('Mounted file drop');
 		type DragAndDropType = {
 			paths: string[];
 			position: {
@@ -112,7 +111,6 @@ export class TauriService implements IBEService {
 	}
 
 	async unmountDragAndDrop(): Promise<void> {
-		console.log('Unmounted file drop');
 		for (const unlisten of this.unlistens) {
 			unlisten();
 		}

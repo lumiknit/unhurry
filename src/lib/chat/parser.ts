@@ -45,7 +45,6 @@ export class MsgPartsParser {
 	 * Finish the buffer and return the parts.
 	 */
 	finish(): MsgPart[] {
-		console.log(this.parts);
 		this.push('\n');
 		const parts = this.parts.filter((p) => {
 			return p.type !== MSG_PART_TYPE_TEXT || p.content.trim().length > 0;
@@ -60,7 +59,6 @@ export class MsgPartsParser {
 
 		// Parse call (*call:toolName(...))
 		try {
-			console.log(part.type);
 			let callEnd = part.type.indexOf('(', BLOCK_PREFIX_FN_CALL.length);
 			if (callEnd < 0) {
 				callEnd = part.type.length;

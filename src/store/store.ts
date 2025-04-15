@@ -34,17 +34,14 @@ interface GlobalStore {
 	userConfig?: UserConfig;
 
 	/**
-	 * Auto send set timestamp
-	 */
-	autoSendSetAt?: number;
-
-	/**
 	 * Auto send launch timestamp
 	 */
-	autoSendLaunchAt?: number;
+	autoSendLaunchAt: number | null;
 }
 
-export const [store, setStore] = createStore<GlobalStore>({});
+export const [store, setStore] = createStore<GlobalStore>({
+	autoSendLaunchAt: null,
+});
 
 // Config
 
