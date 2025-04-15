@@ -1,22 +1,22 @@
 import { Component, createSignal, Match, onMount, Switch } from 'solid-js';
 
 import {
-	FileMeta,
-	getFile,
-	getFileBlob,
-	getFileDataURL,
-} from '@/lib/idb/file_storage';
+	ArtifactMeta,
+	getArtifact,
+	getArtifactBlob,
+	getArtifactDataURL,
+} from '@/lib/idb/artifact_storage';
 
 import { ItemProps } from './message_types';
 
 const FileMessage: Component<ItemProps> = (props) => {
-	const [meta, setMeta] = createSignal<FileMeta | null | undefined>();
+	const [meta, setMeta] = createSignal<ArtifactMeta | null | undefined>();
 
 	const [imageDataURL, setImageDataURL] = createSignal('');
 	const [objURL, setObjURL] = createSignal<string | undefined>();
 
 	onMount(async () => {
-		const meta = await getFile(props.content);
+		const meta = await getArtifact(props.content);
 		console.log(meta);
 		if (!meta) {
 			setMeta(null);
@@ -25,10 +25,10 @@ const FileMessage: Component<ItemProps> = (props) => {
 		setMeta(meta);
 
 		if (meta.mimeType.startsWith('image/')) {
-			const data = await getFileDataURL(props.content);
+			const data = await getArtifactDataURL(props.content);
 			setImageDataURL(data!);
 		} else {
-			const blob = await getFileBlob(props.content);
+			const blob = await getArtifactBlob(props.content);
 			if (blob) {
 				setObjURL(URL.createObjectURL(blob));
 			}

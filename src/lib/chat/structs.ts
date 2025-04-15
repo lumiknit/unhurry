@@ -1,4 +1,8 @@
-import { getFile, getFileBlob, getFileDataURL } from '../idb/file_storage';
+import {
+	getArtifact,
+	getArtifactBlob,
+	getArtifactDataURL,
+} from '../idb/artifact_storage';
 import { LLMMessages, LLMMessage, Role, TypedContent } from '../llm';
 
 /*
@@ -38,10 +42,10 @@ export const MSG_PART_TYPE_TEXT = '';
 export const MSG_PART_TYPE_FUNCTION_CALL = '*fn:call';
 
 /**
- * MSG_PART_TYPE_FILE is a file.
+ * MSG_PART_TYPE_ARTIFACT is an artifact.
  * The content type is ID, which is used for IndexedDB.
  */
-export const MSG_PART_TYPE_FILE = '*file';
+export const MSG_PART_TYPE_ARTIFACT = '*artifact';
 
 /**
  * MSG_PART_TYPE_THINK is a think block.
@@ -111,12 +115,14 @@ export const convertMsgForLLM = async (msg: Msg): Promise<LLMMessage> => {
 			case MSG_PART_TYPE_THINK:
 				// Ignore for tokens
 				break;
-			case MSG_PART_TYPE_FILE:
+			case MSG_PART_TYPE_ARTIFACT:
 				{
-					const f = await getFile(part.content);
-					if (f) {
-						if (f.mimeType.startsWith('image/')) {
-							const dataURL = await getFileDataURL(part.content);
+					const artifact = await getArtifact(part.content);
+					if (artifact) {
+						if (artifact.mimeType.startsWith('image/')) {
+							const dataURL = await getArtifactDataURL(
+								part.content
+							);
 							if (dataURL) {
 								content.push({
 									type: 'image_url',
@@ -125,7 +131,7 @@ export const convertMsgForLLM = async (msg: Msg): Promise<LLMMessage> => {
 							}
 						} else {
 							let textContent = '';
-							const v = await getFileBlob(part.content);
+							const v = await getArtifactBlob(part.content);
 							if (v) {
 								const bytes = new Uint8Array(
 									await v.arrayBuffer()
@@ -143,7 +149,7 @@ export const convertMsgForLLM = async (msg: Msg): Promise<LLMMessage> => {
 								type: 'text',
 								text:
 									'```artifact(' +
-									f.name +
+									artifact.name +
 									';text)\n' +
 									textContent +
 									'\n```',

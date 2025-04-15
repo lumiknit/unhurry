@@ -164,8 +164,8 @@ export abstract class SingleLLMAction {
 		logr.info('[chat/SingleChatAction/generate] Stream Start');
 		const result = await llm.chatStream(sys, llmHistory, {
 			onText: (text) => {
-				this.onChunk?.(text, ...parser.state());
 				parser.push(text);
+				this.onChunk?.(text, ...parser.state());
 				return !this.cancelled;
 			},
 			isCancelled: () => this.cancelled,

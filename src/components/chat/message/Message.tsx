@@ -20,13 +20,13 @@ import { logr } from '@/lib/logr';
 
 import {
 	Msg,
-	MSG_PART_TYPE_FILE,
+	MSG_PART_TYPE_ARTIFACT,
 	MSG_PART_TYPE_FUNCTION_CALL,
 	MSG_PART_TYPE_TEXT,
 	MSG_PART_TYPE_THINK,
 } from '@lib/chat';
 
-import FileMessage from './FileMessage';
+import ArtifactMessage from './ArtifactMessage';
 import FnCallMessage from './FnCallMessage';
 import JSONLikeMessage from './JSONLikeMessage';
 import { ItemProps } from './message_types';
@@ -50,7 +50,7 @@ const TextMessage: Component<ItemProps> = (props) => {
 
 	const setMD = async (v: string) => {
 		const html = await marked(v, { async: true });
-		const sanitized = html; //DOMPurify.sanitize(html);
+		const sanitized = DOMPurify.sanitize(html);
 		setHtml(sanitized.replace(/<a href/g, '<a target="_blank" href'));
 	};
 
@@ -77,7 +77,7 @@ const BlockMessage: Component<ItemProps> = (props) => {
 		}
 
 		const result = hljs.highlight(props.content, { language });
-		setHtml(DOMPurify.sanitize(result.value));
+		setHtml(result.value);
 		setLines(props.content.split('\n').length);
 	});
 
@@ -275,7 +275,7 @@ const MermaidMessage: Component<ItemProps> = (props) => {
 const compMap = new Map([
 	[MSG_PART_TYPE_TEXT, TextMessage],
 	[MSG_PART_TYPE_FUNCTION_CALL, FnCallMessage],
-	[MSG_PART_TYPE_FILE, FileMessage],
+	[MSG_PART_TYPE_ARTIFACT, ArtifactMessage],
 	['svg', SvgMessage],
 	['mermaid', MermaidMessage],
 	['json', JSONLikeMessage],

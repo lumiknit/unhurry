@@ -89,9 +89,12 @@ const NavBar: Component = () => {
 					<div class="navbar-item has-dropdown is-hoverable">
 						<a class="navbar-link">Menu</a>
 						<div class="navbar-dropdown is-right">
-							<A class="navbar-item" href={`${rootPath}/files`}>
+							<A
+								class="navbar-item"
+								href={`${rootPath}/artifacts`}
+							>
 								<BiRegularFolder />
-								Files
+								Artifacts
 							</A>
 							<A
 								class="navbar-item"

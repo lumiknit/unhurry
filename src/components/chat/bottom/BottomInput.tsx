@@ -310,7 +310,7 @@ const BottomInput: Component = () => {
 
 	const autosizeTextarea = () => {
 		if (taRef!) {
-			taRef.style.height = '1px';
+			taRef.style.height = '0';
 			taRef.style.height = `${taRef.scrollHeight + 2}px`;
 		}
 	};

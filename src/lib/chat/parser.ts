@@ -84,14 +84,19 @@ export class MsgPartsParser {
 		}
 	}
 
+	/**
+	 * Process.
+	 * If there are new lines, push as the new line.
+	 */
 	process() {
+		// Early return if no new lines
+		let lineEnd = this.buffer.indexOf('\n', this.cursor);
+		if (lineEnd < 0) {
+			return;
+		}
+
 		let lastPart = this.parts.pop()!;
-		while (this.cursor < this.buffer.length) {
-			const lineEnd = this.buffer.indexOf('\n', this.cursor);
-			if (lineEnd < 0) {
-				// No more line
-				break;
-			}
+		do {
 			let line = this.buffer.slice(this.cursor, lineEnd + 1);
 
 			// Handle reasoning block
@@ -146,7 +151,10 @@ export class MsgPartsParser {
 			// Append the line to the last part
 			lastPart.content += line;
 			this.cursor = lineEnd + 1;
-		}
-		this.parts.push({ ...lastPart });
+
+			lineEnd = this.buffer.indexOf('\n', this.cursor);
+		} while (this.cursor < this.buffer.length && lineEnd >= 0);
+
+		this.parts = [...this.parts, { ...lastPart }];
 	}
 }

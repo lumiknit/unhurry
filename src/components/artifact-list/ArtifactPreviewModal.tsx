@@ -1,22 +1,26 @@
 import { Component, createSignal, Match, onMount, Switch } from 'solid-js';
 
-import { FileMeta, getFileBlob, getFileDataURL } from '@/lib/idb/file_storage';
+import {
+	ArtifactMeta,
+	getArtifactBlob,
+	getArtifactDataURL,
+} from '@/lib/idb/artifact_storage';
 
 interface Props {
-	meta: FileMeta;
+	meta: ArtifactMeta;
 	onClose: () => void;
 }
 
-const FilePreviewModal: Component<Props> = (props) => {
+const ArtifactPreviewModal: Component<Props> = (props) => {
 	const [imageDataURL, setImageDataURL] = createSignal('');
 	const [objURL, setObjURL] = createSignal<string | undefined>();
 
 	onMount(async () => {
 		if (props.meta.mimeType.startsWith('image/')) {
-			const data = await getFileDataURL(props.meta._id);
+			const data = await getArtifactDataURL(props.meta._id);
 			setImageDataURL(data!);
 		} else {
-			const blob = await getFileBlob(props.meta._id);
+			const blob = await getArtifactBlob(props.meta._id);
 			if (blob) {
 				setObjURL(URL.createObjectURL(blob));
 			}
@@ -71,4 +75,4 @@ const FilePreviewModal: Component<Props> = (props) => {
 	);
 };
 
-export default FilePreviewModal;
+export default ArtifactPreviewModal;

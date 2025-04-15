@@ -122,6 +122,7 @@ const SendButton: Component<Props> = (props) => {
 	const [dash, setDash] = createSignal<[number, number]>([0, 0]);
 
 	const updateSVG = () => {
+		return;
 		const autoSendSetAt = store.autoSendSetAt;
 		const autoSendLaunchAt = store.autoSendLaunchAt;
 		if (autoSendSetAt && autoSendLaunchAt) {

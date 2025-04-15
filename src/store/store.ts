@@ -11,14 +11,20 @@ import { ChatContext, MsgPart } from '../lib/chat';
 import { sanitizeConfig, UserConfig } from '../lib/config';
 import { loadUserConfig, saveUserConfig } from '../lib/idb';
 
-interface StreamingMessage {
-	parts: MsgPart[];
-	rest: string;
-}
+// Streaming message state
+// parts is an array of completed message parts,
+// and rest is an array of generating message parts
 
-export const [getStreamingMessage, setStreamingMessage] = createSignal<
-	StreamingMessage | undefined
->(undefined);
+export const [getStreamingParts, setStreamingParts] = createSignal<MsgPart[]>(
+	[]
+);
+
+export const [getStreamingRest, setStreamingRest] = createSignal<string>('');
+
+export const resetStreaming = () => {
+	setStreamingParts([]);
+	setStreamingRest('');
+};
 
 export const [getFocusedChatProgressing, setFocusedChatProgressing] =
 	createSignal<boolean>(false);

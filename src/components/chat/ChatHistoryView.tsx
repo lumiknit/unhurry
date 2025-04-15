@@ -5,7 +5,8 @@ import { MsgPair } from '@/lib/chat';
 import {
 	getChatContext,
 	getFocusedChatProgressing,
-	getStreamingMessage,
+	getStreamingParts,
+	getStreamingRest,
 } from '@store';
 
 import { scrollToLastUserMessage } from './lib';
@@ -27,17 +28,17 @@ const MessagePair: Component<Props> = (props) => {
 				<Message msg={props.pair.assistant!} />
 			</Show>
 			<Show when={props.isLast}>
-				<Show when={getStreamingMessage()}>
+				<Show when={getStreamingParts()}>
 					<Message
 						msg={{
 							role: 'assistant',
-							parts: getStreamingMessage()!.parts,
+							parts: getStreamingParts(),
 							timestamp: Date.now(),
 						}}
 					/>
-					<div class="streaming-msg">
-						{getStreamingMessage()!.rest}
-					</div>
+				</Show>
+				<Show when={getStreamingRest()}>
+					<div class="streaming-msg">{getStreamingRest()}</div>
 				</Show>
 				<Show when={getFocusedChatProgressing()}>
 					<div class="text-center">

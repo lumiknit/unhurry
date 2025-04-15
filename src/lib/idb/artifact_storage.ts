@@ -2,9 +2,9 @@ import { uniqueID } from '../utils';
 import { SimpleIDB } from './client';
 
 /**
- * File Meta
+ * Artifact Meta
  */
-export interface FileMeta {
+export interface ArtifactMeta {
 	_id: string;
 	name: string;
 	createdAt: number;
@@ -12,30 +12,38 @@ export interface FileMeta {
 }
 
 /**
- * File Data
+ * Artifact Data
  */
-export interface FileData {
+export interface ArtifactData {
 	_id: string;
 	data: string | Uint8Array;
 }
 
 /**
- * IDB for file storage
+ * IDB for artifact storage
  */
-const fileIDB = new SimpleIDB('file-i', ['meta', 'data'], 2);
+const artifactIDB = new SimpleIDB('artf-i', ['meta', 'data'], 2);
 
 const metaTx = async () => {
-	return await fileIDB.transaction<FileMeta>('readwrite', undefined, 'meta');
+	return await artifactIDB.transaction<ArtifactMeta>(
+		'readwrite',
+		undefined,
+		'meta'
+	);
 };
 
 const dataTx = async () => {
-	return await fileIDB.transaction<FileData>('readwrite', undefined, 'data');
+	return await artifactIDB.transaction<ArtifactData>(
+		'readwrite',
+		undefined,
+		'data'
+	);
 };
 
 /**
- * Create a file for storage.
+ * Create an artifact for storage.
  */
-export const createFile = async (
+export const createArtifact = async (
 	name: string,
 	mimeType: string,
 	fileData: string | Uint8Array
@@ -69,43 +77,47 @@ export const createFile = async (
 };
 
 /**
- * List all files in storage.
+ * List all artifacts in storage.
  */
-export const listFiles = async (): Promise<FileMeta[]> => {
+export const listArtifacts = async (): Promise<ArtifactMeta[]> => {
 	const tx = await metaTx();
 	return await tx.getAll();
 };
 
 /**
- * Get a file from storage.
+ * Get an artifact from storage.
  */
-export const getFile = async (id: string): Promise<FileMeta | undefined> => {
+export const getArtifact = async (
+	id: string
+): Promise<ArtifactMeta | undefined> => {
 	const tx = await metaTx();
 	return await tx.get(id);
 };
 
-export const getFileBlob = async (id: string): Promise<Blob | undefined> => {
-	const file = await getFile(id);
-	if (!file) return;
+export const getArtifactBlob = async (
+	id: string
+): Promise<Blob | undefined> => {
+	const artifact = await getArtifact(id);
+	if (!artifact) return;
 	const tx = await dataTx();
 	const data = await tx.get(id);
 	if (!data) return;
-	return new Blob([data.data], { type: file.mimeType });
+	return new Blob([data.data], { type: artifact.mimeType });
 };
 
 /**
- * GetDataURL for a file.
+ * GetDataURL for an artifact.
  */
-export const getFileDataURL = async (
+export const getArtifactDataURL = async (
 	id: string
 ): Promise<string | undefined> => {
-	const file = await getFile(id);
-	if (!file) return;
+	const artifact = await getArtifact(id);
+	if (!artifact) return;
 	const tx = await dataTx();
 	const data = await tx.get(id);
 	if (!data) return;
 
-	const blob = new Blob([data.data], { type: file.mimeType });
+	const blob = new Blob([data.data], { type: artifact.mimeType });
 	return await new Promise((resolve, reject) => {
 		const fileReader = new FileReader();
 		fileReader.onload = (e) => {
@@ -117,9 +129,9 @@ export const getFileDataURL = async (
 };
 
 /**
- * Delete a file from storage.
+ * Delete an artifact from storage.
  */
-export const deleteFile = async (id: string) => {
+export const deleteArtifact = async (id: string) => {
 	await Promise.all([
 		(async () => {
 			const tx = await metaTx();
@@ -132,7 +144,7 @@ export const deleteFile = async (id: string) => {
 	]);
 };
 
-export const deleteAllFiles = async () => {
+export const deleteAllArtifacts = async () => {
 	await Promise.all([
 		(async () => {
 			const tx = await metaTx();

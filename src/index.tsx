@@ -3,9 +3,9 @@ import { render } from 'solid-js/web';
 import 'solid-devtools';
 
 import About from '@components/About.tsx';
+import ArtifactListPage from '@components/artifact-list/ArtifactListPage.tsx';
 import ChatPage from '@components/chat/ChatPage.tsx';
 import ChatListPage from '@components/chat-list/ChatListPage.tsx';
-import FileListPage from '@components/file-list/FileListPage.tsx';
 import LogsPage from '@components/logs-page/LogsPage.tsx';
 import SettingsPage from '@components/settings/SettingsPage.tsx';
 
@@ -23,7 +23,10 @@ render(
 			<Route path={`${rootPath}/`} component={ChatPage} />
 			<Route path={`${rootPath}/about`} component={About} />
 			<Route path={`${rootPath}/chats`} component={ChatListPage} />
-			<Route path={`${rootPath}/files`} component={FileListPage} />
+			<Route
+				path={`${rootPath}/artifacts`}
+				component={ArtifactListPage}
+			/>
 			<Route path={`${rootPath}/settings`} component={SettingsPage} />
 			<Route path={`${rootPath}/logs`} component={LogsPage} />
 		</Router>

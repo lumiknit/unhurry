@@ -9,7 +9,7 @@ import { toast } from 'solid-toast';
 
 import { createIsMobile } from '@/components/utils/media';
 import { getBEService } from '@/lib/be';
-import { createFile } from '@/lib/idb/file_storage';
+import { createArtifact } from '@/lib/idb/artifact_storage';
 import { logr } from '@/lib/logr';
 
 interface Props {
@@ -28,7 +28,7 @@ const UploadFileButton: Component<Props> = (props) => {
 		data: Uint8Array
 	) => {
 		try {
-			const id = await createFile(name, mimeType, data);
+			const id = await createArtifact(name, mimeType, data);
 			logr.info('File uploaded:', id);
 			toast.success('File uploaded: ' + id);
 			props.onFile(name, id);
