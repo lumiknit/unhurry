@@ -15,8 +15,6 @@
     "haptics:allow-selection-feedback",
     "haptics:allow-vibrate",
 
-    "speech-recog:default",
-
-    "window-state:default"
+    "speech-recog:default"
   ]
 }
