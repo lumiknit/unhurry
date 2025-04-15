@@ -4481,7 +4481,7 @@ dependencies = [
 
 [[package]]
 name = "unhurry"
-version = "0.5.2-dev0"
+version = "0.6.0-dev1"
 dependencies = [
  "serde",
  "serde_json",
