@@ -287,24 +287,20 @@ interface Props {
 
 const Message: Component<Props> = (props) => {
 	const cls =
-		'msg ' + (props.msg.role === 'user' ? 'msg-user' : 'msg-assistant');
+		'message-body ' +
+		(props.msg.role === 'user' ? 'msg-user ' : 'msg-assistant ') +
+		(props.msg.uphurry ? ' is-uphurry' : '');
 	return (
 		<div class={cls}>
-			<div
-				class={
-					'message-body ' + (props.msg.uphurry ? ' is-uphurry' : '')
-				}
-			>
-				<For each={props.msg.parts}>
-					{(part) => (
-						<Dynamic
-							component={compMap.get(part.type) || BlockMessage}
-							type={part.type}
-							content={part.content}
-						/>
-					)}
-				</For>
-			</div>
+			<For each={props.msg.parts}>
+				{(part) => (
+					<Dynamic
+						component={compMap.get(part.type) || BlockMessage}
+						type={part.type}
+						content={part.content}
+					/>
+				)}
+			</For>
 		</div>
 	);
 };

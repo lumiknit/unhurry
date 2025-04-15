@@ -58,7 +58,7 @@ const ChatHistoryView: Component = () => {
 	});
 
 	return (
-		<div>
+		<>
 			<Title />
 			<For each={pairs()}>
 				{(item, idx) => (
@@ -68,7 +68,7 @@ const ChatHistoryView: Component = () => {
 					/>
 				)}
 			</For>
-		</div>
+		</>
 	);
 };
 
