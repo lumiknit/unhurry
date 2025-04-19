@@ -68,7 +68,7 @@ const ModalItem: Component<{
 			<Show when={props.isLast()}>
 				<div class="modal-background" onClick={handleClose} />
 			</Show>
-			<div class="modal-content">
+			<div class="modal-content p-4">
 				<Dynamic
 					component={props.modal.component}
 					id={props.modal.id}

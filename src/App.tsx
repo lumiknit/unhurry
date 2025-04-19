@@ -1,11 +1,10 @@
 import { useNavigate } from '@solidjs/router';
 import { Component, createEffect, JSX, onCleanup, onMount } from 'solid-js';
-import toast, { Toaster } from 'solid-toast';
+import { Toaster } from 'solid-toast';
 
 import ModalContainer from '@/components/modal/ModalContainer';
 import NavBar from '@/components/navbar/NavBar';
 
-import { openSample } from './components/modal/example';
 import { rootPath } from './env';
 import { globalShortcutHandler } from './lib';
 import { getNextURL } from './store';
@@ -33,12 +32,6 @@ const App: Component<Props> = (props) => {
 		window.removeEventListener('keydown', globalShortcutHandler);
 	});
 
-	const handleTest = async () => {
-		toast('OPEN');
-		const t = await openSample();
-		toast('DONE: ' + t);
-	};
-
 	return (
 		<>
 			<Toaster
@@ -51,10 +44,6 @@ const App: Component<Props> = (props) => {
 			<ModalContainer />
 
 			<NavBar />
-
-			<button class="button is-primary" onClick={handleTest}>
-				Test
-			</button>
 
 			{props.children}
 		</>
