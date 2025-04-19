@@ -3,13 +3,15 @@ import {
 	BiRegularFile,
 	BiRegularImage,
 	BiRegularPaperclip,
+	BiSolidBox,
 } from 'solid-icons/bi';
 import { Component, createSignal, Show, onCleanup, onMount } from 'solid-js';
 import { toast } from 'solid-toast';
 
+import { openArtifactPickModal } from '@/components/artifact-list/ArtifactPickModal';
 import { createIsMobile } from '@/components/utils/media';
 import { getBEService } from '@/lib/be';
-import { createArtifact } from '@/lib/idb/artifact_storage';
+import { createArtifact, getArtifact } from '@/lib/idb/artifact_storage';
 import { logr } from '@/lib/logr';
 
 interface Props {
@@ -80,6 +82,23 @@ const UploadFileButton: Component<Props> = (props) => {
 	const uploadCamera = () => upload('image/*', 'environment');
 	const uploadFile = () => upload('*/*');
 
+	const uploadArtifact = async () => {
+		setIsOpen(false);
+
+		const artifactID = await openArtifactPickModal();
+		if (!artifactID) {
+			return;
+		}
+		// Get artifact from IDB
+		const artifactMeta = await getArtifact(artifactID);
+		if (!artifactMeta) {
+			toast.error('Artifact not found: ' + artifactID);
+			return;
+		}
+		const name = artifactMeta.name;
+		props.onFile(name, artifactID);
+	};
+
 	// Window drag & drop event
 	onMount(async () => {
 		const be = await getBEService();
@@ -123,6 +142,11 @@ const UploadFileButton: Component<Props> = (props) => {
 					<a class="dropdown-item" href="#" onClick={uploadFile}>
 						<BiRegularFile />
 						File
+					</a>
+					<hr class="my-1" />
+					<a class="dropdown-item" href="#" onClick={uploadArtifact}>
+						<BiSolidBox />
+						Artifact
 					</a>
 				</div>
 			</div>

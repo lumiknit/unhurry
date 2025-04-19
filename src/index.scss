@@ -391,3 +391,9 @@ span[aria-hidden='true'] {
 		border-radius: 999rem;
 	}
 }
+
+a.artifact-cell {
+	aspect-ratio: 1;
+	border: 1px solid var(--bulma-text-soft);
+	background-size: cover;
+}

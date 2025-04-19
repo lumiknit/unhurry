@@ -1,10 +1,10 @@
 import { A, useNavigate } from '@solidjs/router';
 import {
 	BiRegularCog,
-	BiRegularFolder,
 	BiRegularHistory,
 	BiRegularPlus,
 	BiRegularQuestionMark,
+	BiSolidBox,
 } from 'solid-icons/bi';
 import { Component, onMount } from 'solid-js';
 
@@ -94,7 +94,7 @@ const NavBar: Component = () => {
 								class="navbar-item"
 								href={`${rootPath}/artifacts`}
 							>
-								<BiRegularFolder />
+								<BiSolidBox />
 								Artifacts
 							</A>
 							<A

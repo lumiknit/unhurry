@@ -1,11 +1,14 @@
-import { Component, createSignal, Match, onMount, Switch } from 'solid-js';
+import {
+	Component,
+	createSignal,
+	Match,
+	onCleanup,
+	onMount,
+	Switch,
+} from 'solid-js';
 
 import { getBEService } from '@/lib/be';
-import {
-	ArtifactMeta,
-	getArtifactBlob,
-	getArtifactDataURL,
-} from '@/lib/idb/artifact_storage';
+import { ArtifactMeta, getArtifactBlob } from '@/lib/idb/artifact_storage';
 
 interface Props {
 	meta: ArtifactMeta;
@@ -13,7 +16,6 @@ interface Props {
 }
 
 const ArtifactPreviewModal: Component<Props> = (props) => {
-	const [imageDataURL, setImageDataURL] = createSignal('');
 	const [objURL, setObjURL] = createSignal<string | undefined>();
 
 	const handleDownload = async () => {
@@ -25,14 +27,16 @@ const ArtifactPreviewModal: Component<Props> = (props) => {
 	};
 
 	onMount(async () => {
-		if (props.meta.mimeType.startsWith('image/')) {
-			const data = await getArtifactDataURL(props.meta._id);
-			setImageDataURL(data!);
-		} else {
-			const blob = await getArtifactBlob(props.meta._id);
-			if (blob) {
-				setObjURL(URL.createObjectURL(blob));
-			}
+		const blob = await getArtifactBlob(props.meta._id);
+		if (blob) {
+			setObjURL(URL.createObjectURL(blob));
+		}
+	});
+
+	onCleanup(() => {
+		const url = objURL();
+		if (url) {
+			URL.revokeObjectURL(url);
 		}
 	});
 
@@ -56,10 +60,7 @@ const ArtifactPreviewModal: Component<Props> = (props) => {
 							<Match
 								when={props.meta.mimeType.startsWith('image/')}
 							>
-								<img
-									src={imageDataURL()}
-									alt={props.meta._id}
-								/>
+								<img src={objURL()} alt={props.meta._id} />
 							</Match>
 							<Match when={objURL()}>
 								<textarea class="textarea">{objURL()}</textarea>
