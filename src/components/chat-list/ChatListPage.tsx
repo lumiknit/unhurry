@@ -17,6 +17,7 @@ import {
 import { Dynamic } from 'solid-js/web';
 import { toast } from 'solid-toast';
 
+import { openConfirm } from '@/components/modal';
 import { chatManager, OngoingChatSummary } from '@/lib/chat-manager/manager';
 import { shortRelativeDateFormat } from '@/lib/intl';
 import { getChatContext } from '@/store';
@@ -29,7 +30,6 @@ import {
 	deleteChatByID,
 } from '@lib/idb';
 
-import { openConfirm } from '../modal-confirm';
 import Pagination, { createPaginatedList } from '../utils/Pagination';
 
 type ClearModalProps = {

@@ -9,10 +9,10 @@ import {
 } from 'solid-js';
 import { toast } from 'solid-toast';
 
+import { openConfirm } from '@/components/modal';
 import { logr } from '@/lib/logr';
 import { resetAllData } from '@/lib/reset';
 
-import { openConfirm } from './modal-confirm';
 import { getBEService, IBEService } from '../lib/be';
 
 import './About.scss';

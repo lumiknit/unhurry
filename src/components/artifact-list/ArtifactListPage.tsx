@@ -11,6 +11,7 @@ import {
 } from 'solid-js';
 import { toast } from 'solid-toast';
 
+import { openConfirm } from '@/components/modal';
 import {
 	deleteAllArtifacts,
 	ArtifactMeta,
@@ -21,7 +22,6 @@ import {
 import { shortRelativeDateFormat } from '@/lib/intl';
 
 import ArtifactPreviewModal from './ArtifactPreviewModal';
-import { openConfirm } from '../modal-confirm';
 import Pagination, { createPaginatedList } from '../utils/Pagination';
 
 type ItemProps = {

@@ -2,7 +2,6 @@
 
 import { createEffect, createSignal } from 'solid-js';
 import { createStore, StoreSetter, unwrap } from 'solid-js/store';
-import { toast } from 'solid-toast';
 
 import { chatManager } from '@/lib/chat-manager/manager';
 import { logr } from '@/lib/logr';
