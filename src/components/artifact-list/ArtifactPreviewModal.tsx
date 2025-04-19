@@ -40,7 +40,7 @@ const openRenameModal = (
 		let nameRef: HTMLInputElement | undefined;
 		let mimeRef: HTMLInputElement | undefined;
 
-		const handleChangeName = (e: Event) => {
+		const handleChangeName = () => {
 			const mime = getMimeTypeFromFileName(nameRef!.value);
 			if (mime) {
 				mimeRef!.value = mime;
