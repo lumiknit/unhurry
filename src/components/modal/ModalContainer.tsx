@@ -66,7 +66,7 @@ const ModalItem: Component<{
 	return (
 		<div class="modal is-active">
 			<Show when={props.isLast()}>
-				<div class="modal-background" onClick={handleClose} />
+				<div class="modal-background" onClick={() => handleClose()} />
 			</Show>
 			<div class="modal-content p-4">
 				<Dynamic
@@ -78,7 +78,7 @@ const ModalItem: Component<{
 			<button
 				class="modal-close is-large"
 				aria-label="close"
-				onClick={handleClose}
+				onClick={() => handleClose()}
 			></button>
 		</div>
 	);

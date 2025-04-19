@@ -2,9 +2,13 @@
 const extensionToMimeMap: Record<string, string> = {
 	'7z': 'application/x-7z-compressed',
 	aac: 'audio/aac',
+	ada: 'text/x-ada',
 	apng: 'image/apng',
 	avi: 'video/avi',
 	avif: 'image/avif',
+	bash: 'application/x-sh',
+	bat: 'application/x-bat',
+	bf: 'text/x-bf',
 	bmp: 'image/bmp',
 	bz2: 'application/x-bzip2',
 	c: 'text/x-c',
@@ -15,6 +19,7 @@ const extensionToMimeMap: Record<string, string> = {
 	cs: 'text/x-csharp',
 	css: 'text/css',
 	csv: 'text/csv',
+	d: 'text/x-d',
 	dart: 'application/dart',
 	el: 'text/x-emacs-lisp',
 	erl: 'text/x-erlang',
@@ -22,11 +27,15 @@ const extensionToMimeMap: Record<string, string> = {
 	f90: 'text/x-fortran',
 	flac: 'audio/flac',
 	flc: 'video/flc',
+	frag: 'text/x-glsl',
+	geo: 'text/x-glsl',
 	gif: 'image/gif',
 	go: 'text/x-go',
 	gz: 'application/gzip',
-	h: 'text/x-c',
+	h: 'text/x-cpp',
+	haml: 'text/x-haml',
 	hs: 'text/x-haskell',
+	hpp: 'text/x-cpp',
 	htm: 'text/html',
 	html: 'text/html',
 	ico: 'image/vnd.microsoft.icon',
@@ -38,9 +47,12 @@ const extensionToMimeMap: Record<string, string> = {
 	json: 'application/json',
 	jsx: 'text/jsx',
 	kt: 'text/x-kotlin',
+	latex: 'application/x-latex',
+	lisp: 'text/x-lisp',
 	lua: 'text/x-lua',
 	lz: 'application/x-lzip',
 	lzma: 'application/x-lzma',
+	m: 'text/x-matlab',
 	m4a: 'audio/x-m4a',
 	m4v: 'video/mp4',
 	md: 'text/markdown',
@@ -85,7 +97,10 @@ const extensionToMimeMap: Record<string, string> = {
 	tsx: 'text/tsx',
 	ttf: 'font/ttf',
 	vb: 'text/x-vb',
+	vert: 'text/x-glsl',
 	wasm: 'application/wasm',
+	wat: 'text/wasm-text',
+	wast: 'text/wasm-text',
 	wav: 'audio/wav',
 	webm: 'video/webm',
 	webp: 'image/webp',
@@ -100,6 +115,7 @@ const extensionToMimeMap: Record<string, string> = {
 	xz: 'application/x-xz',
 	yaml: 'text/yaml',
 	yml: 'text/yaml',
+	zig: 'text/x-zig',
 	zip: 'application/zip',
 	zst: 'application/zstd',
 };
@@ -130,7 +146,7 @@ export function getMimeTypeFromExtension(extension: string): string {
 		return mime;
 	}
 	// Otherwise, just make as text/...
-	return `text/${extension}`;
+	return `text/x-${extension}`;
 }
 
 /**
@@ -161,4 +177,24 @@ export const getMimeTypeFromFileName = (fileName: string): string => {
 		lastSliceIdx >= 0 ? fileName.slice(lastSliceIdx + 1) : fileName;
 	const ext = name.split('.').pop() || '';
 	return getMimeTypeFromExtension(ext);
+};
+
+export const getMarkdownLanguageFromExtension = (ext: string): string => {
+	const mime = getMimeTypeFromExtension(ext);
+	const [, subtype] = mime.split('/', 2);
+	if (subtype.startsWith('x-')) {
+		return subtype.slice(2);
+	}
+	return subtype;
+};
+
+export const getMarkdownLanguageFromFileName = (fileName: string): string => {
+	const lastSliceIdx = Math.max(
+		fileName.lastIndexOf('\\'),
+		fileName.lastIndexOf('/')
+	);
+	const name =
+		lastSliceIdx >= 0 ? fileName.slice(lastSliceIdx + 1) : fileName;
+	const ext = name.split('.').pop() || '';
+	return getMarkdownLanguageFromExtension(ext);
 };

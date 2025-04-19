@@ -1,14 +1,6 @@
 import { BiRegularCalendar } from 'solid-icons/bi';
 import { TbTrash } from 'solid-icons/tb';
-import {
-	Component,
-	createSignal,
-	For,
-	Match,
-	onMount,
-	Show,
-	Switch,
-} from 'solid-js';
+import { Component, createSignal, For, Match, onMount, Switch } from 'solid-js';
 import { toast } from 'solid-toast';
 
 import { openConfirm } from '@/components/modal';
@@ -21,7 +13,7 @@ import {
 } from '@/lib/idb/artifact_storage';
 import { shortRelativeDateFormat } from '@/lib/intl';
 
-import ArtifactPreviewModal from './ArtifactPreviewModal';
+import { openArtifactPreviewModal } from './ArtifactPreviewModal';
 import Pagination, { createPaginatedList } from '../utils/Pagination';
 
 type ItemProps = {
@@ -125,32 +117,22 @@ const ArtifactListPage: Component = () => {
 		loadFileMeta();
 	};
 
-	const [openedFileMeta, setOpenedFileMeta] =
-		createSignal<ArtifactMeta | null>(null);
-
 	const openFile = (id: string) => async () => {
 		const meta = await getArtifact(id);
 		if (!meta) {
 			toast.error('File not found');
 			return;
 		}
-		setOpenedFileMeta(meta);
-	};
-
-	const handleCloseFile = () => {
-		setOpenedFileMeta(null);
+		const changed = await openArtifactPreviewModal(meta);
+		if (changed) {
+			await loadFileMeta();
+		}
 	};
 
 	onMount(() => loadFileMeta());
 
 	return (
 		<div class="container">
-			<Show when={openedFileMeta()}>
-				<ArtifactPreviewModal
-					meta={openedFileMeta()!}
-					onClose={handleCloseFile}
-				/>
-			</Show>
 			<div class="m-2">
 				<nav class="panel is-primary">
 					<p class="panel-block has-background-text-soft has-text-weight-bold">

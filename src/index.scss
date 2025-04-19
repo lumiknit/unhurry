@@ -396,4 +396,7 @@ a.artifact-cell {
 	aspect-ratio: 1;
 	border: 1px solid var(--bulma-text-soft);
 	background-size: cover;
+
+	word-break: break-all;
+	overflow-wrap: break-word;
 }

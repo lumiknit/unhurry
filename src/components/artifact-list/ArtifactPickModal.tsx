@@ -58,6 +58,8 @@ export const openArtifactPickModal = (): Promise<string | undefined> => {
 
 		const loadArtifacts = async () => {
 			const artifacts = await listArtifacts();
+			// Sort by createdAt
+			artifacts.sort((a, b) => b.createdAt - a.createdAt);
 			setArtifactList(artifacts);
 		};
 

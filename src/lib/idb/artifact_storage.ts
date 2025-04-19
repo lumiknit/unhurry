@@ -128,6 +128,21 @@ export const getArtifactDataURL = async (
 	});
 };
 
+export const updateArtifactMeta = async (
+	id: string,
+	artifactMeta: Partial<ArtifactMeta>
+): Promise<void> => {
+	const tx = await metaTx();
+	const artifact = await tx.get(id);
+	if (!artifact) return;
+	const updatedArtifact = {
+		...artifact,
+		...artifactMeta,
+		_id: id,
+	};
+	await tx.put(updatedArtifact);
+};
+
 /**
  * Delete an artifact from storage.
  */
