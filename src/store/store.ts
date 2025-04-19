@@ -68,9 +68,6 @@ export const [store, setStore] = createStore<GlobalStore>({
 
 export const getUserConfig = () => store.userConfig;
 export const setUserConfig = (setter: StoreSetter<UserConfig>) => {
-	toast('Config updated', {
-		duration: 500,
-	});
 	logr.info('[store/config] User config updated, will save persistently');
 	setStore(
 		'userConfig',
