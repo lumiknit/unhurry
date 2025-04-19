@@ -87,6 +87,9 @@ const ClearChatModal: Component<ClearModalProps> = (props) => {
 type ItemProps = {
 	chat: ChatMeta;
 
+	/** Whether LLM is running */
+	progressing?: boolean;
+
 	deleteIcon: Component;
 
 	onOpen: (id: string) => void;
@@ -108,6 +111,9 @@ const Item: Component<ItemProps> = (props) => {
 			<div class="panel-item-content">
 				<div class="panel-item-body">
 					<div>
+						<Show when={props.progressing}>
+							<span class="spinner" />
+						</Show>
 						<Switch>
 							<Match when={props.chat.title}>
 								<b>{props.chat.title}</b>
@@ -252,6 +258,7 @@ const ChatListPage: Component = () => {
 						{(chat) => (
 							<Item
 								chat={chat.ctx}
+								progressing={chat.progressing}
 								deleteIcon={TbX}
 								onOpen={handleOpenChat}
 								onDelete={unloadChat}

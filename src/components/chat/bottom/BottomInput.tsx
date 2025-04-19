@@ -360,8 +360,8 @@ const BottomInput: Component = () => {
 			</Show>
 			<Show when={getUphurryMode()}>
 				<p class="is-size-7">
-					UpHurry is enabled. Based on your input, it will
-					automatically send the message to achieve goal.
+					UpHurry mode. Based on your input, it will automatically
+					send the message to achieve goal.
 				</p>
 			</Show>
 			<div class="buttons gap-1 no-user-select">

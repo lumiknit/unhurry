@@ -369,6 +369,9 @@ export class ChatManager {
 		if (ch.action) {
 			ch.action.cancel();
 		}
+		if (ch.meta.request?.type === 'uphurry') {
+			this.onUphurryProgressChange(id, false);
+		}
 		ch.meta.request = undefined;
 		this.saveChatMeta(id);
 	}
