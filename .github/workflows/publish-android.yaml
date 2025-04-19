@@ -1,4 +1,4 @@
-name: 'publish-desktop'
+name: 'publish-android'
 
 on:
     workflow_dispatch: {}
