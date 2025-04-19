@@ -92,7 +92,7 @@ const About: Component = () => {
 
 	return (
 		<div class="container">
-			<div class="text-center">
+			<div class="has-text-centered">
 				<h1 class="title"> About Unhurry </h1>
 				<img class="unhurry-icon" src="/unhurry.svg" />
 				<p>

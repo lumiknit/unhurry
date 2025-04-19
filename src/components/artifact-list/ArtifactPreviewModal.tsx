@@ -62,13 +62,14 @@ const ArtifactPreviewModal: Component<Props> = (props) => {
 								/>
 							</Match>
 							<Match when={objURL()}>
-								<a href="#" onClick={handleDownload}>
-									Download {props.meta.name}
-								</a>
+								<textarea class="textarea">{objURL()}</textarea>
 							</Match>
 						</Switch>
 					</p>
-					<div class="buttons is-right">
+					<div class="buttons is-right mt-2">
+						<button class="button" onClick={handleDownload}>
+							Download
+						</button>
 						<button class="button" onClick={props.onClose}>
 							Close
 						</button>

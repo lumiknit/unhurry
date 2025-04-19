@@ -4603,7 +4603,7 @@ dependencies = [
 
 [[package]]
 name = "unhurry"
-version = "0.6.0-dev1"
+version = "0.6.0-dev3"
 dependencies = [
  "serde",
  "serde_json",

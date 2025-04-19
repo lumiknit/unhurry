@@ -28,6 +28,7 @@ const NavBar: Component = () => {
 		burgerRef!.classList.remove('is-active');
 		menuRef!.classList.remove('is-active');
 	};
+
 	onMount(() => {
 		menuRef!.querySelectorAll('a').forEach((a) => {
 			if (!a.href) return;

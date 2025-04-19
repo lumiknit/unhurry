@@ -5,15 +5,20 @@ import { getBEService, ISpeechRecognizer } from '@/lib/be';
 import { logr } from '@/lib/logr';
 import { cancelCurrentChat, chat } from '@/store/global_actions';
 
-import { getFocusedChatProgressing, getUserConfig, setStore } from '@store';
+import {
+	getFocusedChatProgressing,
+	getUphurryMode,
+	getUserConfig,
+	setStore,
+} from '@store';
 
 import InputTags from './PromptTags';
 import SendButton from './SendButton';
 import SpeechButton from './SpeechButton';
+import UphurryButton from './UpHurryButton';
 import UploadedFiles from './UploadedFiles';
 import UploadFileButton from './UploadFileButton';
-import { scrollToLastUserMessage } from '../lib';
-import UphurryButton from './UpHurryButton';
+import { scrollToLastUserMessage } from '../../../lib';
 
 interface FileInput {
 	name: string;
@@ -30,7 +35,6 @@ const BottomInput: Component = () => {
 	let composing = false;
 	let lastSent = 0;
 
-	const [uphurry, setUphurry] = createSignal(false);
 	const [files, setFiles] = createSignal<FileInput[]>([]);
 
 	const [inputTriple, setInputTriple] = createSignal<
@@ -111,7 +115,7 @@ const BottomInput: Component = () => {
 			await chat(
 				v,
 				fs.map((f) => f.id),
-				uphurry()
+				getUphurryMode()
 			);
 		} catch (e) {
 			toast.error('Failed to send: ' + e);
@@ -334,7 +338,7 @@ const BottomInput: Component = () => {
 	return (
 		<div
 			ref={topRef!}
-			class={'bottom-input ' + (uphurry() ? 'is-uphurry' : '')}
+			class={'bottom-input ' + (getUphurryMode() ? 'is-uphurry' : '')}
 			onClick={handleClickMargin}
 		>
 			<textarea
@@ -354,7 +358,7 @@ const BottomInput: Component = () => {
 					}
 				/>
 			</Show>
-			<Show when={uphurry()}>
+			<Show when={getUphurryMode()}>
 				<p class="is-size-7">
 					UpHurry is enabled. Based on your input, it will
 					automatically send the message to achieve goal.
@@ -372,12 +376,7 @@ const BottomInput: Component = () => {
 						setFiles((fs) => [...fs, { name, id }])
 					}
 				/>
-				<UphurryButton
-					enabled={uphurry()}
-					onToggle={() => {
-						setUphurry((v) => !v);
-					}}
-				/>
+				<UphurryButton />
 				<InputTags
 					textState={inputTriple()}
 					onInsertText={(text, toSend) => {

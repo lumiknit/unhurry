@@ -20,6 +20,11 @@ export class MsgPartsParser {
 	];
 
 	/**
+	 * Number of backticks for closing block
+	 */
+	quotes: number = 3;
+
+	/**
 	 * Full step parse.
 	 */
 	static parse(data: string): MsgPart[] {
@@ -122,28 +127,32 @@ export class MsgPartsParser {
 			}
 
 			// Handle code block
-			if (line.startsWith('```')) {
-				const blockType = line.slice(3).trim();
-				if (blockType.length > 0) {
+			const bt = line.match(/^```+/);
+			if (bt !== null) {
+				const backticks = bt[0].length;
+				let blockType = line.slice(backticks).trim();
+
+				if (lastPart.type === MSG_PART_TYPE_TEXT) {
+					// Open the block
+					if (!blockType) {
+						blockType = 'plaintext';
+					}
+					this.quotes = backticks;
 					this.parts.push(lastPart);
 					lastPart = {
 						type: blockType,
 						content: '',
 					};
-				} else if (lastPart.type !== MSG_PART_TYPE_TEXT) {
+					line = '';
+				} else if (backticks >= this.quotes && !blockType) {
+					// close the block
 					this.parts.push(this.checkCallPart(lastPart));
 					lastPart = {
 						type: MSG_PART_TYPE_TEXT,
 						content: '',
 					};
-				} else {
-					this.parts.push(lastPart);
-					lastPart = {
-						type: 'plaintext',
-						content: '',
-					};
+					line = '';
 				}
-				line = '';
 			}
 
 			// Append the line to the last part

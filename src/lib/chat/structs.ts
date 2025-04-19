@@ -4,6 +4,7 @@ import {
 	getArtifactDataURL,
 } from '../idb/artifact_storage';
 import { LLMMessages, LLMMessage, Role, TypedContent } from '../llm';
+import { stringToMDCodeBlock } from '../md';
 
 /*
  * Message parts.
@@ -99,7 +100,8 @@ export const msgPartToText = (msg: MsgPart): string => {
 		case MSG_PART_TYPE_TEXT:
 			return msg.content;
 		default:
-			return `\`\`\`${msg.type}\n${msg.content}\n\`\`\``;
+			console.log('M', stringToMDCodeBlock(msg.type, msg.content));
+			return stringToMDCodeBlock(msg.type, msg.content);
 	}
 };
 
@@ -147,12 +149,10 @@ export const convertMsgForLLM = async (msg: Msg): Promise<LLMMessage> => {
 							}
 							content.push({
 								type: 'text',
-								text:
-									'```artifact(' +
-									artifact.name +
-									';text)\n' +
-									textContent +
-									'\n```',
+								text: stringToMDCodeBlock(
+									`artifact(${artifact.name};text)`,
+									textContent
+								),
 							});
 						}
 					}
@@ -181,6 +181,7 @@ export const convertMsgForLLM = async (msg: Msg): Promise<LLMMessage> => {
 	if (textContent) {
 		content.push({ type: 'text', text: textContent });
 	}
+	console.log('M', msg.role, content);
 	return new LLMMessage(msg.role, content);
 };
 

@@ -15,10 +15,16 @@ import { loadUserConfig, saveUserConfig } from '../lib/idb';
 // parts is an array of completed message parts,
 // and rest is an array of generating message parts
 
+/**
+ * Streamed message part signal
+ */
 export const [getStreamingParts, setStreamingParts] = createSignal<MsgPart[]>(
 	[]
 );
 
+/**
+ * Streamed message rest (not parsed yet) signal
+ */
 export const [getStreamingRest, setStreamingRest] = createSignal<string>('');
 
 export const resetStreaming = () => {
@@ -26,7 +32,16 @@ export const resetStreaming = () => {
 	setStreamingRest('');
 };
 
+/**
+ * Whether current focusd chat is progressing. (LLM is running)
+ */
 export const [getFocusedChatProgressing, setFocusedChatProgressing] =
+	createSignal<boolean>(false);
+
+/**
+ * Whether current focused chat uphurry is running
+ */
+export const [getFocusedChatUphurryProgress, setFocusedChatUphurryProgress] =
 	createSignal<boolean>(false);
 
 interface GlobalStore {
@@ -109,3 +124,9 @@ export const [getChatContext, setChatContext] = createSignal<ChatContext>(
 		enableLLMFallback: false,
 	})
 );
+
+export const [getUphurryMode, setUphurryMode] = createSignal<boolean>(false);
+
+export const [getNextURL, goto] = createSignal<string | undefined>(undefined, {
+	equals: false,
+});

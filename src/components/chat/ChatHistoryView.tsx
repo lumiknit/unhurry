@@ -5,13 +5,14 @@ import { MsgPair } from '@/lib/chat';
 import {
 	getChatContext,
 	getFocusedChatProgressing,
+	getFocusedChatUphurryProgress,
 	getStreamingParts,
 	getStreamingRest,
 } from '@store';
 
-import { scrollToLastUserMessage } from './lib';
 import { Message } from './message';
 import Title from './Title';
+import { scrollToLastUserMessage } from '../../lib';
 
 type Props = {
 	isLast?: boolean;
@@ -40,9 +41,19 @@ const MessagePair: Component<Props> = (props) => {
 				<Show when={getStreamingRest()}>
 					<div class="streaming-msg">{getStreamingRest()}</div>
 				</Show>
-				<Show when={getFocusedChatProgressing()}>
-					<div class="text-center">
+				<Show
+					when={
+						!getFocusedChatProgressing() &&
+						getFocusedChatUphurryProgress()
+					}
+				>
+					<div class="message-body msg-user is-uphurry has-text-centered">
 						<span class="spinner" />
+					</div>
+				</Show>
+				<Show when={getFocusedChatProgressing()}>
+					<div class="has-text-centered">
+						<span class="spinner spinner-primary" />
 					</div>
 				</Show>
 			</Show>
@@ -68,6 +79,9 @@ const ChatHistoryView: Component = () => {
 					/>
 				)}
 			</For>
+			<Show when={pairs().length === 0}>
+				<MessagePair pair={{}} isLast={true} />
+			</Show>
 		</>
 	);
 };

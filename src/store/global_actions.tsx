@@ -14,6 +14,7 @@ import {
 	resetStreaming,
 	setChatContext,
 	setFocusedChatProgressing,
+	setFocusedChatUphurryProgress,
 	setStreamingParts,
 	setStreamingRest,
 } from './store';
@@ -43,10 +44,12 @@ export const resetChatMessages = () => {
 export const loadChatContext = async (id: string) => {
 	// Load chat
 	const ctx = await chatManager.loadChat(id, getCurrentChatOpts());
+	const progress = chatManager.getProgress(id);
 	batch(() => {
 		setChatContext({ ...ctx });
 		resetStreaming();
-		setFocusedChatProgressing(chatManager.isProgressing(id));
+		setFocusedChatProgressing(progress.llm);
+		setFocusedChatUphurryProgress(progress.uphurry);
 	});
 	chatManager.checkChat(id);
 };
@@ -181,8 +184,17 @@ chatManager.onProgressChange = (id, progress) => {
 	setFocusedChatProgressing(progress);
 };
 
+chatManager.onUphurryProgressChange = (id, progress) => {
+	const ctx = untrack(getChatContext);
+	if (ctx._id !== id) {
+		return;
+	}
+	console.log('Uphurry progress changed:', progress);
+	setFocusedChatUphurryProgress(progress);
+};
+
 chatManager.onFinish = (id, ctx) => {
-	const curr = getChatContext();
+	const curr = untrack(getChatContext);
 	if (curr._id === id) {
 		return;
 	}

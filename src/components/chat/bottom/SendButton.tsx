@@ -103,6 +103,7 @@ const SendButton: Component<Props> = (props) => {
 	const handlePointerDown = (e: PointerEvent) => {
 		e.stopPropagation();
 		e.preventDefault();
+		(e.currentTarget! as HTMLDivElement).focus();
 
 		stopSRWhenUp = true;
 		clearTimeout(srStartTimeout!);
@@ -163,6 +164,7 @@ const SendButton: Component<Props> = (props) => {
 			onPointerUp={handlePointerUp}
 			onPointerLeave={handlePointerLeave}
 			class="control"
+			tabIndex={0}
 		>
 			<button class={className()} type="button" aria-label="Send">
 				<Dynamic component={icon()} />

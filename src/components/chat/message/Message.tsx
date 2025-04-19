@@ -121,7 +121,14 @@ const BlockMessage: Component<ItemProps> = (props) => {
 				<Show when={lines() > 10 || props.content.length > 800}>
 					<div class="msg-code-bottom-btns has-text-right is-size-7">
 						<span>
-							<button class="px-3 py-1" onClick={handleCopy}>
+							<button
+								class="px-3 py-1"
+								onClick={(e) => {
+									copyToClipboard(props.content);
+									toast.success('Copied!');
+									e.stopPropagation();
+								}}
+							>
 								copy
 							</button>
 							{' | '}

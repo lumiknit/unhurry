@@ -154,7 +154,7 @@ const ArtifactListPage: Component = () => {
 			<div class="m-2">
 				<nav class="panel is-primary">
 					<p class="panel-block has-background-text-soft has-text-weight-bold">
-						Artifacts ({filteredList().length} /{' '}
+						Artifacts ({filteredList().length}/
 						{artifactList()?.length})
 					</p>
 					<div class="panel-block">
