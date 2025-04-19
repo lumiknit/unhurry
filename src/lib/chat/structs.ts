@@ -1,3 +1,4 @@
+import { getMarkdownLanguageFromFileName } from '../artifact/mime';
 import {
 	getArtifact,
 	getArtifactBlob,
@@ -147,12 +148,17 @@ export const convertMsgForLLM = async (msg: Msg): Promise<LLMMessage> => {
 							} else {
 								textContent = '<FILE NOT FOUND>';
 							}
+							const mdLang = getMarkdownLanguageFromFileName(
+								artifact.name
+							);
 							content.push({
 								type: 'text',
-								text: stringToMDCodeBlock(
-									`artifact(${artifact.name};text)`,
-									textContent
-								),
+								text:
+									`(Artifact ID: ${artifact._id})\n` +
+									stringToMDCodeBlock(
+										`${mdLang}`,
+										textContent
+									),
 							});
 						}
 					}
