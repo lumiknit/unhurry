@@ -2,7 +2,7 @@ import { BiRegularMicrophone, BiRegularSend } from 'solid-icons/bi';
 import {
 	Accessor,
 	Component,
-	createSignal,
+	createEffect,
 	onCleanup,
 	onMount,
 } from 'solid-js';
@@ -28,6 +28,32 @@ type Props = {
 };
 
 const SendButton: Component<Props> = (props) => {
+	let circleRef: SVGCircleElement;
+
+	let animation: Animation | undefined;
+
+	const animateProgress = (ms: number) => {
+		if (!circleRef!) return;
+		if (animation) animation.cancel();
+		animation = circleRef.animate(
+			[
+				{
+					strokeDashoffset: 0.9 * 2 * Math.PI,
+				},
+				{
+					strokeDashoffset: 0,
+				},
+			],
+			ms
+		);
+	};
+
+	const resetProgress = () => {
+		if (animation) animation.cancel();
+		animation = undefined;
+		circleRef!.style.strokeDashoffset = `${0.9 * 2 * Math.PI}`;
+	};
+
 	const className = () => {
 		let additional = '';
 		if (getFocusedChatProgressing()) {
@@ -77,6 +103,7 @@ const SendButton: Component<Props> = (props) => {
 	const handlePointerDown = (e: PointerEvent) => {
 		e.stopPropagation();
 		e.preventDefault();
+		(e.currentTarget! as HTMLDivElement).focus();
 
 		stopSRWhenUp = true;
 		clearTimeout(srStartTimeout!);
@@ -117,32 +144,18 @@ const SendButton: Component<Props> = (props) => {
 
 	onCleanup(clearTimeouts);
 
-	let running = false;
-
-	const [dash, setDash] = createSignal<[number, number]>([0, 0]);
-
-	const updateSVG = () => {
-		const autoSendSetAt = store.autoSendSetAt;
-		const autoSendLaunchAt = store.autoSendLaunchAt;
-		if (autoSendSetAt && autoSendLaunchAt) {
-			const now = Date.now();
-			const diff = now - autoSendSetAt;
-			const total = autoSendLaunchAt - autoSendSetAt;
-			const autoSendRatio = 1.0 - diff / total;
-			setDash([autoSendRatio * 2 * Math.PI, 2 * Math.PI]);
-		} else {
-			setDash([2 * Math.PI, 2 * Math.PI]);
-		}
-		if (running) requestAnimationFrame(updateSVG);
-	};
-
 	onMount(() => {
-		running = true;
-		updateSVG();
+		resetProgress();
 	});
 
-	onCleanup(() => {
-		running = false;
+	createEffect(() => {
+		const autoSendLaunchAt = store.autoSendLaunchAt;
+		if (autoSendLaunchAt) {
+			const millisLeft = autoSendLaunchAt - Date.now();
+			animateProgress(millisLeft);
+		} else {
+			resetProgress();
+		}
 	});
 
 	return (
@@ -151,6 +164,7 @@ const SendButton: Component<Props> = (props) => {
 			onPointerUp={handlePointerUp}
 			onPointerLeave={handlePointerLeave}
 			class="control"
+			tabIndex={0}
 		>
 			<button class={className()} type="button" aria-label="Send">
 				<Dynamic component={icon()} />
@@ -161,14 +175,15 @@ const SendButton: Component<Props> = (props) => {
 				xmlns="http://www.w3.org/2000/svg"
 			>
 				<circle
+					ref={circleRef!}
+					class="circle-progress"
 					r="0.9"
 					cx="1"
 					cy="1"
 					stroke="currentColor"
 					stroke-width="0.2"
 					stroke-linecap="round"
-					stroke-dashoffset={String(dash()[0])}
-					stroke-dasharray={String(dash()[1])}
+					stroke-dasharray={`${0.9 * 2 * Math.PI}`}
 					fill="transparent"
 				/>
 			</svg>

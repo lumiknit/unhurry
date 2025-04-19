@@ -57,6 +57,12 @@ const AutoSendTag: Component = () => {
 
 	const toggleAutoSend = (e: MouseEvent) => {
 		e.stopPropagation();
+		const enabled = getUserConfig()?.enableAutoSend;
+		if (enabled) {
+			toast('Auto-send OFF');
+		} else {
+			toast(`Auto-send ON: ${autoSendTimeout()}ms`);
+		}
 		setUserConfig((c) => ({
 			...c,
 			enableAutoSend: !c.enableAutoSend,

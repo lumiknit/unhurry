@@ -49,6 +49,11 @@ const chatManagerIDB = new SimpleIDB('chat-manager', 'manager', 1);
 const chatManagerTx = async () =>
 	await chatManagerIDB.transaction<ChatManagerState>('readwrite');
 
+type ChatProgress = {
+	llm: boolean;
+	uphurry: boolean;
+};
+
 /**
  * Managed chat.
  */
@@ -100,6 +105,8 @@ export class ChatManager {
 	// Callbacks
 
 	onProgressChange: (id: string, progress: boolean) => void = () => {};
+
+	onUphurryProgressChange: (id: string, progress: boolean) => void = () => {};
 
 	/**
 	 * Callback for the chat context updated.
@@ -310,6 +317,10 @@ export class ChatManager {
 		ch.meta.request = req;
 		ch.retries = 0;
 		this.saveState();
+
+		if (req.type === 'uphurry') {
+			this.onUphurryProgressChange(id, true);
+		}
 		return true;
 	}
 
@@ -327,9 +338,27 @@ export class ChatManager {
 
 	// Utility methods
 
-	isProgressing(id: string) {
+	getProgress(id: string): ChatProgress {
 		const ch = this.chat(id);
-		return ch.action !== undefined;
+		return {
+			llm: ch.action !== undefined,
+			uphurry: ch.meta.request?.type === 'uphurry',
+		};
+	}
+
+	/**
+	 * Close the request.
+	 */
+	finishRequest(id: string) {
+		const ch = this.chat(id);
+		if (ch.meta.request) {
+			if (ch.meta.request?.type === 'uphurry') {
+				this.onUphurryProgressChange(id, false);
+			}
+			ch.meta.request = undefined;
+			this.saveChatMeta(id);
+			this.onFinish(id, ch.ctx);
+		}
 	}
 
 	/**
@@ -339,6 +368,9 @@ export class ChatManager {
 		const ch = this.chat(id);
 		if (ch.action) {
 			ch.action.cancel();
+		}
+		if (ch.meta.request?.type === 'uphurry') {
+			this.onUphurryProgressChange(id, false);
 		}
 		ch.meta.request = undefined;
 		this.saveChatMeta(id);
@@ -365,7 +397,7 @@ export class ChatManager {
 		return Array.from(this.chats.values()).map((item) => ({
 			meta: item.meta,
 			ctx: item.ctx,
-			progressing: this.isProgressing(item.meta.id),
+			progressing: item.meta.request !== undefined,
 		}));
 	}
 
@@ -431,27 +463,28 @@ export class ChatManager {
 			this.saveChatMeta(id);
 		}
 
-		const action = new SingleChatAction(
-			item.opts.modelConfigs,
-			item.opts.toolConfigs,
-			item.ctx.history
-		);
-		action.onChunk = (_, parts, rest) => this.onChunk(id, parts, rest);
-		action.onLLMFallback = (err, index, mc) =>
-			this.onLLMFallback(id, err, index, mc);
-		action.onUpdate = this.callbackOnUpdate(item.meta.id);
-		item.action = action;
+		const createAction = () => {
+			const action = new SingleChatAction(
+				item.opts.modelConfigs,
+				item.opts.toolConfigs,
+				item.ctx.history
+			);
+			action.onChunk = (_, parts, rest) => this.onChunk(id, parts, rest);
+			action.onLLMFallback = (err, index, mc) =>
+				this.onLLMFallback(id, err, index, mc);
+			action.onUpdate = this.callbackOnUpdate(item.meta.id);
+			item.action = action;
 
-		this.onProgressChange(id, true);
+			this.onProgressChange(id, true);
+			return action;
+		};
 
 		try {
 			switch (req.type) {
 				case 'user-msg':
 					// Consume the message, then run the action
-					await action.runWithUserMessage(req.message);
-					item.meta.request = undefined;
-					this.onFinish(id, item.ctx);
-					this.saveChatMeta(id);
+					await createAction().runWithUserMessage(req.message);
+					this.finishRequest(id);
 					break;
 				case 'uphurry':
 					{
@@ -461,12 +494,9 @@ export class ChatManager {
 							req.comment
 						);
 						if (nextQuestion === null) {
-							// DONE
-							item.meta.request = undefined;
-							this.onFinish(id, item.ctx);
-							this.saveChatMeta(id);
+							this.finishRequest(id);
 						} else {
-							await action.runWithUserMessage(
+							await createAction().runWithUserMessage(
 								MsgPartsParser.parse(nextQuestion),
 								{ uphurry: true }
 							);

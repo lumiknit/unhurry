@@ -104,7 +104,7 @@ $uphurry-color: #7f0b6b;
 
 .spinner {
 	animation: spinAround 500ms infinite linear;
-	border: 0.25rem solid var(--bulma-primary);
+	border: 0.25rem solid currentColor;
 	border-radius: var(--bulma-radius-rounded);
 	border-right-color: transparent;
 	border-top-color: transparent;
@@ -113,6 +113,19 @@ $uphurry-color: #7f0b6b;
 	vertical-align: bottom;
 	height: 1.25rem;
 	width: 1.25rem;
+}
+
+.spinner-primary {
+	border-left-color: hsl(
+		var(--bulma-primary-h),
+		var(--bulma-primary-s),
+		var(--bulma-primary-l)
+	);
+	border-bottom-color: hsl(
+		var(--bulma-primary-h),
+		var(--bulma-primary-s),
+		var(--bulma-primary-l)
+	);
 }
 
 nav.navbar {
@@ -167,7 +180,7 @@ textarea.textarea.inline {
 		var(--bulma-control-padding-horizontal);
 }
 
-div.msg-user div.message-body {
+div.msg-user.message-body {
 	margin-left: 2rem;
 	color: hsl(
 		var(--bulma-primary-h),
@@ -295,15 +308,18 @@ span[aria-hidden='true'] {
 	white-space: pre-wrap;
 	word-break: break-all;
 
-	padding: 0 0.75rem;
-
-	color: var(--bulma-text-soft-invert);
-	border-radius: 0.5rem;
+	padding: 0 0.5rem;
 }
 
 .msg-group:last-child {
 	min-height: calc(100svh - 52px - 11rem);
 	margin-bottom: 10rem;
+}
+
+.msg-code img {
+	object-fit: contain;
+	width: 100%;
+	max-height: 60svh;
 }
 
 // Bottom input
@@ -374,4 +390,13 @@ span[aria-hidden='true'] {
 	.button-send {
 		border-radius: 999rem;
 	}
+}
+
+a.artifact-cell {
+	aspect-ratio: 1;
+	border: 1px solid var(--bulma-text-soft);
+	background-size: cover;
+
+	word-break: break-all;
+	overflow-wrap: break-word;
 }

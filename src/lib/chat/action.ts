@@ -154,7 +154,6 @@ export abstract class SingleLLMAction {
 		llm.setFunctions(tools);
 		console.log(tools);
 		const sys = await this.systemPrompt(modelConfig, tools);
-		console.log(sys);
 
 		// Part parser
 		const parser = new MsgPartsParser();
@@ -164,8 +163,8 @@ export abstract class SingleLLMAction {
 		logr.info('[chat/SingleChatAction/generate] Stream Start');
 		const result = await llm.chatStream(sys, llmHistory, {
 			onText: (text) => {
-				this.onChunk?.(text, ...parser.state());
 				parser.push(text);
+				this.onChunk?.(text, ...parser.state());
 				return !this.cancelled;
 			},
 			isCancelled: () => this.cancelled,

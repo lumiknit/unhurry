@@ -1,3 +1,5 @@
+import { stringToMDCodeBlock } from '../md';
+
 /**
  * Prefix for code block language.
  */
@@ -47,8 +49,14 @@ export interface FunctionCallContent {
 export const fnCallMsgPartToMD = (
 	info: FunctionCallContent
 ): [string, string] => {
-	const call = `\`\`\`${BLOCK_PREFIX_FN_CALL}${info.name}(${info.id})\n${info.args}\n\`\`\``;
-	const ret = `\`\`\`${BLOCK_PREFIX_FN_RETURN}${info.name}(${info.id})\n${info.result || '<NO RESULT>'}\n\`\`\``;
+	const call = stringToMDCodeBlock(
+		`${BLOCK_PREFIX_FN_CALL}${info.name}(${info.id})`,
+		info.args
+	);
+	const ret = stringToMDCodeBlock(
+		`${BLOCK_PREFIX_FN_RETURN}${info.name}(${info.id})`,
+		info.result || '<NO RESULT>'
+	);
 	return [call, ret];
 };
 

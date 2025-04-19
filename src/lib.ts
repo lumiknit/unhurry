@@ -1,3 +1,4 @@
+import { goto, setUphurryMode } from '@/store';
 import { resetChatMessages } from '@/store/global_actions';
 
 export const scrollToLastUserMessage = () => {
@@ -27,6 +28,18 @@ const keyMaps: Record<string, () => void> = {
 	'ctrl-n': () => {
 		// New chat
 		resetChatMessages();
+	},
+	'ctrl-u': () => {
+		setUphurryMode((v) => !v);
+	},
+	'ctrl-o': () => {
+		goto('/chats');
+	},
+	'ctrl-t': () => {
+		goto('/');
+	},
+	'ctrl-.': () => {
+		goto('/settings');
 	},
 };
 

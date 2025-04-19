@@ -1,6 +1,6 @@
 // Store-based actions
 import { Navigator, useNavigate } from '@solidjs/router';
-import { batch } from 'solid-js';
+import { batch, untrack } from 'solid-js';
 import { toast } from 'solid-toast';
 
 import { rootPath } from '@/env';
@@ -11,18 +11,21 @@ import {
 	getChatContext,
 	getCurrentChatOpts,
 	getUserConfig,
+	resetStreaming,
 	setChatContext,
 	setFocusedChatProgressing,
-	setStreamingMessage,
+	setFocusedChatUphurryProgress,
+	setStreamingParts,
+	setStreamingRest,
 } from './store';
-import { MsgPartsParser, MSG_PART_TYPE_FILE } from '../lib/chat';
+import { MsgPartsParser, MSG_PART_TYPE_ARTIFACT } from '../lib/chat';
 
 /**
  * Vibration
  */
 export const vibrate = async (pattern: VibrationPattern) => {
 	const be = await getBEService();
-	if (getUserConfig()?.enableVibration) {
+	if (untrack(getUserConfig)?.enableVibration) {
 		be.vibrate(pattern);
 	}
 };
@@ -33,7 +36,7 @@ export const vibrate = async (pattern: VibrationPattern) => {
 export const resetChatMessages = () => {
 	batch(() => {
 		setChatContext({ ...chatManager.emptyChat(getCurrentChatOpts()) });
-		setStreamingMessage();
+		resetStreaming();
 		setFocusedChatProgressing(false);
 	});
 };
@@ -41,10 +44,12 @@ export const resetChatMessages = () => {
 export const loadChatContext = async (id: string) => {
 	// Load chat
 	const ctx = await chatManager.loadChat(id, getCurrentChatOpts());
+	const progress = chatManager.getProgress(id);
 	batch(() => {
 		setChatContext({ ...ctx });
-		setStreamingMessage();
-		setFocusedChatProgressing(chatManager.isProgressing(id));
+		resetStreaming();
+		setFocusedChatProgressing(progress.llm);
+		setFocusedChatUphurryProgress(progress.uphurry);
 	});
 	chatManager.checkChat(id);
 };
@@ -69,7 +74,7 @@ export const generateChatTitle = async () => {
 
 export const chat = async (
 	text: string,
-	fileIDs?: string[],
+	artifactIDs?: string[],
 	uphurry?: boolean
 ) => {
 	const config = getUserConfig();
@@ -84,10 +89,10 @@ export const chat = async (
 
 	const parts = MsgPartsParser.parse(text);
 
-	if (fileIDs) {
-		for (const id of fileIDs) {
+	if (artifactIDs) {
+		for (const id of artifactIDs) {
 			parts.push({
-				type: MSG_PART_TYPE_FILE,
+				type: MSG_PART_TYPE_ARTIFACT,
 				content: id,
 			});
 		}
@@ -98,15 +103,23 @@ export const chat = async (
 		getCurrentChatOpts()
 	);
 	if (uphurry) {
-		chatManager.setChatRequest(ctx._id, {
-			type: 'uphurry',
-			comment: parts[0]?.content,
-		});
+		chatManager.setChatRequest(
+			ctx._id,
+			{
+				type: 'uphurry',
+				comment: parts[0]?.content,
+			},
+			true
+		);
 	} else {
-		chatManager.setChatRequest(ctx._id, {
-			type: 'user-msg',
-			message: parts,
-		});
+		chatManager.setChatRequest(
+			ctx._id,
+			{
+				type: 'user-msg',
+				message: parts,
+			},
+			true
+		);
 	}
 
 	chatManager.checkChat(ctx._id);
@@ -138,23 +151,23 @@ chatManager.onContextUpdate = (ctx) => {
 };
 
 chatManager.onChunk = (id, parts, rest) => {
-	const ctx = getChatContext();
+	const ctx = untrack(getChatContext);
 	if (ctx._id !== id) {
 		return;
 	}
 	vibrate(4);
-	setStreamingMessage({
-		parts: [...parts],
-		rest,
+	batch(() => {
+		setStreamingParts(parts);
+		setStreamingRest(rest);
 	});
 };
 
 chatManager.onMessage = async (id, msgPairs) => {
-	const ctx = getChatContext();
+	const ctx = untrack(getChatContext);
 	if (ctx._id !== id) {
 		return;
 	}
-	setStreamingMessage();
+	resetStreaming();
 	setChatContext((c) => ({
 		...c,
 		history: {
@@ -164,15 +177,24 @@ chatManager.onMessage = async (id, msgPairs) => {
 };
 
 chatManager.onProgressChange = (id, progress) => {
-	const ctx = getChatContext();
+	const ctx = untrack(getChatContext);
 	if (ctx._id !== id) {
 		return;
 	}
 	setFocusedChatProgressing(progress);
 };
 
+chatManager.onUphurryProgressChange = (id, progress) => {
+	const ctx = untrack(getChatContext);
+	if (ctx._id !== id) {
+		return;
+	}
+	console.log('Uphurry progress changed:', progress);
+	setFocusedChatUphurryProgress(progress);
+};
+
 chatManager.onFinish = (id, ctx) => {
-	const curr = getChatContext();
+	const curr = untrack(getChatContext);
 	if (curr._id === id) {
 		return;
 	}

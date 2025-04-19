@@ -7,6 +7,8 @@ import { TbPlus } from 'solid-icons/tb';
 import { Component, createSignal, Show } from 'solid-js';
 import { toast } from 'solid-toast';
 
+import { openConfirm } from '@/components/modal';
+
 import {
 	Color,
 	colors,
@@ -24,7 +26,6 @@ import SelectForm from './form/SelectForm';
 import SwitchForm from './form/SwitchForm';
 import TextForm from './form/TextForm';
 import ItemList from './ItemList';
-import { openConfirm } from '../modal-confirm';
 
 interface TagProps {
 	idx: number;

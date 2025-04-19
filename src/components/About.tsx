@@ -9,10 +9,10 @@ import {
 } from 'solid-js';
 import { toast } from 'solid-toast';
 
+import { openConfirm } from '@/components/modal';
 import { logr } from '@/lib/logr';
 import { resetAllData } from '@/lib/reset';
 
-import { openConfirm } from './modal-confirm';
 import { getBEService, IBEService } from '../lib/be';
 
 import './About.scss';
@@ -92,7 +92,7 @@ const About: Component = () => {
 
 	return (
 		<div class="container">
-			<div class="text-center">
+			<div class="has-text-centered">
 				<h1 class="title"> About Unhurry </h1>
 				<img class="unhurry-icon" src="/unhurry.svg" />
 				<p>

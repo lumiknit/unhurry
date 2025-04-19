@@ -1,10 +1,10 @@
 import { A, useNavigate } from '@solidjs/router';
 import {
 	BiRegularCog,
-	BiRegularFolder,
 	BiRegularHistory,
 	BiRegularPlus,
 	BiRegularQuestionMark,
+	BiSolidBox,
 } from 'solid-icons/bi';
 import { Component, onMount } from 'solid-js';
 
@@ -28,6 +28,7 @@ const NavBar: Component = () => {
 		burgerRef!.classList.remove('is-active');
 		menuRef!.classList.remove('is-active');
 	};
+
 	onMount(() => {
 		menuRef!.querySelectorAll('a').forEach((a) => {
 			if (!a.href) return;
@@ -89,9 +90,12 @@ const NavBar: Component = () => {
 					<div class="navbar-item has-dropdown is-hoverable">
 						<a class="navbar-link">Menu</a>
 						<div class="navbar-dropdown is-right">
-							<A class="navbar-item" href={`${rootPath}/files`}>
-								<BiRegularFolder />
-								Files
+							<A
+								class="navbar-item"
+								href={`${rootPath}/artifacts`}
+							>
+								<BiSolidBox />
+								Artifacts
 							</A>
 							<A
 								class="navbar-item"

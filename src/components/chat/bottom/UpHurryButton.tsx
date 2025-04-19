@@ -1,21 +1,29 @@
 import { BiRegularCommand } from 'solid-icons/bi';
 import { Component, Show } from 'solid-js';
+import toast from 'solid-toast';
 
 import { createIsMobile } from '@/components/utils/media';
+import { getUphurryMode, setUphurryMode } from '@/store';
 
-interface Props {
-	onToggle: () => void;
-	enabled: boolean;
-}
-
-const UphurryButton: Component<Props> = (props) => {
+const UphurryButton: Component = () => {
 	const isMobile = createIsMobile();
+
+	const handleClick = () => {
+		const mode = getUphurryMode();
+		if (mode) {
+			toast('Uphurry OFF!');
+		} else {
+			toast('Uphurry ON!');
+		}
+		setUphurryMode((s) => !s);
+	};
+
 	return (
 		<button
-			class={`tag h-full is-uphurry ${props.enabled ? 'is-primary ' : ''}`}
+			class={`tag h-full is-uphurry ${getUphurryMode() ? 'is-primary ' : ''}`}
 			aria-haspopup="true"
 			aria-controls="dropdown-menu"
-			onClick={props.onToggle}
+			onClick={handleClick}
 		>
 			<span class="icon">
 				<BiRegularCommand />

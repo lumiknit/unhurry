@@ -3,12 +3,15 @@ import {
 	BiRegularFile,
 	BiRegularImage,
 	BiRegularPaperclip,
+	BiSolidBox,
 } from 'solid-icons/bi';
-import { Component, createSignal, Show } from 'solid-js';
+import { Component, createSignal, Show, onCleanup, onMount } from 'solid-js';
 import { toast } from 'solid-toast';
 
+import { openArtifactPickModal } from '@/components/artifact-list/ArtifactPickModal';
 import { createIsMobile } from '@/components/utils/media';
-import { createFile } from '@/lib/idb/file_storage';
+import { getBEService } from '@/lib/be';
+import { createArtifact, getArtifact } from '@/lib/idb/artifact_storage';
 import { logr } from '@/lib/logr';
 
 interface Props {
@@ -21,6 +24,22 @@ const UploadFileButton: Component<Props> = (props) => {
 
 	const toggleDropdown = () => setIsOpen(!isOpen());
 
+	const makeArtifact = async (
+		name: string,
+		mimeType: string,
+		data: Uint8Array
+	) => {
+		try {
+			const id = await createArtifact(name, mimeType, data);
+			logr.info('File uploaded:', id);
+			toast.success('File uploaded: ' + id);
+			props.onFile(name, id);
+		} catch (err) {
+			logr.error('Failed to upload file:', err);
+			toast.error('Failed to upload file: ' + err);
+		}
+	};
+
 	const handleFile = (mimeType: string, file: File) => {
 		// Read file content as Uint8Array
 		const reader = new FileReader();
@@ -31,16 +50,7 @@ const UploadFileButton: Component<Props> = (props) => {
 			);
 
 			// Upload to IDB
-			createFile(file.name, mimeType, data)
-				.then((id) => {
-					logr.info('File uploaded:', id);
-					toast.success('File uploaded: ' + id);
-					props.onFile(file.name, id);
-				})
-				.catch((err) => {
-					logr.error('Failed to upload file:', err);
-					toast.error('Failed to upload file: ' + err);
-				});
+			makeArtifact(file.name, mimeType, data);
 		};
 		reader.readAsArrayBuffer(file);
 	};
@@ -72,6 +82,36 @@ const UploadFileButton: Component<Props> = (props) => {
 	const uploadCamera = () => upload('image/*', 'environment');
 	const uploadFile = () => upload('*/*');
 
+	const uploadArtifact = async () => {
+		setIsOpen(false);
+
+		const artifactID = await openArtifactPickModal();
+		if (!artifactID) {
+			return;
+		}
+		// Get artifact from IDB
+		const artifactMeta = await getArtifact(artifactID);
+		if (!artifactMeta) {
+			toast.error('Artifact not found: ' + artifactID);
+			return;
+		}
+		const name = artifactMeta.name;
+		props.onFile(name, artifactID);
+	};
+
+	// Window drag & drop event
+	onMount(async () => {
+		const be = await getBEService();
+		be.mountDragAndDrop((artifacts) => {
+			artifacts.map((x) => makeArtifact(x.name, x.mimeType, x.data));
+		});
+	});
+
+	onCleanup(async () => {
+		const be = await getBEService();
+		be.unmountDragAndDrop();
+	});
+
 	return (
 		<div class={`dropdown ${isOpen() ? 'is-active' : ''} is-up`}>
 			<div class="dropdown-trigger">
@@ -102,6 +142,11 @@ const UploadFileButton: Component<Props> = (props) => {
 					<a class="dropdown-item" href="#" onClick={uploadFile}>
 						<BiRegularFile />
 						File
+					</a>
+					<hr class="my-1" />
+					<a class="dropdown-item" href="#" onClick={uploadArtifact}>
+						<BiSolidBox />
+						Artifact
 					</a>
 				</div>
 			</div>

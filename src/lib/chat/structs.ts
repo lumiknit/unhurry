@@ -1,5 +1,11 @@
-import { getFile, getFileDataURL } from '../idb/file_storage';
+import { getMarkdownLanguageFromFileName } from '../artifact/mime';
+import {
+	getArtifact,
+	getArtifactBlob,
+	getArtifactDataURL,
+} from '../idb/artifact_storage';
 import { LLMMessages, LLMMessage, Role, TypedContent } from '../llm';
+import { stringToMDCodeBlock } from '../md';
 
 /*
  * Message parts.
@@ -38,10 +44,10 @@ export const MSG_PART_TYPE_TEXT = '';
 export const MSG_PART_TYPE_FUNCTION_CALL = '*fn:call';
 
 /**
- * MSG_PART_TYPE_FILE is a file.
+ * MSG_PART_TYPE_ARTIFACT is an artifact.
  * The content type is ID, which is used for IndexedDB.
  */
-export const MSG_PART_TYPE_FILE = '*file';
+export const MSG_PART_TYPE_ARTIFACT = '*artifact';
 
 /**
  * MSG_PART_TYPE_THINK is a think block.
@@ -95,7 +101,8 @@ export const msgPartToText = (msg: MsgPart): string => {
 		case MSG_PART_TYPE_TEXT:
 			return msg.content;
 		default:
-			return `\`\`\`${msg.type}\n${msg.content}\n\`\`\``;
+			console.log('M', stringToMDCodeBlock(msg.type, msg.content));
+			return stringToMDCodeBlock(msg.type, msg.content);
 	}
 };
 
@@ -111,15 +118,47 @@ export const convertMsgForLLM = async (msg: Msg): Promise<LLMMessage> => {
 			case MSG_PART_TYPE_THINK:
 				// Ignore for tokens
 				break;
-			case MSG_PART_TYPE_FILE:
+			case MSG_PART_TYPE_ARTIFACT:
 				{
-					const f = await getFile(part.content);
-					if (f && f.mimeType.startsWith('image/')) {
-						const dataURL = await getFileDataURL(part.content);
-						if (dataURL) {
+					const artifact = await getArtifact(part.content);
+					if (artifact) {
+						if (artifact.mimeType.startsWith('image/')) {
+							const dataURL = await getArtifactDataURL(
+								part.content
+							);
+							if (dataURL) {
+								content.push({
+									type: 'image_url',
+									image_url: { url: dataURL },
+								});
+							}
+						} else {
+							let textContent = '';
+							const v = await getArtifactBlob(part.content);
+							if (v) {
+								const bytes = new Uint8Array(
+									await v.arrayBuffer()
+								);
+								if (bytes.length === 0) {
+									textContent = '<EMPTY FILE>';
+								} else {
+									const decoder = new TextDecoder('utf-8');
+									textContent = decoder.decode(bytes);
+								}
+							} else {
+								textContent = '<FILE NOT FOUND>';
+							}
+							const mdLang = getMarkdownLanguageFromFileName(
+								artifact.name
+							);
 							content.push({
-								type: 'image_url',
-								image_url: { url: dataURL },
+								type: 'text',
+								text:
+									`(Artifact ID: ${artifact._id})\n` +
+									stringToMDCodeBlock(
+										`${mdLang}`,
+										textContent
+									),
 							});
 						}
 					}
@@ -148,6 +187,7 @@ export const convertMsgForLLM = async (msg: Msg): Promise<LLMMessage> => {
 	if (textContent) {
 		content.push({ type: 'text', text: textContent });
 	}
+	console.log('M', msg.role, content);
 	return new LLMMessage(msg.role, content);
 };
 

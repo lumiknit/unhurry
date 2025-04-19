@@ -17,6 +17,7 @@ import {
 import { Dynamic } from 'solid-js/web';
 import { toast } from 'solid-toast';
 
+import { openConfirm } from '@/components/modal';
 import { chatManager, OngoingChatSummary } from '@/lib/chat-manager/manager';
 import { shortRelativeDateFormat } from '@/lib/intl';
 import { getChatContext } from '@/store';
@@ -29,7 +30,6 @@ import {
 	deleteChatByID,
 } from '@lib/idb';
 
-import { openConfirm } from '../modal-confirm';
 import Pagination, { createPaginatedList } from '../utils/Pagination';
 
 type ClearModalProps = {
@@ -87,6 +87,9 @@ const ClearChatModal: Component<ClearModalProps> = (props) => {
 type ItemProps = {
 	chat: ChatMeta;
 
+	/** Whether LLM is running */
+	progressing?: boolean;
+
 	deleteIcon: Component;
 
 	onOpen: (id: string) => void;
@@ -108,6 +111,9 @@ const Item: Component<ItemProps> = (props) => {
 			<div class="panel-item-content">
 				<div class="panel-item-body">
 					<div>
+						<Show when={props.progressing}>
+							<span class="spinner" />
+						</Show>
 						<Switch>
 							<Match when={props.chat.title}>
 								<b>{props.chat.title}</b>
@@ -172,9 +178,7 @@ const ChatListPage: Component = () => {
 
 		const db = await chatListTx<ChatMeta>();
 		const all = await db.getAll();
-		console.log('all chats', all, ongoingIDs);
 		const notGoings = all.filter((x) => !ongoingIDs.has(x._id));
-		console.log('not goings', notGoings);
 
 		setOngoing(
 			ogs.sort((a, b) => {
@@ -254,6 +258,7 @@ const ChatListPage: Component = () => {
 						{(chat) => (
 							<Item
 								chat={chat.ctx}
+								progressing={chat.progressing}
 								deleteIcon={TbX}
 								onOpen={handleOpenChat}
 								onDelete={unloadChat}

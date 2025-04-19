@@ -2,7 +2,6 @@
 
 import { createEffect, createSignal } from 'solid-js';
 import { createStore, StoreSetter, unwrap } from 'solid-js/store';
-import { toast } from 'solid-toast';
 
 import { chatManager } from '@/lib/chat-manager/manager';
 import { logr } from '@/lib/logr';
@@ -11,16 +10,37 @@ import { ChatContext, MsgPart } from '../lib/chat';
 import { sanitizeConfig, UserConfig } from '../lib/config';
 import { loadUserConfig, saveUserConfig } from '../lib/idb';
 
-interface StreamingMessage {
-	parts: MsgPart[];
-	rest: string;
-}
+// Streaming message state
+// parts is an array of completed message parts,
+// and rest is an array of generating message parts
 
-export const [getStreamingMessage, setStreamingMessage] = createSignal<
-	StreamingMessage | undefined
->(undefined);
+/**
+ * Streamed message part signal
+ */
+export const [getStreamingParts, setStreamingParts] = createSignal<MsgPart[]>(
+	[]
+);
 
+/**
+ * Streamed message rest (not parsed yet) signal
+ */
+export const [getStreamingRest, setStreamingRest] = createSignal<string>('');
+
+export const resetStreaming = () => {
+	setStreamingParts([]);
+	setStreamingRest('');
+};
+
+/**
+ * Whether current focusd chat is progressing. (LLM is running)
+ */
 export const [getFocusedChatProgressing, setFocusedChatProgressing] =
+	createSignal<boolean>(false);
+
+/**
+ * Whether current focused chat uphurry is running
+ */
+export const [getFocusedChatUphurryProgress, setFocusedChatUphurryProgress] =
 	createSignal<boolean>(false);
 
 interface GlobalStore {
@@ -28,17 +48,14 @@ interface GlobalStore {
 	userConfig?: UserConfig;
 
 	/**
-	 * Auto send set timestamp
-	 */
-	autoSendSetAt?: number;
-
-	/**
 	 * Auto send launch timestamp
 	 */
-	autoSendLaunchAt?: number;
+	autoSendLaunchAt: number | null;
 }
 
-export const [store, setStore] = createStore<GlobalStore>({});
+export const [store, setStore] = createStore<GlobalStore>({
+	autoSendLaunchAt: null,
+});
 
 // Config
 
@@ -50,9 +67,6 @@ export const [store, setStore] = createStore<GlobalStore>({});
 
 export const getUserConfig = () => store.userConfig;
 export const setUserConfig = (setter: StoreSetter<UserConfig>) => {
-	toast('Config updated', {
-		duration: 500,
-	});
 	logr.info('[store/config] User config updated, will save persistently');
 	setStore(
 		'userConfig',
@@ -106,3 +120,9 @@ export const [getChatContext, setChatContext] = createSignal<ChatContext>(
 		enableLLMFallback: false,
 	})
 );
+
+export const [getUphurryMode, setUphurryMode] = createSignal<boolean>(false);
+
+export const [getNextURL, goto] = createSignal<string | undefined>(undefined, {
+	equals: false,
+});

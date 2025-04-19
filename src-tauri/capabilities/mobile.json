@@ -1,0 +1,16 @@
+{
+  "identifier": "mobile-capability",
+  "platforms": [
+    "iOS",
+    "android"
+  ],
+  "windows": [
+    "main"
+  ],
+  "permissions": [
+    "fs:allow-app-read",
+    "fs:allow-appcache-read",
+    "fs:allow-appconfig-read",
+    "fs:allow-read"
+  ]
+}

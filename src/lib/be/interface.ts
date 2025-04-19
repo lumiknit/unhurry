@@ -1,3 +1,5 @@
+import { UploadedArtifact } from '@/lib/artifact/structs';
+
 import { ISpeechRecognizer } from './interface_sr';
 
 export interface FetchResult {
@@ -49,6 +51,23 @@ export interface IBEService {
 	 * Vibrate
 	 */
 	vibrate(pattern: VibrationPattern): void;
+
+	/**
+	 * Mount file drag and drop event.
+	 */
+	mountDragAndDrop(
+		onDrop: (artifacts: UploadedArtifact[]) => void
+	): void | Promise<void>;
+
+	/**
+	 * Download File
+	 */
+	downloadFile(name: string, blob: Blob): Promise<void>;
+
+	/**
+	 * Unmount file drag and drop event.
+	 */
+	unmountDragAndDrop(): void | Promise<void>;
 
 	// Speech Recognition
 

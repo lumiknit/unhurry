@@ -1,36 +1,28 @@
 import { BiRegularCalendar } from 'solid-icons/bi';
 import { TbTrash } from 'solid-icons/tb';
-import {
-	Component,
-	createSignal,
-	For,
-	Match,
-	onMount,
-	Show,
-	Switch,
-} from 'solid-js';
+import { Component, createSignal, For, Match, onMount, Switch } from 'solid-js';
 import { toast } from 'solid-toast';
 
+import { openConfirm } from '@/components/modal';
 import {
-	deleteAllFiles,
-	FileMeta,
-	listFiles,
-	deleteFile,
-	getFile,
-} from '@/lib/idb/file_storage';
+	deleteAllArtifacts,
+	ArtifactMeta,
+	listArtifacts,
+	deleteArtifact,
+	getArtifact,
+} from '@/lib/idb/artifact_storage';
 import { shortRelativeDateFormat } from '@/lib/intl';
 
-import FilePreviewModal from './FilePreviewModal';
-import { openConfirm } from '../modal-confirm';
+import { openArtifactPreviewModal } from './ArtifactPreviewModal';
 import Pagination, { createPaginatedList } from '../utils/Pagination';
 
 type ItemProps = {
-	file: FileMeta;
+	file: ArtifactMeta;
 	onOpen: () => void;
 	onDelete: () => void;
 };
 
-const FileListItem: Component<ItemProps> = (props) => {
+const ArtifactListItem: Component<ItemProps> = (props) => {
 	return (
 		<a class="panel-block panel-item" onClick={props.onOpen}>
 			<div class="panel-item-content">
@@ -67,11 +59,13 @@ const FileListItem: Component<ItemProps> = (props) => {
 	);
 };
 
-const FileListPage: Component = () => {
+const ArtifactListPage: Component = () => {
 	const pageSize = 10;
-	const [fileList, setFileList] = createSignal<FileMeta[] | undefined>();
-	const [filteredList, setFilteredList] = createSignal<FileMeta[]>([]);
-	const [page, setPage] = createPaginatedList<FileMeta>(
+	const [artifactList, setArtifactList] = createSignal<
+		ArtifactMeta[] | undefined
+	>();
+	const [filteredList, setFilteredList] = createSignal<ArtifactMeta[]>([]);
+	const [page, setPage] = createPaginatedList<ArtifactMeta>(
 		filteredList,
 		pageSize
 	);
@@ -79,13 +73,13 @@ const FileListPage: Component = () => {
 	let filterRef: HTMLInputElement;
 
 	const loadFileMeta = async () => {
-		const metas = await listFiles();
-		setFileList(metas);
+		const metas = await listArtifacts();
+		setArtifactList(metas);
 		sortByCreatedAt();
 	};
 
 	const filtered = () =>
-		fileList()!.filter(
+		artifactList()!.filter(
 			(x) => (x.name + ' ' + x._id).indexOf(filterRef!.value) >= 0
 		);
 
@@ -99,7 +93,7 @@ const FileListPage: Component = () => {
 
 	const handleClearAll = async () => {
 		if (!(await openConfirm('Are you sure to delete all files?'))) return;
-		await toast.promise(deleteAllFiles(), {
+		await toast.promise(deleteAllArtifacts(), {
 			loading: 'Deleting...',
 			success: 'Deleted',
 			error: 'Failed to delete',
@@ -115,7 +109,7 @@ const FileListPage: Component = () => {
 	const handleDeleteFile = (id: string) => async (e: MouseEvent) => {
 		e.stopPropagation();
 		if (!(await openConfirm('Are you sure to delete this file?'))) return;
-		toast.promise(deleteFile(id), {
+		toast.promise(deleteArtifact(id), {
 			loading: 'Deleting...',
 			success: 'Deleted',
 			error: 'Failed to delete',
@@ -123,37 +117,27 @@ const FileListPage: Component = () => {
 		loadFileMeta();
 	};
 
-	const [openedFileMeta, setOpenedFileMeta] = createSignal<FileMeta | null>(
-		null
-	);
-
 	const openFile = (id: string) => async () => {
-		const meta = await getFile(id);
+		const meta = await getArtifact(id);
 		if (!meta) {
 			toast.error('File not found');
 			return;
 		}
-		setOpenedFileMeta(meta);
-	};
-
-	const handleCloseFile = () => {
-		setOpenedFileMeta(null);
+		const changed = await openArtifactPreviewModal(meta);
+		if (changed) {
+			await loadFileMeta();
+		}
 	};
 
 	onMount(() => loadFileMeta());
 
 	return (
 		<div class="container">
-			<Show when={openedFileMeta()}>
-				<FilePreviewModal
-					meta={openedFileMeta()!}
-					onClose={handleCloseFile}
-				/>
-			</Show>
 			<div class="m-2">
 				<nav class="panel is-primary">
 					<p class="panel-block has-background-text-soft has-text-weight-bold">
-						Files ({filteredList().length} / {fileList()?.length})
+						Artifacts ({filteredList().length}/
+						{artifactList()?.length})
 					</p>
 					<div class="panel-block">
 						<p class="control">
@@ -167,7 +151,7 @@ const FileListPage: Component = () => {
 						</p>
 					</div>
 					<Switch>
-						<Match when={fileList() === undefined}>
+						<Match when={artifactList() === undefined}>
 							<a class="panel-block is-active">
 								<span class="spinner" /> Loading...
 							</a>
@@ -175,7 +159,7 @@ const FileListPage: Component = () => {
 						<Match when>
 							<For each={page().items}>
 								{(file) => (
-									<FileListItem
+									<ArtifactListItem
 										file={file}
 										onOpen={openFile(file._id)}
 										onDelete={() =>
@@ -205,4 +189,4 @@ const FileListPage: Component = () => {
 	);
 };
 
-export default FileListPage;
+export default ArtifactListPage;

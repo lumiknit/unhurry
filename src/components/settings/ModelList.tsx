@@ -1,13 +1,14 @@
 import { batch, Component, Setter, Show } from 'solid-js';
 import { toast } from 'solid-toast';
 
+import { openConfirm } from '@/components/modal';
+
 import { emptyModelConfig, ModelConfig } from '@lib/llm';
 
 import { getUserConfig, setUserConfig } from '@store';
 
 import ItemList from './ItemList';
 import ModelEditor from './ModelItem';
-import { openConfirm } from '../modal-confirm';
 
 const ModelList: Component = () => {
 	const models = () => getUserConfig()?.models || [];

@@ -20,6 +20,11 @@ export class MsgPartsParser {
 	];
 
 	/**
+	 * Number of backticks for closing block
+	 */
+	quotes: number = 3;
+
+	/**
 	 * Full step parse.
 	 */
 	static parse(data: string): MsgPart[] {
@@ -45,7 +50,6 @@ export class MsgPartsParser {
 	 * Finish the buffer and return the parts.
 	 */
 	finish(): MsgPart[] {
-		console.log(this.parts);
 		this.push('\n');
 		const parts = this.parts.filter((p) => {
 			return p.type !== MSG_PART_TYPE_TEXT || p.content.trim().length > 0;
@@ -60,7 +64,6 @@ export class MsgPartsParser {
 
 		// Parse call (*call:toolName(...))
 		try {
-			console.log(part.type);
 			let callEnd = part.type.indexOf('(', BLOCK_PREFIX_FN_CALL.length);
 			if (callEnd < 0) {
 				callEnd = part.type.length;
@@ -84,14 +87,19 @@ export class MsgPartsParser {
 		}
 	}
 
+	/**
+	 * Process.
+	 * If there are new lines, push as the new line.
+	 */
 	process() {
+		// Early return if no new lines
+		let lineEnd = this.buffer.indexOf('\n', this.cursor);
+		if (lineEnd < 0) {
+			return;
+		}
+
 		let lastPart = this.parts.pop()!;
-		while (this.cursor < this.buffer.length) {
-			const lineEnd = this.buffer.indexOf('\n', this.cursor);
-			if (lineEnd < 0) {
-				// No more line
-				break;
-			}
+		do {
 			let line = this.buffer.slice(this.cursor, lineEnd + 1);
 
 			// Handle reasoning block
@@ -119,34 +127,41 @@ export class MsgPartsParser {
 			}
 
 			// Handle code block
-			if (line.startsWith('```')) {
-				const blockType = line.slice(3).trim();
-				if (blockType.length > 0) {
+			const bt = line.match(/^```+/);
+			if (bt !== null) {
+				const backticks = bt[0].length;
+				let blockType = line.slice(backticks).trim();
+
+				if (lastPart.type === MSG_PART_TYPE_TEXT) {
+					// Open the block
+					if (!blockType) {
+						blockType = 'plaintext';
+					}
+					this.quotes = backticks;
 					this.parts.push(lastPart);
 					lastPart = {
 						type: blockType,
 						content: '',
 					};
-				} else if (lastPart.type !== MSG_PART_TYPE_TEXT) {
+					line = '';
+				} else if (backticks >= this.quotes && !blockType) {
+					// close the block
 					this.parts.push(this.checkCallPart(lastPart));
 					lastPart = {
 						type: MSG_PART_TYPE_TEXT,
 						content: '',
 					};
-				} else {
-					this.parts.push(lastPart);
-					lastPart = {
-						type: 'plaintext',
-						content: '',
-					};
+					line = '';
 				}
-				line = '';
 			}
 
 			// Append the line to the last part
 			lastPart.content += line;
 			this.cursor = lineEnd + 1;
-		}
-		this.parts.push({ ...lastPart });
+
+			lineEnd = this.buffer.indexOf('\n', this.cursor);
+		} while (this.cursor < this.buffer.length && lineEnd >= 0);
+
+		this.parts = [...this.parts, { ...lastPart }];
 	}
 }
