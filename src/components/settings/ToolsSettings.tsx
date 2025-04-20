@@ -22,7 +22,6 @@ const ToolsSettings: Component = () => {
 				...toolConfig,
 				disabled: !enabled,
 			};
-			console.log(tools);
 			return {
 				...c,
 				tools,

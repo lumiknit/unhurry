@@ -154,7 +154,6 @@ export abstract class SingleLLMAction {
 		const tools = getFnTools(this.toolConfigs);
 		const llm = newClientFromConfig(modelConfig);
 		llm.setFunctions(tools);
-		console.log(tools);
 		const sys = await this.systemPrompt(modelConfig, tools);
 
 		// Part parser

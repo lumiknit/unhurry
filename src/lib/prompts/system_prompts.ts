@@ -64,7 +64,6 @@ ${functions.map((f) => functionToolToTS(f)).join('\n\n')}
 \`\`\`
 `.trim();
 	}
-	console.log(toolDesc);
 	return toolDesc;
 };
 
