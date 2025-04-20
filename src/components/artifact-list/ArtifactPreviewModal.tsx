@@ -11,7 +11,7 @@ import {
 	Switch,
 	Match,
 } from 'solid-js';
-import {toast} from 'solid-toast';
+import { toast } from 'solid-toast';
 
 import { openModal } from '@/components/modal/ModalContainer';
 import { getMimeTypeFromFileName } from '@/lib/artifact/mime';

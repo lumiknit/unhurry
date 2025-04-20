@@ -1,8 +1,6 @@
 import { default as DOMPurify } from 'dompurify';
-import hljs from 'highlight.js';
 import { marked } from 'marked';
 import markedKatex from 'marked-katex-extension';
-import mermaid from 'mermaid';
 import { VsChevronDown, VsChevronUp, VsCopy } from 'solid-icons/vs';
 import {
 	Component,
@@ -24,6 +22,7 @@ import {
 	MSG_PART_TYPE_THINK,
 } from '@lib/chat';
 import { copyToClipboard } from '@lib/clipboard';
+import hljs from '@lib/hljs';
 import { logr } from '@lib/logr';
 
 import ArtifactMessage from './ArtifactMessage';
@@ -38,9 +37,19 @@ marked.use(
 	})
 );
 
-mermaid.initialize({
-	suppressErrorRendering: true,
-});
+let mermaidInitialized = false;
+
+const initMermaid = async () => {
+	const mermaid = (await import('mermaid')).default;
+	if (!mermaidInitialized) {
+		mermaid.initialize({
+			suppressErrorRendering: true,
+			htmlLabels: false,
+		});
+		mermaidInitialized = true;
+	}
+	return mermaid;
+};
 
 /**
  * Rendering text as markdown
@@ -187,6 +196,7 @@ const MermaidMessage: Component<ItemProps> = (props) => {
 
 	onMount(async () => {
 		try {
+			const mermaid = await initMermaid();
 			const { svg } = await mermaid.render('mermaid', props.content);
 			setSvg(DOMPurify.sanitize(svg));
 			setErr('');
