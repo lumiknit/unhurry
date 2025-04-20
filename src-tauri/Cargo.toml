@@ -1,6 +1,6 @@
 [package]
 name = "unhurry"
-version = "0.6.1"
+version = "0.6.2-dev0"
 description = "Unhurry, be lazy. LLM-based chat app with various actions."
 authors = ["lumiknit <aasr4r4@gmail.com>"]
 edition = "2021"
