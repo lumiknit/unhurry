@@ -226,7 +226,7 @@ export const openArtifactPreviewModal = (
 					</Switch>
 				</div>
 
-				<div class="buttons">
+				<div class="buttons mt-2">
 					<button
 						class="button is-info is-small"
 						onClick={handleDownload}
@@ -234,8 +234,9 @@ export const openArtifactPreviewModal = (
 						<span class="icon">
 							<BiRegularDownload />
 						</span>
-						Download
+						<span>Download</span>
 					</button>
+
 					<button
 						class="button is-info is-small"
 						onClick={handleRename}
@@ -243,8 +244,9 @@ export const openArtifactPreviewModal = (
 						<span class="icon">
 							<BiRegularEdit />
 						</span>
-						Rename
+						<span>Rename</span>
 					</button>
+
 					<button
 						class="button is-danger is-small"
 						onClick={handleDelete}
@@ -252,7 +254,7 @@ export const openArtifactPreviewModal = (
 						<span class="icon">
 							<BiRegularTrash />
 						</span>
-						Delete
+						<span>Delete</span>
 					</button>
 				</div>
 			</div>
