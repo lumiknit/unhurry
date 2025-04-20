@@ -172,5 +172,5 @@ export const jsonSchemaToTS = (
 	name: string,
 	desc: string
 ): string => {
-	return `/** ${desc} */\ninterface ${name} ${jsItemToTS(schema)}`;
+	return `/** ${desc.replace(/\n/g, '\n * ')} */\ninterface ${name} ${jsItemToTS(schema)}`;
 };

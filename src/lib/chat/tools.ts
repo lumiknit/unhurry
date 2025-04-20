@@ -151,7 +151,7 @@ addFunc(
 			properties: {
 				query: {
 					type: 'string',
-					description: 'The search query.',
+					description: 'Search query or keywords',
 					minLength: 1,
 				},
 			},
@@ -198,7 +198,7 @@ addFunc(
 			properties: {
 				query: {
 					type: 'string',
-					description: 'The search query.',
+					description: 'Search query or keywords',
 				},
 			},
 			required: ['query'],
