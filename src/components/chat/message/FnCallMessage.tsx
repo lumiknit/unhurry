@@ -1,5 +1,6 @@
 import { VsChevronDown, VsChevronUp } from 'solid-icons/vs';
 import { Component, createSignal, Match, Show, Switch } from 'solid-js';
+import * as YAML from 'yaml';
 
 import { FunctionCallContent } from '@/lib/llm';
 
@@ -9,6 +10,17 @@ const FnCallMessage: Component<ItemProps> = (props) => {
 	const [fold, setFold] = createSignal(true);
 
 	const fnCall: FunctionCallContent = JSON.parse(props.content);
+	let args = fnCall.args;
+	let wrongFormat = false;
+	try {
+		const parsed = JSON.parse(args);
+		const pretty = YAML.stringify(parsed, {
+			indent: 2,
+		});
+		args = pretty;
+	} catch {
+		wrongFormat = true;
+	}
 
 	return (
 		<Switch>
@@ -38,7 +50,9 @@ const FnCallMessage: Component<ItemProps> = (props) => {
 						</span>
 					</header>
 					<div class="msg-code-body">
-						{fnCall.args}
+						<div class={wrongFormat ? 'has-text-danger' : ''}>
+							{args}
+						</div>
 						<Show when={fnCall.result}>
 							<hr class="my-2 has-background-text thin-hr" />
 							{fnCall.result}

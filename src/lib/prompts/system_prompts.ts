@@ -36,14 +36,15 @@ The syntax of tool calling is same as markdown code block, but with some special
   - System will automatically add call ID in parentheses. (e.g. '*call:print(abcd)')
 - **Last line**: '\`\`\`\`', which is the end of the code block of markdown.
 - The first line and the last line should not be indented.
-- Between the first and last line, **you should provide the arguments in YAML format.** (Naturally, JSON is also allowed.)
+- Between the first and last line, **you should provide the arguments in JSON format.**
   - For string, '|-' and indent is recommended.
 
 For example, to call 'runJS' tool with arguments 'value: "console.log(1)"', you can use:
 
 \`\`\`\`*call:runJS
-code: |-
-  console.log(1)
+{
+  "code": "console.log(1);"
+}
 \`\`\`\`
 
 - You can use multiple tools at once. Just put multiple code blocks.
