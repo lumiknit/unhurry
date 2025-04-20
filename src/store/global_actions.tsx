@@ -189,7 +189,6 @@ chatManager.onUphurryProgressChange = (id, progress) => {
 	if (ctx._id !== id) {
 		return;
 	}
-	console.log('Uphurry progress changed:', progress);
 	setFocusedChatUphurryProgress(progress);
 };
 

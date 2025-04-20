@@ -7,6 +7,7 @@ import NavBar from '@/components/navbar/NavBar';
 
 import { rootPath } from './env';
 import { globalShortcutHandler } from './lib';
+import { logr } from './lib/logr';
 import { getNextURL } from './store';
 
 interface Props {
@@ -18,7 +19,7 @@ const App: Component<Props> = (props) => {
 
 	createEffect(() => {
 		const u = getNextURL();
-		console.log('goto', u);
+		logr.info('goto', u);
 		if (u) {
 			navigate(`${rootPath}${u}`);
 		}

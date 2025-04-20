@@ -1,14 +1,13 @@
 import { area, bb } from 'billboard.js';
 import { default as DOMPurify } from 'dompurify';
-import hljs from 'highlight.js';
 import { Component, createSignal, For, Match, onMount, Switch } from 'solid-js';
 import { toast } from 'solid-toast';
 import 'billboard.js/dist/billboard.min.css';
 import 'billboard.js/dist/theme/dark.min.css';
 
-import { JSONArray, JSONObject, JSONValue } from '@/lib/json';
-
 import { copyToClipboard } from '@lib/clipboard';
+import hljs from '@lib/hljs';
+import { JSONArray, JSONObject, JSONValue } from '@lib/json';
 
 import { ItemProps } from './message_types';
 

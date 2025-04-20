@@ -8,5 +8,7 @@
 	<string>Used for speech recognition</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>Used for speech recognition</string>
+	<key>NSCameraUsageDescription</key>
+    <string>Read QR codes</string>
 </dict>
 </plist>

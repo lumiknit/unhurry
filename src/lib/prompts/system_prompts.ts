@@ -16,8 +16,11 @@ export const toolCallSystemPrompt = async (
 			`
 ## Tools
 
-You can use tools by function callings. Be aware of their types.
-Do not forget to use them, and do not say it's impossible which can be done by tools.
+- You can use tools by function callings.
+- You MUST fill all required arguments.
+  - Based on the history, you should guess the arguments.
+  - If you did not provide the arguments, you will see Argument Error.
+- Do not forget to use tools, and do not say it's impossible which can be done by tools.
 `.trim();
 	} else {
 		toolDesc =
@@ -25,31 +28,41 @@ Do not forget to use them, and do not say it's impossible which can be done by t
 			`
 ## Tools
 
-You can call tools by a code block with special tag.
-- **First line**: '\`\`\`\`*call:<TOOL_NAME>' with code block beginning.
-  - System will automatically add call ID in parentheses. (e.g. '*call:print(abcd)')
-- **Last line**: '\`\`\`\`', the end of the code block.
-- Between the first and last line, **you should provide the arguments in JSON format.**
-For example, to call 'print' with arguments 'value: "Hello"',
+You can use tools.
+The syntax of tool calling is same as markdown code block, but with some special rules:
 
-\`\`\`\`*call:print
+- **First line**: '\`\`\`\`*call:<TOOL_NAME>'.
+  - Similar to the markdown code block, but you should put '*call:' with the tool name.
+  - System will automatically add call ID in parentheses. (e.g. '*call:print(abcd)')
+- **Last line**: '\`\`\`\`', which is the end of the code block of markdown.
+- The first line and the last line should not be indented.
+- Between the first and last line, **you should provide the arguments in JSON format.**
+  - For string, '|-' and indent is recommended.
+
+For example, to call 'runJS' tool with arguments 'value: "console.log(1)"', you can use:
+
+\`\`\`\`*call:runJS
 {
-  "value": "Hello"
+  "code": "console.log(1);"
 }
 \`\`\`\`
 
-- **The code block should not be indented.** Do not forget newlines
-- The result will be given in the user message in a code block with tag \`*return:tool_name\`.
-  - YOU SHOULD NOT USE THIS TAG IN YOUR ANSWER. Only use the call tag.
 - You can use multiple tools at once. Just put multiple code blocks.
+- You should stop answering after the calling the tool. Wait for the user to give you the response.
+- DO NOT MISS markdown-style code blocks for tool calling.
+
+### Response
+
+- User will see the code blocks and give you the response, which starts with '*return:...'.
+  - '*return:' is only availble for user, DO NOT use this in your answer.
 
 ### Available Tools
 
 The following interface name is a tool name, and the interface body is the arguments.
 
-\`\`\`\`typescript
+\`\`\`typescript
 ${functions.map((f) => functionToolToTS(f)).join('\n\n')}
-\`\`\`\`
+\`\`\`
 `.trim();
 	}
 	return toolDesc;
@@ -97,14 +110,25 @@ ${role}
 
 ${importantGuidelines.join('\n')}
 
-## Special displays
+## Preview-able Code Blocks
 
-Most code blocks are displayed as text, except for the following:
+Some markdown code blocks are shown with preview for user.
+If user requested a content to show or make **in special format**,
+just provide the code block with the language name.
 
-- svg: If content is wrapped by <svg ...> ... </svg>, it will be displayed as an image. MUST use viewBox instead of width and height.
-- mermaid: Use this block to visually represent images, plots, diagrams, etc.
+For example, to show QR code image for 'www.example.com', just say:
 
-Note: code blocks are not executed. For execution, use the **runJS** tool.
+\`\`\`qr
+www.example.com
+\`\`\`
+
+### List of Preview-able Code Blocks
+
+The list of language names and how they are displayed.
+
+- 'svg': Shown as image. The content MUST be <svg ...> ... </svg>. You MUST use viewBox instead of width and height.
+- 'mermaid': Shown as a diagram using mermaid.js. Use mermaid syntax.
+- 'qr': Shown as QR Code Image. You can use any words, json, string, or URL.
 
 ${await toolCallSystemPrompt(useToolCall, functions)}
 

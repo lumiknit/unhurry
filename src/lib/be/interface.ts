@@ -48,6 +48,23 @@ export interface IBEService {
 	): Promise<FetchResult>;
 
 	/**
+	 * Get current device IP.
+	 * This only works for desktop tauri mode.
+	 */
+	myIP(): Promise<string>;
+
+	/**
+	 * Generate QR code in svg.
+	 * This is only supported for tauri mode
+	 */
+	genQRSVG(value: string): Promise<string>;
+
+	/**
+	 * Scan a QR code
+	 */
+	scanQRCode(): Promise<string>;
+
+	/**
 	 * Vibrate
 	 */
 	vibrate(pattern: VibrationPattern): void;

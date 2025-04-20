@@ -249,6 +249,10 @@ div.message-body {
 	white-space: pre-wrap;
 	word-break: break-all;
 
+	& svg {
+		max-width: 100%;
+	}
+
 	& .hljs-keyword {
 		font-weight: bold;
 		color: var(--bulma-danger-bold);
@@ -399,4 +403,14 @@ a.artifact-cell {
 
 	word-break: break-all;
 	overflow-wrap: break-word;
+}
+
+.modal-qr-content {
+	word-break: break-all;
+	overflow-wrap: break-word;
+	overflow: hidden;
+}
+
+.modal-qr-code > svg {
+	max-width: 100%;
 }

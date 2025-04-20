@@ -90,6 +90,18 @@ const About: Component = () => {
 		}
 	};
 
+	const [ip, setIP] = createSignal<string | undefined>();
+	onMount(async () => {
+		try {
+			const be = await getBEService();
+			const i = await be.myIP();
+			setIP(i);
+		} catch (e) {
+			logr.error('[About] Failed to get IP', e);
+			setIP(`Failed to get IP ${e}`);
+		}
+	});
+
 	return (
 		<div class="container">
 			<div class="has-text-centered">
@@ -164,6 +176,29 @@ const About: Component = () => {
 				</p>
 				<button class="button is-danger" onClick={handleReset}>
 					Reset All Data
+				</button>
+
+				<br />
+
+				<div innerHTML={ip()} />
+
+				<button
+					class="button is-link"
+					onClick={() => {
+						getBEService().then((be) => {
+							be
+								?.scanQRCode()
+								.then((res) => {
+									toast.success(`Scanned: ${res}`);
+								})
+								.catch((e) => {
+									toast.error(`Failed to scan QR code: ${e}`);
+								});
+						});
+					}}
+				>
+					{' '}
+					askld{' '}
 				</button>
 			</div>
 		</div>

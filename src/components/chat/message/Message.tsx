@@ -1,8 +1,6 @@
 import { default as DOMPurify } from 'dompurify';
-import hljs from 'highlight.js';
 import { marked } from 'marked';
 import markedKatex from 'marked-katex-extension';
-import mermaid from 'mermaid';
 import { VsChevronDown, VsChevronUp, VsCopy } from 'solid-icons/vs';
 import {
 	Component,
@@ -16,6 +14,10 @@ import {
 import { Dynamic } from 'solid-js/web';
 import { toast } from 'solid-toast';
 
+import { getExtensionFromMimeType } from '@/lib/artifact/mime';
+import { getBEService } from '@/lib/be';
+import { uniqueID } from '@/lib/utils';
+
 import {
 	Msg,
 	MSG_PART_TYPE_ARTIFACT,
@@ -24,6 +26,7 @@ import {
 	MSG_PART_TYPE_THINK,
 } from '@lib/chat';
 import { copyToClipboard } from '@lib/clipboard';
+import hljs from '@lib/hljs';
 import { logr } from '@lib/logr';
 
 import ArtifactMessage from './ArtifactMessage';
@@ -38,9 +41,71 @@ marked.use(
 	})
 );
 
-mermaid.initialize({
-	suppressErrorRendering: true,
-});
+let mermaidInitialized = false;
+
+const initMermaid = async () => {
+	const mermaid = (await import('mermaid')).default;
+	if (!mermaidInitialized) {
+		mermaid.initialize({
+			suppressErrorRendering: true,
+			htmlLabels: false,
+		});
+		mermaidInitialized = true;
+	}
+	return mermaid;
+};
+
+type BlockBottomButtonsProps = {
+	getLang: () => string;
+	getContent: () => string;
+
+	onToggleFold?: () => void;
+};
+
+const BlockBottomButtons: Component<BlockBottomButtonsProps> = (props) => {
+	return (
+		<div class="msg-code-bottom-btns has-text-right is-size-7">
+			<span>
+				<button
+					class="px-3 py-1"
+					onClick={async (e) => {
+						const be = await getBEService();
+						const blob = new Blob([props.getContent()], {
+							type: 'text/plain',
+						});
+						const ext =
+							getExtensionFromMimeType(
+								'text/' + props.getLang()
+							) || props.getLang();
+						const filename = `${uniqueID()}.${ext}`;
+						await be.downloadFile(filename, blob);
+						toast.success('Download started!');
+						e.stopPropagation();
+					}}
+				>
+					save
+				</button>
+				{'|'}
+				<button
+					class="px-3 py-1"
+					onClick={(e) => {
+						copyToClipboard(props.getContent());
+						toast.success('Copied!');
+						e.stopPropagation();
+					}}
+				>
+					copy
+				</button>
+				<Show when={props.onToggleFold}>
+					{'|'}
+					<button class="px-3 py-1" onClick={props.onToggleFold}>
+						fold
+					</button>
+				</Show>
+			</span>
+		</div>
+	);
+};
 
 /**
  * Rendering text as markdown
@@ -118,99 +183,49 @@ const BlockMessage: Component<ItemProps> = (props) => {
 					</header>
 					<div class="msg-code-body" innerHTML={html()} />
 				</div>
-				<Show when={lines() > 10 || props.content.length > 800}>
-					<div class="msg-code-bottom-btns has-text-right is-size-7">
-						<span>
-							<button
-								class="px-3 py-1"
-								onClick={(e) => {
-									copyToClipboard(props.content);
-									toast.success('Copied!');
-									e.stopPropagation();
-								}}
-							>
-								copy
-							</button>
-							{' | '}
-							<button
-								class="px-3 py-1"
-								onClick={() => setFold(true)}
-							>
-								fold
-							</button>
-						</span>
-					</div>
-				</Show>
+				<BlockBottomButtons
+					getContent={() => props.content}
+					getLang={() => props.type}
+					onToggleFold={() => setFold((s) => !s)}
+				/>
 			</Match>
 		</Switch>
 	);
 };
 
-const SvgMessage: Component<ItemProps> = (props) => {
-	const content = DOMPurify.sanitize(props.content);
-	const [raw, setRaw] = createSignal(false);
+/**
+ * Common component for rendereable messages.
+ * It can be
+ * - Togglable between preview / raw
+ * - Copy / Downloadable
+ * - Rendered to some HTML
+ */
+const createPreviewMessage = (
+	render: (content: string) => Promise<string>
+): Component<ItemProps> => {
+	return (props) => {
+		const [html, setHtml] = createSignal('');
+		const [err, setErr] = createSignal('');
+		const [raw, setRaw] = createSignal(false);
 
-	return (
-		<div class="msg-code">
-			<header class="flex-split" onClick={() => setRaw((r) => !r)}>
-				<span>SVG</span>
-				<span>
-					<button
-						class="px-2"
-						onClick={(e) => {
-							copyToClipboard(props.content);
-							toast.success('Copied!');
-							e.stopPropagation();
-						}}
-					>
-						<VsCopy /> copy
-					</button>
-					<span>{raw() ? 'raw' : 'img'}</span>
-				</span>
-			</header>
-			<div class="msg-svg-body">
-				<Switch>
-					<Match when={raw()}>{content}</Match>
-					<Match when>
-						<div class="msg-svg" innerHTML={content} />
-					</Match>
-				</Switch>
-			</div>
-		</div>
-	);
-};
+		onMount(async () => {
+			try {
+				const renderedHtml = await render(props.content);
+				setHtml(DOMPurify.sanitize(renderedHtml));
+			} catch (error) {
+				logr.error('Error rendering preview:', error);
+				setErr(`${error}`);
+			}
+		});
 
-const MermaidMessage: Component<ItemProps> = (props) => {
-	const [svg, setSvg] = createSignal('');
-	const [err, setErr] = createSignal('');
-	const [raw, setRaw] = createSignal(false);
-
-	onMount(async () => {
-		try {
-			const { svg } = await mermaid.render('mermaid', props.content);
-			setSvg(DOMPurify.sanitize(svg));
-			setErr('');
-		} catch (error) {
-			logr.error('Error rendering Mermaid diagram:', error);
-			setErr(`${error}`);
-		}
-	});
-
-	return (
-		<Switch>
-			<Match when={err()}>
-				<div class="notification is-danger">
-					Mermaid Error: {err()}
-					<pre>{props.content}</pre>
-				</div>
-			</Match>
-			<Match when>
+		return (
+			<>
 				<div class="msg-code">
 					<header
 						class="flex-split"
 						onClick={() => setRaw((r) => !r)}
 					>
-						<span>Mermaid</span>
+						<span>{props.type}</span>
 						<span>
 							<button
 								class="px-2"
@@ -222,22 +237,55 @@ const MermaidMessage: Component<ItemProps> = (props) => {
 							>
 								<VsCopy /> copy
 							</button>
-							<span>{raw() ? 'raw' : 'diagram'}</span>
+							<span>{raw() ? 'raw' : 'preview'}</span>
 						</span>
 					</header>
-					<div class="msg-mermaid-body">
+					<div class="msg-code-body">
 						<Switch>
+							<Match when={err()}>
+								<div class="notification is-danger">
+									Redering Error: {err()}
+									<hr />
+									{props.content}
+								</div>
+							</Match>
 							<Match when={raw()}>{props.content}</Match>
 							<Match when>
-								<div class="msg-mermaid" innerHTML={svg()} />
+								<div class="msg-preview" innerHTML={html()} />
 							</Match>
 						</Switch>
 					</div>
 				</div>
-			</Match>
-		</Switch>
-	);
+				<BlockBottomButtons
+					getContent={() => props.content}
+					getLang={() => props.type}
+				/>
+			</>
+		);
+	};
 };
+
+const SvgMessage = createPreviewMessage(async (content) => {
+	const html = DOMPurify.sanitize(content);
+	return html;
+});
+
+const MermaidMessage = createPreviewMessage(async (content) => {
+	const mermaid = await initMermaid();
+	const { svg } = await mermaid.render('mermaid', content);
+	return DOMPurify.sanitize(svg);
+});
+
+const MarkdownMessage = createPreviewMessage(async (content) => {
+	const html = await marked(content, { async: true });
+	return html;
+});
+
+const QRMessage = createPreviewMessage(async (content) => {
+	const be = await getBEService();
+	const html = be.genQRSVG(content);
+	return html;
+});
 
 const compMap = new Map([
 	[MSG_PART_TYPE_TEXT, TextMessage],
@@ -246,6 +294,8 @@ const compMap = new Map([
 	['svg', SvgMessage],
 	['mermaid', MermaidMessage],
 	['json', JSONLikeMessage],
+	['markdown', MarkdownMessage],
+	['qr', QRMessage],
 ]);
 
 interface Props {

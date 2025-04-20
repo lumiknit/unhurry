@@ -1,3 +1,5 @@
+import * as YAML from 'yaml';
+
 import { MsgPartsParser } from './parser';
 import {
 	ChatHistory,
@@ -152,7 +154,6 @@ export abstract class SingleLLMAction {
 		const tools = getFnTools(this.toolConfigs);
 		const llm = newClientFromConfig(modelConfig);
 		llm.setFunctions(tools);
-		console.log(tools);
 		const sys = await this.systemPrompt(modelConfig, tools);
 
 		// Part parser
@@ -208,12 +209,19 @@ export abstract class SingleLLMAction {
 			await Promise.all(
 				calls.map(async (fc) => {
 					try {
-						const a = JSON.parse(fc.args);
+						const a = YAML.parse(fc.args);
 						const result =
 							await fnImpls[normalizeToolName(fc.name)](a);
 						results.set(fc.id, result);
 					} catch (e) {
-						results.set(fc.id, `Error: ${e}`);
+						if (e instanceof YAML.YAMLError) {
+							results.set(
+								fc.id,
+								`Arguments are invalid YAML:\n${e}`
+							);
+						} else {
+							results.set(fc.id, `Tool Error:\n${e}`);
+						}
 					}
 				})
 			);

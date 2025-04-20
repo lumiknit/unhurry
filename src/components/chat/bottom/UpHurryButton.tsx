@@ -1,6 +1,6 @@
 import { BiRegularCommand } from 'solid-icons/bi';
 import { Component, Show } from 'solid-js';
-import toast from 'solid-toast';
+import { toast } from 'solid-toast';
 
 import { createIsMobile } from '@/components/utils/media';
 import { getUphurryMode, setUphurryMode } from '@/store';

@@ -69,13 +69,12 @@ export class MsgPartsParser {
 				callEnd = part.type.length;
 			}
 			const name = part.type.slice(BLOCK_PREFIX_FN_CALL.length, callEnd);
-			const args = JSON.parse(part.content);
 
 			const content: FunctionCallContent = {
 				type: 'function_call',
 				id: Math.random().toString(36).slice(2),
 				name,
-				args: JSON.stringify(args),
+				args: part.content,
 			};
 
 			return {

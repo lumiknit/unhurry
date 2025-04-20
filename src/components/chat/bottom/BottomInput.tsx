@@ -262,14 +262,9 @@ const BottomInput: Component = () => {
 				isFinal: boolean,
 				lastTranscript: string
 			) => {
-				console.log(
-					'onTranscript',
-					transcript,
-					isFinal,
-					lastTranscript
-				);
+				logr.info('onTranscript', transcript, isFinal, lastTranscript);
 				// Remove if the last transcript is exists
-				console.log(taRef!.selectionStart);
+				logr.info(taRef!.selectionStart);
 				if (lastTranscript) {
 					const v = taRef!.value;
 					const selStart = taRef!.selectionStart;

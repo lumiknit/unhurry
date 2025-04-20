@@ -62,15 +62,11 @@ export const createArtifact = async (
 	await Promise.all([
 		(async () => {
 			const tx = await metaTx();
-			console.log('putting meta', meta);
 			await tx.put(meta);
-			console.log('put meta done');
 		})(),
 		(async () => {
 			const tx = await dataTx();
-			console.log('putting data', data);
 			await tx.put(data);
-			console.log('put data done');
 		})(),
 	]);
 	return id;

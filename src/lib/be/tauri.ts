@@ -1,5 +1,6 @@
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
+import { scan, Format } from '@tauri-apps/plugin-barcode-scanner';
 import { save } from '@tauri-apps/plugin-dialog';
 import { readFile, writeFile } from '@tauri-apps/plugin-fs';
 import {
@@ -54,6 +55,35 @@ export class TauriService implements IBEService {
 			body,
 		});
 		return result as FetchResult;
+	}
+
+	async myIP(): Promise<string> {
+		const result = await invoke<WithError>('self_ip', { format: 'qr_svg' });
+		if (result.error) {
+			throw new Error(result.error);
+		}
+		return result as string;
+	}
+
+	async genQRSVG(value: string): Promise<string> {
+		console.log('genQRSVG', value);
+		const result = await invoke<WithError>('string_to_qr_svg', {
+			input: value,
+		});
+		console.log('genQRSVG result', result);
+		if (result.error) {
+			throw new Error(result.error);
+		}
+		return result as string;
+	}
+
+	async scanQRCode(): Promise<string> {
+		const result = await scan({
+			windowed: false,
+			cameraDirection: 'back',
+			formats: [Format.QRCode],
+		});
+		return result.content;
 	}
 
 	async vibrate(pattern: VibrationPattern): Promise<void> {
