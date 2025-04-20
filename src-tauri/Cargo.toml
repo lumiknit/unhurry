@@ -1,6 +1,6 @@
 [package]
 name = "unhurry"
-version = "0.6.1-dev1"
+version = "0.6.1"
 description = "Unhurry, be lazy. LLM-based chat app with various actions."
 authors = ["lumiknit <aasr4r4@gmail.com>"]
 edition = "2021"
@@ -13,6 +13,15 @@ edition = "2021"
 # This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
 name = "unhurry_native_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
+
+[profile.dev]
+incremental = true # Compile your binary in smaller steps.
+
+[profile.release]
+lto = true # Enables link-time-optimizations.
+opt-level = "s" # Prioritizes small binary size. Use `3` if you prefer speed.
+panic = "abort" # Higher performance by disabling panic handlers.
+strip = true # Ensures debug symbols are removed.
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
