@@ -6,8 +6,7 @@ import {
 import { Component, createEffect, createSignal, Setter } from 'solid-js';
 import { toast } from 'solid-toast';
 
-import { logr } from '@/lib/logr';
-
+import { getBEService } from '@lib/be';
 import {
 	LLMClientType,
 	llmPresets,
@@ -15,10 +14,12 @@ import {
 	ModelConfig,
 	newClientFromConfig,
 } from '@lib/llm';
+import { logr } from '@lib/logr';
 
 import CodeForm from './form/CodeForm';
 import SwitchForm from './form/SwitchForm';
 import TextForm from './form/TextForm';
+import { openQRModal } from '../modal/QRModal';
 import { getAIIconComponent } from '../utils/icons/AIIcons';
 
 interface Props {
@@ -117,6 +118,47 @@ const ModelEditor: Component<Props> = (props) => {
 		}));
 	};
 
+	const showLocalModelQR = async () => {
+		const be = await getBEService();
+		// Replace localhost from the endpoint
+		const model = {
+			...props.model,
+		};
+		try {
+			const ip = await be.myIP();
+			model.endpoint = model.endpoint
+				.replace('127.0.0.1', ip)
+				.replace('localhost', ip);
+		} catch {
+			toast.error('Local IP is unavailable');
+		}
+		const v = JSON.stringify(model);
+		openQRModal(v);
+	};
+
+	const loadFromQR = async () => {
+		const be = await getBEService();
+		let v: ModelConfig;
+		try {
+			const s = await be.scanQRCode();
+			v = JSON.parse(s);
+		} catch (e) {
+			logr.error(e);
+			toast.error('Failed to load QR code');
+			return;
+		}
+		props.updateModel((m) => ({
+			...m,
+			endpoint: v.endpoint,
+			apiKey: v.apiKey,
+			model: v.model,
+			clientType: v.clientType,
+			name: v.name,
+			systemPrompt: v.systemPrompt,
+			useToolCall: v.useToolCall,
+		}));
+	};
+
 	return (
 		<>
 			<div class="mb-4" />
@@ -126,16 +168,32 @@ const ModelEditor: Component<Props> = (props) => {
 			</h4>
 
 			<div class="has-text-right mb-4">
-				<button class="button is-primary mr-2" onClick={props.onMoveUp}>
+				<button class="button is-small mr-1" onClick={loadFromQR}>
+					Load QR
+				</button>
+
+				<button class="button is-small mr-1" onClick={showLocalModelQR}>
+					Show QR
+				</button>
+
+				<button
+					class="button is-small is-primary mr-1"
+					onClick={props.onMoveUp}
+				>
 					<BiRegularLeftArrow />
+					&nbsp;
 				</button>
 				<button
-					class="button is-primary mr-2"
+					class="button is-small is-primary mr-1"
 					onClick={props.onMoveDown}
 				>
 					<BiRegularRightArrow />
+					&nbsp;
 				</button>
-				<button class="button is-danger" onClick={props.onDelete}>
+				<button
+					class="button is-small is-danger"
+					onClick={props.onDelete}
+				>
 					<BiRegularTrash />
 					Delete
 				</button>

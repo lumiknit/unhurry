@@ -65,6 +65,18 @@ export class TauriService implements IBEService {
 		return result as string;
 	}
 
+	async genQRSVG(value: string): Promise<string> {
+		console.log('genQRSVG', value);
+		const result = await invoke<WithError>('string_to_qr_svg', {
+			input: value,
+		});
+		console.log('genQRSVG result', result);
+		if (result.error) {
+			throw new Error(result.error);
+		}
+		return result as string;
+	}
+
 	async scanQRCode(): Promise<string> {
 		const result = await scan({
 			windowed: false,

@@ -90,11 +90,11 @@ async fn fetch_http(
 async fn string_to_qr_svg(input: String) -> Result<String, String> {
     use qrcode::render::svg;
     use qrcode::{EcLevel, QrCode, Version};
-    let code = QrCode::with_version(input, Version::Normal(4), EcLevel::H)
+    let code = QrCode::with_error_correction_level(input, EcLevel::H)
         .map_err(|e| e.to_string())?;
     let image = code
         .render()
-        .min_dimensions(200, 200)
+        .min_dimensions(384, 384)
         .dark_color(svg::Color("#000000"))
         .light_color(svg::Color("#ffffff"))
         .build();

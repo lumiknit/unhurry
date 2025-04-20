@@ -59,6 +59,10 @@ export class BrowserService implements IBEService {
 		throw new Error('IP address not supported in browser');
 	}
 
+	async genQRSVG(): Promise<string> {
+		throw new Error('QR SVG not supported in browser');
+	}
+
 	async scanQRCode(): Promise<string> {
 		throw new Error('Barcode scanning not supported in browser');
 	}

@@ -400,3 +400,13 @@ a.artifact-cell {
 	word-break: break-all;
 	overflow-wrap: break-word;
 }
+
+.modal-qr-content {
+	word-break: break-all;
+	overflow-wrap: break-word;
+	overflow: hidden;
+}
+
+.modal-qr-code > svg {
+	max-width: 100%;
+}
