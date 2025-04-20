@@ -55,6 +55,14 @@ export class BrowserService implements IBEService {
 		}
 	}
 
+	async myIP(): Promise<string> {
+		throw new Error('IP address not supported in browser');
+	}
+
+	async scanQRCode(): Promise<string> {
+		throw new Error('Barcode scanning not supported in browser');
+	}
+
 	async vibrate(pattern: VibrationPattern): Promise<void> {
 		if (!navigator.vibrate) {
 			return;

@@ -11,6 +11,7 @@
     "fs:allow-app-read",
     "fs:allow-appcache-read",
     "fs:allow-appconfig-read",
-    "fs:allow-read"
+    "fs:allow-read",
+    "barcode-scanner:default"
   ]
 }

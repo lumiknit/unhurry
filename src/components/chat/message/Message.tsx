@@ -14,6 +14,10 @@ import {
 import { Dynamic } from 'solid-js/web';
 import { toast } from 'solid-toast';
 
+import { getExtensionFromMimeType } from '@/lib/artifact/mime';
+import { getBEService } from '@/lib/be';
+import { uniqueID } from '@/lib/utils';
+
 import {
 	Msg,
 	MSG_PART_TYPE_ARTIFACT,
@@ -49,6 +53,58 @@ const initMermaid = async () => {
 		mermaidInitialized = true;
 	}
 	return mermaid;
+};
+
+type BlockBottomButtonsProps = {
+	getLang: () => string;
+	getContent: () => string;
+
+	onToggleFold?: () => void;
+};
+
+const BlockBottomButtons: Component<BlockBottomButtonsProps> = (props) => {
+	return (
+		<div class="msg-code-bottom-btns has-text-right is-size-7">
+			<span>
+				<button
+					class="px-3 py-1"
+					onClick={async (e) => {
+						const be = await getBEService();
+						const blob = new Blob([props.getContent()], {
+							type: 'text/plain',
+						});
+						const ext =
+							getExtensionFromMimeType(
+								'text/' + props.getLang()
+							) || props.getLang();
+						const filename = `${uniqueID()}.${ext}`;
+						await be.downloadFile(filename, blob);
+						toast.success('Download started!');
+						e.stopPropagation();
+					}}
+				>
+					save
+				</button>
+				{'|'}
+				<button
+					class="px-3 py-1"
+					onClick={(e) => {
+						copyToClipboard(props.getContent());
+						toast.success('Copied!');
+						e.stopPropagation();
+					}}
+				>
+					copy
+				</button>
+				<Show when={props.onToggleFold}>
+					{'|'}
+					<button class="px-3 py-1" onClick={props.onToggleFold}>
+						fold
+					</button>
+				</Show>
+			</span>
+		</div>
+	);
 };
 
 /**
@@ -127,29 +183,11 @@ const BlockMessage: Component<ItemProps> = (props) => {
 					</header>
 					<div class="msg-code-body" innerHTML={html()} />
 				</div>
-				<Show when={lines() > 10 || props.content.length > 800}>
-					<div class="msg-code-bottom-btns has-text-right is-size-7">
-						<span>
-							<button
-								class="px-3 py-1"
-								onClick={(e) => {
-									copyToClipboard(props.content);
-									toast.success('Copied!');
-									e.stopPropagation();
-								}}
-							>
-								copy
-							</button>
-							{' | '}
-							<button
-								class="px-3 py-1"
-								onClick={() => setFold(true)}
-							>
-								fold
-							</button>
-						</span>
-					</div>
-				</Show>
+				<BlockBottomButtons
+					getContent={() => props.content}
+					getLang={() => props.type}
+					onToggleFold={() => setFold((s) => !s)}
+				/>
 			</Match>
 		</Switch>
 	);
@@ -160,32 +198,38 @@ const SvgMessage: Component<ItemProps> = (props) => {
 	const [raw, setRaw] = createSignal(false);
 
 	return (
-		<div class="msg-code">
-			<header class="flex-split" onClick={() => setRaw((r) => !r)}>
-				<span>SVG</span>
-				<span>
-					<button
-						class="px-2"
-						onClick={(e) => {
-							copyToClipboard(props.content);
-							toast.success('Copied!');
-							e.stopPropagation();
-						}}
-					>
-						<VsCopy /> copy
-					</button>
-					<span>{raw() ? 'raw' : 'img'}</span>
-				</span>
-			</header>
-			<div class="msg-svg-body">
-				<Switch>
-					<Match when={raw()}>{content}</Match>
-					<Match when>
-						<div class="msg-svg" innerHTML={content} />
-					</Match>
-				</Switch>
+		<>
+			<div class="msg-code">
+				<header class="flex-split" onClick={() => setRaw((r) => !r)}>
+					<span>SVG</span>
+					<span>
+						<button
+							class="px-2"
+							onClick={(e) => {
+								copyToClipboard(props.content);
+								toast.success('Copied!');
+								e.stopPropagation();
+							}}
+						>
+							<VsCopy /> copy
+						</button>
+						<span>{raw() ? 'raw' : 'img'}</span>
+					</span>
+				</header>
+				<div class="msg-svg-body">
+					<Switch>
+						<Match when={raw()}>{content}</Match>
+						<Match when>
+							<div class="msg-svg" innerHTML={content} />
+						</Match>
+					</Switch>
+				</div>
 			</div>
-		</div>
+			<BlockBottomButtons
+				getContent={() => props.content}
+				getLang={() => props.type}
+			/>
+		</>
 	);
 };
 
@@ -207,45 +251,54 @@ const MermaidMessage: Component<ItemProps> = (props) => {
 	});
 
 	return (
-		<Switch>
-			<Match when={err()}>
-				<div class="notification is-danger">
-					Mermaid Error: {err()}
-					<pre>{props.content}</pre>
-				</div>
-			</Match>
-			<Match when>
-				<div class="msg-code">
-					<header
-						class="flex-split"
-						onClick={() => setRaw((r) => !r)}
-					>
-						<span>Mermaid</span>
-						<span>
-							<button
-								class="px-2"
-								onClick={(e) => {
-									copyToClipboard(props.content);
-									toast.success('Copied!');
-									e.stopPropagation();
-								}}
-							>
-								<VsCopy /> copy
-							</button>
-							<span>{raw() ? 'raw' : 'diagram'}</span>
-						</span>
-					</header>
-					<div class="msg-mermaid-body">
-						<Switch>
-							<Match when={raw()}>{props.content}</Match>
-							<Match when>
-								<div class="msg-mermaid" innerHTML={svg()} />
-							</Match>
-						</Switch>
+		<>
+			<Switch>
+				<Match when={err()}>
+					<div class="notification is-danger">
+						Mermaid Error: {err()}
+						<pre>{props.content}</pre>
 					</div>
-				</div>
-			</Match>
-		</Switch>
+				</Match>
+				<Match when>
+					<div class="msg-code">
+						<header
+							class="flex-split"
+							onClick={() => setRaw((r) => !r)}
+						>
+							<span>Mermaid</span>
+							<span>
+								<button
+									class="px-2"
+									onClick={(e) => {
+										copyToClipboard(props.content);
+										toast.success('Copied!');
+										e.stopPropagation();
+									}}
+								>
+									<VsCopy /> copy
+								</button>
+								<span>{raw() ? 'raw' : 'diagram'}</span>
+							</span>
+						</header>
+						<div class="msg-mermaid-body">
+							<Switch>
+								<Match when={raw()}>{props.content}</Match>
+								<Match when>
+									<div
+										class="msg-mermaid"
+										innerHTML={svg()}
+									/>
+								</Match>
+							</Switch>
+						</div>
+					</div>
+				</Match>
+			</Switch>
+			<BlockBottomButtons
+				getContent={() => props.content}
+				getLang={() => props.type}
+			/>
+		</>
 	);
 };
 

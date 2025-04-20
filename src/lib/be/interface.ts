@@ -47,6 +47,13 @@ export interface IBEService {
 		body?: string
 	): Promise<FetchResult>;
 
+	myIP(): Promise<string>;
+
+	/**
+	 * Scan a QR code
+	 */
+	scanQRCode(): Promise<string>;
+
 	/**
 	 * Vibrate
 	 */
