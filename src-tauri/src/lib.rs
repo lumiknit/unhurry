@@ -89,7 +89,7 @@ async fn fetch_http(
 #[tauri::command]
 async fn string_to_qr_svg(input: String) -> Result<String, String> {
     use qrcode::render::svg;
-    use qrcode::{EcLevel, QrCode, Version};
+    use qrcode::{EcLevel, QrCode};
     let code = QrCode::with_error_correction_level(input, EcLevel::H)
         .map_err(|e| e.to_string())?;
     let image = code

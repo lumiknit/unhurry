@@ -4688,7 +4688,7 @@ dependencies = [
 
 [[package]]
 name = "unhurry"
-version = "0.6.1-dev0"
+version = "0.6.1-dev1"
 dependencies = [
  "local-ip-address",
  "qrcode",

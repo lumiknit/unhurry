@@ -118,6 +118,9 @@ const ModelEditor: Component<Props> = (props) => {
 		}));
 	};
 
+	/**
+	 * Show QR code modal, to connect to local model
+	 */
 	const showLocalModelQR = async () => {
 		const be = await getBEService();
 		// Replace localhost from the endpoint
@@ -136,6 +139,9 @@ const ModelEditor: Component<Props> = (props) => {
 		openQRModal(v);
 	};
 
+	/**
+	 * Load model config from the QR code
+	 */
 	const loadFromQR = async () => {
 		const be = await getBEService();
 		let v: ModelConfig;

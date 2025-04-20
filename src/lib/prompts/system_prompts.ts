@@ -110,14 +110,25 @@ ${role}
 
 ${importantGuidelines.join('\n')}
 
-## Special displays
+## Preview-able Code Blocks
 
-Most code blocks are displayed as text, except for the following:
+Some markdown code blocks are shown with preview for user.
+If user requested a content to show or make **in special format**,
+just provide the code block with the language name.
 
-- svg: If content is wrapped by <svg ...> ... </svg>, it will be displayed as an image. MUST use viewBox instead of width and height.
-- mermaid: Use this block to visually represent images, plots, diagrams, etc.
+For example, to show QR code image for 'www.example.com', just say:
 
-Note: code blocks are not executed. For execution, use the **runJS** tool.
+\`\`\`qr
+www.example.com
+\`\`\`
+
+### List of Preview-able Code Blocks
+
+The list of language names and how they are displayed.
+
+- 'svg': Shown as image. The content MUST be <svg ...> ... </svg>. You MUST use viewBox instead of width and height.
+- 'mermaid': Shown as a diagram using mermaid.js. Use mermaid syntax.
+- 'qr': Shown as QR Code Image. You can use any words, json, string, or URL.
 
 ${await toolCallSystemPrompt(useToolCall, functions)}
 

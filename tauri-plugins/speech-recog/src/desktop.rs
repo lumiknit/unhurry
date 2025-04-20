@@ -28,7 +28,7 @@ impl<R: Runtime> SpeechRecog<R> {
 
   pub fn start_recognition(
     &self,
-    payload: StartRecognitionRequest,
+    _payload: StartRecognitionRequest,
   ) -> crate::Result<StartRecognitionResponse> {
     Ok(StartRecognitionResponse {
       success: false,

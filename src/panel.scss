@@ -57,6 +57,9 @@
 	font-size: 1.125em;
 	font-weight: bold;
 	color: var(--bulma-text-strong);
+	word-break: break-all;
+	overflow-wrap: break-word;
+	text-overflow: ellipsis;
 }
 
 .panel-item-desc {

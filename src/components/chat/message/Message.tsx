@@ -193,114 +193,99 @@ const BlockMessage: Component<ItemProps> = (props) => {
 	);
 };
 
-const SvgMessage: Component<ItemProps> = (props) => {
-	const content = DOMPurify.sanitize(props.content);
-	const [raw, setRaw] = createSignal(false);
+/**
+ * Common component for rendereable messages.
+ * It can be
+ * - Togglable between preview / raw
+ * - Copy / Downloadable
+ * - Rendered to some HTML
+ */
+const createPreviewMessage = (
+	render: (content: string) => Promise<string>
+): Component<ItemProps> => {
+	return (props) => {
+		const [html, setHtml] = createSignal('');
+		const [err, setErr] = createSignal('');
+		const [raw, setRaw] = createSignal(false);
 
-	return (
-		<>
-			<div class="msg-code">
-				<header class="flex-split" onClick={() => setRaw((r) => !r)}>
-					<span>SVG</span>
-					<span>
-						<button
-							class="px-2"
-							onClick={(e) => {
-								copyToClipboard(props.content);
-								toast.success('Copied!');
-								e.stopPropagation();
-							}}
-						>
-							<VsCopy /> copy
-						</button>
-						<span>{raw() ? 'raw' : 'img'}</span>
-					</span>
-				</header>
-				<div class="msg-svg-body">
-					<Switch>
-						<Match when={raw()}>{content}</Match>
-						<Match when>
-							<div class="msg-svg" innerHTML={content} />
-						</Match>
-					</Switch>
+		onMount(async () => {
+			try {
+				const renderedHtml = await render(props.content);
+				setHtml(DOMPurify.sanitize(renderedHtml));
+			} catch (error) {
+				logr.error('Error rendering preview:', error);
+				setErr(`${error}`);
+			}
+		});
+
+		return (
+			<>
+				<div class="msg-code">
+					<header
+						class="flex-split"
+						onClick={() => setRaw((r) => !r)}
+					>
+						<span>{props.type}</span>
+						<span>
+							<button
+								class="px-2"
+								onClick={(e) => {
+									copyToClipboard(props.content);
+									toast.success('Copied!');
+									e.stopPropagation();
+								}}
+							>
+								<VsCopy /> copy
+							</button>
+							<span>{raw() ? 'raw' : 'preview'}</span>
+						</span>
+					</header>
+					<div class="msg-code-body">
+						<Switch>
+							<Match when={err()}>
+								<div class="notification is-danger">
+									Redering Error: {err()}
+									<hr />
+									{props.content}
+								</div>
+							</Match>
+							<Match when={raw()}>{props.content}</Match>
+							<Match when>
+								<div class="msg-preview" innerHTML={html()} />
+							</Match>
+						</Switch>
+					</div>
 				</div>
-			</div>
-			<BlockBottomButtons
-				getContent={() => props.content}
-				getLang={() => props.type}
-			/>
-		</>
-	);
+				<BlockBottomButtons
+					getContent={() => props.content}
+					getLang={() => props.type}
+				/>
+			</>
+		);
+	};
 };
 
-const MermaidMessage: Component<ItemProps> = (props) => {
-	const [svg, setSvg] = createSignal('');
-	const [err, setErr] = createSignal('');
-	const [raw, setRaw] = createSignal(false);
+const SvgMessage = createPreviewMessage(async (content) => {
+	const html = DOMPurify.sanitize(content);
+	return html;
+});
 
-	onMount(async () => {
-		try {
-			const mermaid = await initMermaid();
-			const { svg } = await mermaid.render('mermaid', props.content);
-			setSvg(DOMPurify.sanitize(svg));
-			setErr('');
-		} catch (error) {
-			logr.error('Error rendering Mermaid diagram:', error);
-			setErr(`${error}`);
-		}
-	});
+const MermaidMessage = createPreviewMessage(async (content) => {
+	const mermaid = await initMermaid();
+	const { svg } = await mermaid.render('mermaid', content);
+	return DOMPurify.sanitize(svg);
+});
 
-	return (
-		<>
-			<Switch>
-				<Match when={err()}>
-					<div class="notification is-danger">
-						Mermaid Error: {err()}
-						<pre>{props.content}</pre>
-					</div>
-				</Match>
-				<Match when>
-					<div class="msg-code">
-						<header
-							class="flex-split"
-							onClick={() => setRaw((r) => !r)}
-						>
-							<span>Mermaid</span>
-							<span>
-								<button
-									class="px-2"
-									onClick={(e) => {
-										copyToClipboard(props.content);
-										toast.success('Copied!');
-										e.stopPropagation();
-									}}
-								>
-									<VsCopy /> copy
-								</button>
-								<span>{raw() ? 'raw' : 'diagram'}</span>
-							</span>
-						</header>
-						<div class="msg-mermaid-body">
-							<Switch>
-								<Match when={raw()}>{props.content}</Match>
-								<Match when>
-									<div
-										class="msg-mermaid"
-										innerHTML={svg()}
-									/>
-								</Match>
-							</Switch>
-						</div>
-					</div>
-				</Match>
-			</Switch>
-			<BlockBottomButtons
-				getContent={() => props.content}
-				getLang={() => props.type}
-			/>
-		</>
-	);
-};
+const MarkdownMessage = createPreviewMessage(async (content) => {
+	const html = await marked(content, { async: true });
+	return html;
+});
+
+const QRMessage = createPreviewMessage(async (content) => {
+	const be = await getBEService();
+	const html = be.genQRSVG(content);
+	return html;
+});
 
 const compMap = new Map([
 	[MSG_PART_TYPE_TEXT, TextMessage],
@@ -309,6 +294,8 @@ const compMap = new Map([
 	['svg', SvgMessage],
 	['mermaid', MermaidMessage],
 	['json', JSONLikeMessage],
+	['markdown', MarkdownMessage],
+	['qr', QRMessage],
 ]);
 
 interface Props {
