@@ -16,7 +16,7 @@ export const toolCallSystemPrompt = async (
 			`
 ## Tools
 
-- You can use tools by function callings.
+- You can use tools by tool function callings.
 - You MUST fill all required arguments.
   - Based on the history, you should guess the arguments.
   - If you did not provide the arguments, you will see Argument Error.
@@ -32,12 +32,11 @@ You can use tools.
 The syntax of tool calling is same as markdown code block, but with some special rules:
 
 - **First line**: '\`\`\`\`*call:<TOOL_NAME>'.
-  - Similar to the markdown code block, but you should put '*call:' with the tool name.
-  - System will automatically add call ID in parentheses. (e.g. '*call:print(abcd)')
+  - Similar to the markdown code block, but you should put '*call:' with a tool name in the position of language name.
+  - System will automatically add call ID in parentheses. (e.g. '*call:print(id_123)')
 - **Last line**: '\`\`\`\`', which is the end of the code block of markdown.
 - The first line and the last line should not be indented.
 - Between the first and last line, **you should provide the arguments in JSON format.**
-  - For string, '|-' and indent is recommended.
 
 For example, to call 'runJS' tool with arguments 'value: "console.log(1)"', you can use:
 
@@ -54,17 +53,19 @@ For example, to call 'runJS' tool with arguments 'value: "console.log(1)"', you 
 ### Response
 
 - User will see the code blocks and give you the response, which starts with '*return:...'.
-  - '*return:' is only availble for user, DO NOT use this in your answer.
+  - DO NOT provide '*return:' in your answer. '*return:' is only for user message.
 
 ### Available Tools
 
-The following interface name is a tool name, and the interface body is the arguments.
+The following interfaces are available tools.
+Each interface name is a tool name, and the interface body is the arguments.
 
 \`\`\`typescript
 ${functions.map((f) => functionToolToTS(f)).join('\n\n')}
 \`\`\`
 `.trim();
 	}
+	console.log(toolDesc);
 	return toolDesc;
 };
 
@@ -99,7 +100,7 @@ export const systemPrompt = async (
 		'- **Use tool calling actively.**.',
 		'  - For precise calculation / string manipulation / pick randomly, use **runJS** tool with proper JavaScript code.',
 		'  - You can visit and get website content using "visitWeb" tool with URL.',
-		'  - Use **search** tools for web search recent data & precise data. After search, you should list the results, sources.',
+		'  - Use **webSearch** tools for web search recent data & precise data. After search, you should list the results, sources.',
 		'- Instead say its impossible, try to use tools to get hints.',
 	];
 

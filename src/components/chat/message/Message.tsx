@@ -2,21 +2,11 @@ import { default as DOMPurify } from 'dompurify';
 import { marked } from 'marked';
 import markedKatex from 'marked-katex-extension';
 import { VsChevronDown, VsChevronUp, VsCopy } from 'solid-icons/vs';
-import {
-	Component,
-	createSignal,
-	For,
-	Match,
-	onMount,
-	Show,
-	Switch,
-} from 'solid-js';
+import { Component, createSignal, For, Match, onMount, Switch } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 import { toast } from 'solid-toast';
 
-import { getExtensionFromMimeType } from '@/lib/artifact/mime';
 import { getBEService } from '@/lib/be';
-import { uniqueID } from '@/lib/utils';
 
 import {
 	Msg,
@@ -30,6 +20,7 @@ import hljs from '@lib/hljs';
 import { logr } from '@lib/logr';
 
 import ArtifactMessage from './ArtifactMessage';
+import BlockBottomButtons from './BlockBottomButtons';
 import FnCallMessage from './FnCallMessage';
 import JSONLikeMessage from './JSONLikeMessage';
 import { ItemProps } from './message_types';
@@ -55,58 +46,6 @@ const initMermaid = async () => {
 	return mermaid;
 };
 
-type BlockBottomButtonsProps = {
-	getLang: () => string;
-	getContent: () => string;
-
-	onToggleFold?: () => void;
-};
-
-const BlockBottomButtons: Component<BlockBottomButtonsProps> = (props) => {
-	return (
-		<div class="msg-code-bottom-btns has-text-right is-size-7">
-			<span>
-				<button
-					class="px-3 py-1"
-					onClick={async (e) => {
-						const be = await getBEService();
-						const blob = new Blob([props.getContent()], {
-							type: 'text/plain',
-						});
-						const ext =
-							getExtensionFromMimeType(
-								'text/' + props.getLang()
-							) || props.getLang();
-						const filename = `${uniqueID()}.${ext}`;
-						await be.downloadFile(filename, blob);
-						toast.success('Download started!');
-						e.stopPropagation();
-					}}
-				>
-					save
-				</button>
-				{'|'}
-				<button
-					class="px-3 py-1"
-					onClick={(e) => {
-						copyToClipboard(props.getContent());
-						toast.success('Copied!');
-						e.stopPropagation();
-					}}
-				>
-					copy
-				</button>
-				<Show when={props.onToggleFold}>
-					{'|'}
-					<button class="px-3 py-1" onClick={props.onToggleFold}>
-						fold
-					</button>
-				</Show>
-			</span>
-		</div>
-	);
-};
-
 /**
  * Rendering text as markdown
  */
@@ -116,7 +55,7 @@ const TextMessage: Component<ItemProps> = (props) => {
 	const setMD = async (v: string) => {
 		const html = await marked(v, { async: true });
 		const sanitized = DOMPurify.sanitize(html);
-		setHtml(sanitized.replace(/<a href/g, '<a target="_blank" href'));
+		setHtml(sanitized.replaceAll('<a href', '<a target="_blank" href'));
 	};
 
 	onMount(async () => {
@@ -174,7 +113,8 @@ const BlockMessage: Component<ItemProps> = (props) => {
 									e.stopPropagation();
 								}}
 							>
-								<VsCopy /> copy
+								<VsCopy />
+								copy
 							</button>
 							<button>
 								<VsChevronUp />

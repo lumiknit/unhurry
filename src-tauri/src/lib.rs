@@ -3,12 +3,6 @@ use std::fmt::Write;
 
 use tauri_plugin_http::reqwest;
 
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
-
 #[derive(serde::Serialize)]
 struct FetchResult {
     status: u16,
@@ -90,7 +84,7 @@ async fn fetch_http(
 async fn string_to_qr_svg(input: String) -> Result<String, String> {
     use qrcode::render::svg;
     use qrcode::{EcLevel, QrCode};
-    let code = QrCode::with_error_correction_level(input, EcLevel::H)
+    let code = QrCode::with_error_correction_level(input, EcLevel::M)
         .map_err(|e| e.to_string())?;
     let image = code
         .render()
@@ -142,7 +136,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_haptics::init())
         .plugin(tauri_plugin_speech_recog::init())
-        .invoke_handler(tauri::generate_handler![greet, fetch_http, self_ip, string_to_qr_svg])
+        .invoke_handler(tauri::generate_handler![fetch_http, self_ip, string_to_qr_svg])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

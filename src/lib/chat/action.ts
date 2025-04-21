@@ -161,6 +161,7 @@ export abstract class SingleLLMAction {
 
 		// History for LLM
 		const llmHistory = await convertChatHistoryForLLM(this.history);
+		console.log('History', llmHistory);
 		logr.info('[chat/SingleChatAction/generate] Stream Start');
 		const result = await llm.chatStream(sys, llmHistory, {
 			onText: (text) => {

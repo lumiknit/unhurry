@@ -21,15 +21,22 @@ const LogsPage: Component = () => {
 	});
 
 	return (
-		<div class="container">
+		<div class="container log-container">
 			<h1 class="title">Logs</h1>
-			<ul class="is-family-monospace">
+			<ul>
 				<For each={logs()}>
 					{(log) => (
 						<li>
 							[
 							<strong>
-								{new Date(log.timestamp).toLocaleString()}
+								{new Date(log.timestamp).toLocaleString(
+									undefined,
+									{
+										dateStyle: 'short',
+										timeStyle: 'medium',
+										hour12: false,
+									}
+								)}
 							</strong>
 							]&nbsp;
 							<strong>{log.level}</strong>&nbsp;

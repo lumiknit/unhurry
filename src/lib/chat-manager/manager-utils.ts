@@ -22,7 +22,7 @@ Based on the following conversation, please generate a title for this chat.
 		LLMMessage.user('[Give me a title for the above conversation]')
 	);
 	const result = await llm.chat(systemPrompt, llmHistory);
-	logr.info('[ChatManager/utils] Generated Title', result);
+	logr.info('[ChatManager/utils] Generated Title', result.content);
 	const list = result
 		.extractText()
 		.split('\n')
@@ -80,7 +80,7 @@ ${comment}
 		)
 	);
 	const result = await llm.chat(systemPrompt, llmHistory);
-	logr.info('[ChatManager/utils] Generated Title', result);
+	logr.info('[ChatManager/utils] Generated next question', result.content);
 	const text = result.extractText().trim();
 	if (text.toLowerCase() === '<done>') {
 		return null;

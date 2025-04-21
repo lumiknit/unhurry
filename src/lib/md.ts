@@ -1,7 +1,11 @@
 /**
  * Convert the given content to markdown code block
  */
-export const stringToMDCodeBlock = (tag: string, content: string) => {
+export const stringToMDCodeBlock = (
+	tag: string,
+	content: string,
+	indent: string = ''
+) => {
 	let quotes = '```';
 
 	// Check if the quotes is included in content
@@ -10,6 +14,10 @@ export const stringToMDCodeBlock = (tag: string, content: string) => {
 		quotes += '`';
 	}
 
+	if (indent.length > 0) {
+		content = content.replaceAll('\n', `\n${indent}`);
+	}
+
 	// Wrap the content with the quotes
-	return `${quotes}${tag}\n${content}\n${quotes}`;
+	return `${indent}${quotes}${tag}\n${indent}${content}\n${indent}${quotes}`;
 };

@@ -38,6 +38,11 @@ export interface IBEService {
 	greet(name: string): Promise<string>;
 
 	/**
+	 * Fetch
+	 */
+	rawFetch: typeof globalThis.fetch;
+
+	/**
 	 * Fetch a URL.
 	 */
 	fetch(
