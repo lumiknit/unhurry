@@ -28,6 +28,12 @@ const GeneralSettings: Component = () => {
 			/>
 
 			<SwitchConfig
+				key="enterKeyToSend"
+				label="Enter Key to Send"
+				desc="If true, 'Enter' to send and 'Shift-Enter' to newline. If false, 'Enter' to newline, 'Shift-Enter' to send"
+			/>
+
+			<SwitchConfig
 				key="enableTools"
 				label="Allow tools"
 				desc="Enable LLM call tools"

@@ -79,6 +79,8 @@ addFunc(
 // WebSearch
 
 const uaChromeVersions = [
+	'136.0.0.0',
+	'135.0.0.0',
 	'134.0.0.0',
 	'133.0.0.0',
 	'132.0.0.0',
@@ -140,9 +142,9 @@ const fetchDocFromURL = async (
 
 addFunc(
 	{
-		name: 'searchDuckDuckGo',
+		name: 'webSearch',
 		description: [
-			'Search the given query from DuckDuckGo web search engine. (Fast and precise)',
+			'Search the given query from web search engine.',
 			'If user request "search", "find", "invest", etc., you may used this function first.',
 			'When you rephrase the result, show source. you should show link as markdown grammar. (e.g. [link](url))',
 		].join('\n'),
@@ -154,70 +156,81 @@ addFunc(
 					description: 'Search query or keywords',
 					minLength: 1,
 				},
-			},
-			required: ['query'],
-		},
-	},
-	async (args: { query: string }) => {
-		const onHTML = async (doc: Document) => {
-			doc.querySelectorAll('style, input, select, script').forEach((el) =>
-				el.remove()
-			);
-			const results = doc.querySelectorAll('div.filters');
-			const resultHTML =
-				results.length > 0 ? results[0].innerHTML : 'No results';
-			// Remove unusuful whitespaces
-			let md = turndownService.turndown(resultHTML);
-			md = md.replace(/---+\s*/gm, '');
-			md = md.replace(/\n\s+\n/g, '\n\n');
-			md = md.replace(
-				/\(\/\/duckduckgo\.com\/l\/\?uddg=([^&)]+)[^)]*\)/g,
-				(_m, p1) => {
-					return `(${decodeURIComponent(p1)})`;
-				}
-			);
-			return md;
-		};
-		return await fetchDocFromURL(
-			`https://lite.duckduckgo.com/lite/?q=${encodeURIComponent(args.query)}`,
-			onHTML
-		);
-	}
-);
-
-addFunc(
-	{
-		name: 'searchBrave',
-		description: [
-			'Search the given query from Brave web search engine.',
-			'The result is a HTML.',
-			'When you rephrase the result, you should show link and image using markdown grammar. (e.g. [link](url), ![image](url))',
-		].join('\n'),
-		parameters: {
-			type: 'object',
-			properties: {
-				query: {
+				engine: {
 					type: 'string',
-					description: 'Search query or keywords',
+					description: 'Search engine name',
+					enum: ['duckduckgo', 'brave'],
+					default: 'duckduckgo',
+				},
+				page: {
+					type: 'number',
+					description: 'Page number. Starts from 1',
+					default: 1,
 				},
 			},
 			required: ['query'],
 		},
 	},
-	async (args: { query: string }) => {
-		const onHTML = async (doc: Document) => {
-			doc.querySelectorAll(
-				'noscript, style, script, link, meta, noscript, iframe, embed, object, svg'
-			).forEach((el) => el.remove());
-			// Remove unnecessary whitespaces
-			return doc.body.innerHTML.replace(/>\s+</g, '><');
-		};
-		const content = await fetchDocFromURL(
-			`https://search.brave.com/search?q=${encodeURI(args.query)}`,
-			onHTML
-		);
-		const out = turndownService.turndown(content);
-		return out;
+	async ({
+		query,
+		engine,
+		page,
+	}: {
+		query: string;
+		engine?: string;
+		page?: number;
+	}) => {
+		if (!engine) engine = 'duckduckgo';
+		if (!page) page = 1;
+		if (page < 1) page = 1;
+
+		switch (engine) {
+			case 'duckduckgo': {
+				const onHTML = async (doc: Document) => {
+					doc.querySelectorAll(
+						'style, input, select, script'
+					).forEach((el) => el.remove());
+					const results = doc.querySelectorAll('div.filters');
+					const resultHTML =
+						results.length > 0
+							? results[0].innerHTML
+							: 'No results';
+					// Remove unusuful whitespaces
+					let md = turndownService.turndown(resultHTML);
+					md = md.replace(/---+\s*/gm, '');
+					md = md.replace(/\n\s+\n/g, '\n\n');
+					md = md.replace(
+						/\(\/\/duckduckgo\.com\/l\/\?uddg=([^&)]+)[^)]*\)/g,
+						(_m, p1) => {
+							return `(${decodeURIComponent(p1)})`;
+						}
+					);
+					return md;
+				};
+				return await fetchDocFromURL(
+					`https://lite.duckduckgo.com/lite/?q=${encodeURIComponent(query)}&s=10&dc=${1 + 10 * (page - 1)}`,
+					onHTML
+				);
+			}
+			case 'brave': {
+				const onHTML = async (doc: Document) => {
+					doc.querySelectorAll(
+						'noscript, style, script, link, meta, noscript, iframe, embed, object, svg'
+					).forEach((el) => el.remove());
+					// Remove unnecessary whitespaces
+					return doc.body.innerHTML.replace(/>\s+</g, '><');
+				};
+				const content = await fetchDocFromURL(
+					`https://search.brave.com/search?q=${encodeURI(query)}&offset=${page - 1}`,
+					onHTML
+				);
+				const out = turndownService.turndown(content);
+				console.log(out);
+				return out;
+			}
+			default:
+				throw new Error(`Unsupported search engine: ${engine}`);
+		}
 	}
 );
 

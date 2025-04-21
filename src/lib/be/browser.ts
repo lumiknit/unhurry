@@ -28,6 +28,8 @@ export class BrowserService implements IBEService {
 		return `Hello, ${name}`;
 	}
 
+	rawFetch = window.fetch;
+
 	async fetch(
 		method: string,
 		url: string,

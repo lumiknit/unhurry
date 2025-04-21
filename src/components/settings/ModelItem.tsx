@@ -128,10 +128,10 @@ const ModelEditor: Component<Props> = (props) => {
 			...props.model,
 		};
 		try {
-			const ip = await be.myIP();
+			const ip = '://' + (await be.myIP());
 			model.endpoint = model.endpoint
-				.replace('127.0.0.1', ip)
-				.replace('localhost', ip);
+				.replace('://127.0.0.1', ip)
+				.replace('://localhost', ip);
 		} catch {
 			toast.error('Local IP is unavailable');
 		}
@@ -149,7 +149,7 @@ const ModelEditor: Component<Props> = (props) => {
 			const s = await be.scanQRCode();
 			v = JSON.parse(s);
 		} catch (e) {
-			logr.error(e);
+			logr.error(`Failed to scan QR code: ${e}`);
 			toast.error('Failed to load QR code');
 			return;
 		}

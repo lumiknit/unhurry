@@ -19,7 +19,14 @@ import {
 	fnCallMsgPartToMD,
 } from './message';
 import { ModelConfig } from './model_config';
+import { getBEService } from '../be';
 import { logr } from '../logr';
+
+const fetch = async (...args: any[]) => {
+	const be = await getBEService();
+	console.log('Injected');
+	return await (be.rawFetch as any)(...args);
+};
 
 // OpenAI Message
 

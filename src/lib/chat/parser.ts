@@ -126,10 +126,11 @@ export class MsgPartsParser {
 			}
 
 			// Handle code block
-			const bt = line.match(/^```+/);
+			const bt = line.match(/^(\s*)(```+)/);
 			if (bt !== null) {
-				const backticks = bt[0].length;
-				let blockType = line.slice(backticks).trim();
+				const indent = bt[1];
+				const backticks = bt[2].length;
+				let blockType = line.slice(bt[0].length).trim();
 
 				if (lastPart.type === MSG_PART_TYPE_TEXT) {
 					// Open the block
@@ -137,14 +138,17 @@ export class MsgPartsParser {
 						blockType = 'plaintext';
 					}
 					this.quotes = backticks;
+					lastPart.content = lastPart.content.trimEnd();
 					this.parts.push(lastPart);
 					lastPart = {
 						type: blockType,
 						content: '',
+						indent,
 					};
 					line = '';
 				} else if (backticks >= this.quotes && !blockType) {
 					// close the block
+					lastPart.content = lastPart.content.trimEnd();
 					this.parts.push(this.checkCallPart(lastPart));
 					lastPart = {
 						type: MSG_PART_TYPE_TEXT,
@@ -155,6 +159,9 @@ export class MsgPartsParser {
 			}
 
 			// Append the line to the last part
+			if (lastPart.indent && line.startsWith(lastPart.indent)) {
+				line = line.slice(lastPart.indent.length);
+			}
 			lastPart.content += line;
 			this.cursor = lineEnd + 1;
 

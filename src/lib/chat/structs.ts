@@ -60,6 +60,7 @@ export const MSG_PART_TYPE_THINK = '*think';
 export interface MsgPart {
 	type: string;
 	content: string;
+	indent?: string; // Indentation for the message
 }
 
 export const parseMessagePartType = (type: string): string[] => {
@@ -91,19 +92,6 @@ export interface MsgPair {
 export interface ChatHistory {
 	msgPairs: MsgPair[];
 }
-
-/**
- * Convert MsgPart to string.
- * This can be used as an input of any LLM.
- */
-export const msgPartToText = (msg: MsgPart): string => {
-	switch (msg.type) {
-		case MSG_PART_TYPE_TEXT:
-			return msg.content;
-		default:
-			return stringToMDCodeBlock(msg.type, msg.content);
-	}
-};
 
 /**
  * Convert Msg to string.
@@ -153,7 +141,7 @@ export const convertMsgForLLM = async (msg: Msg): Promise<LLMMessage> => {
 							content.push({
 								type: 'text',
 								text:
-									`(Artifact ID: ${artifact._id})\n` +
+									`(Artifact Name: ${artifact.name}, Artifact ID: ${artifact._id})\n` +
 									stringToMDCodeBlock(
 										`${mdLang}`,
 										textContent
@@ -164,19 +152,25 @@ export const convertMsgForLLM = async (msg: Msg): Promise<LLMMessage> => {
 				}
 				break;
 			case MSG_PART_TYPE_FUNCTION_CALL:
-				{
-					if (textContent) {
-						content.push({ type: 'text', text: textContent });
-						textContent = '';
-					}
-					content.push(JSON.parse(part.content));
+				if (textContent) {
+					content.push({ type: 'text', text: textContent });
+					textContent = '';
 				}
+				content.push(JSON.parse(part.content));
 				break;
 			default: {
 				if (textContent) {
 					textContent += '\n\n';
 				}
-				textContent += part.content;
+				if (part.type === MSG_PART_TYPE_TEXT) {
+					textContent += part.content;
+				} else {
+					textContent += stringToMDCodeBlock(
+						part.type,
+						part.content,
+						part.indent
+					);
+				}
 			}
 		}
 	}

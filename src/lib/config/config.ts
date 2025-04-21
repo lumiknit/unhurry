@@ -32,6 +32,12 @@ export interface UserConfig {
 	enableAutoSend: boolean;
 
 	/**
+	 * If true, Enter = send, Shift/Cmd/Ctrl-Enter = new line
+	 * If false, Enter = new line, Shift/Cmd/Ctrl-Enter = send
+	 */
+	enterKeyToSend: boolean;
+
+	/**
 	 * When send the typed text to the server automatically
 	 */
 	autoSendMillis: number;
@@ -73,6 +79,7 @@ export const defaultConfig = (): UserConfig => ({
 	enableTools: true,
 	enableAutoSend: false,
 	enableVibration: true,
+	enterKeyToSend: false,
 	fontFamily: 'sans-serif',
 	fontSize: 16,
 	autoSendMillis: 2000,

@@ -223,7 +223,8 @@ const BottomInput: Component = () => {
 		switch (e.key) {
 			case 'Enter':
 				{
-					if (e.shiftKey || e.ctrlKey || e.metaKey) {
+					const modifier = e.shiftKey || e.ctrlKey || e.metaKey;
+					if (modifier !== !!getUserConfig()?.enterKeyToSend) {
 						e.preventDefault();
 						send();
 					}
@@ -330,6 +331,14 @@ const BottomInput: Component = () => {
 		autosizeTextarea();
 	});
 
+	const placeholder = () => {
+		if (getUserConfig()?.enterKeyToSend) {
+			return 'Enter key to send, Shift+Enter to newline';
+		} else {
+			return 'Shift+Enter to send, Enter to newline';
+		}
+	};
+
 	return (
 		<div
 			ref={topRef!}
@@ -343,7 +352,7 @@ const BottomInput: Component = () => {
 				onInput={handleInput}
 				onChange={autosizeTextarea}
 				onKeyDown={handleKeyDown}
-				placeholder="Type your message here..."
+				placeholder={placeholder()}
 			/>
 			<Show when={files().length > 0}>
 				<UploadedFiles

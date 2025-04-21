@@ -8,6 +8,7 @@ import {
 	impactFeedback,
 	notificationFeedback,
 } from '@tauri-apps/plugin-haptics';
+import { fetch } from '@tauri-apps/plugin-http';
 
 import {
 	FetchResult,
@@ -41,6 +42,8 @@ export class TauriService implements IBEService {
 			name,
 		});
 	}
+
+	rawFetch = fetch;
 
 	async fetch(
 		method: string,

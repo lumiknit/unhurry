@@ -37,15 +37,6 @@ export type NullSchema = {
 };
 
 /**
- * Schema for an enumerated value.
- */
-export type EnumSchema = {
-	type: 'enum';
-	description?: string;
-	value: (string | number | boolean | null)[]; // List of possible values.
-};
-
-/**
  * Schema for a boolean value.
  */
 export type BoolSchema = {
@@ -59,6 +50,7 @@ export type BoolSchema = {
 export type NumberSchema = {
 	type: 'number';
 	description?: string;
+	default?: number;
 	minimum?: number; // Minimum value (inclusive).
 	maximum?: number; // Maximum value (inclusive).
 	exclusiveMinimum?: number; // Minimum value (exclusive).
@@ -72,6 +64,8 @@ export type NumberSchema = {
 export type StringSchema = {
 	type: 'string';
 	description?: string;
+	default?: string;
+	enum?: string[];
 	minLength?: number; // Minimum length of the string.
 	maxLength?: number; // Maximum length of the string.
 	pattern?: string; // Regular expression pattern the string must match.
@@ -105,7 +99,6 @@ export type ArraySchema = {
  */
 export type JSONSchema =
 	| NullSchema
-	| EnumSchema
 	| BoolSchema
 	| NumberSchema
 	| StringSchema
@@ -117,21 +110,20 @@ export type JSONSchema =
  */
 const jsItemToTS = (item: JSONSchema): string => {
 	switch (item.type) {
-		case 'enum':
-			if (item.value.length === 0) return 'never';
-			else if (item.value.length === 1)
-				return JSON.stringify(item.value[0]);
-			else
-				return (
-					'(' +
-					item.value.map((v) => JSON.stringify(v)).join(' | ') +
-					')'
-				);
 		case 'null':
 		case 'boolean':
 		case 'number':
-		case 'string':
 			return item.type;
+		case 'string': {
+			let t: string = item.type;
+			if (item.enum) {
+				t = item.enum.map((value) => JSON.stringify(value)).join(' | ');
+			}
+			if (item.default !== undefined) {
+				return t + ' = ' + JSON.stringify(item.default);
+			}
+			return t;
+		}
 		case 'array':
 			if (item.prefixItems) {
 				const prefixes = item.prefixItems.map(jsItemToTS).join(', ');
@@ -172,5 +164,5 @@ export const jsonSchemaToTS = (
 	name: string,
 	desc: string
 ): string => {
-	return `/** ${desc.replace(/\n/g, '\n * ')} */\ninterface ${name} ${jsItemToTS(schema)}`;
+	return `/** ${desc.replaceAll('\n', '\n * ')} */\ninterface ${name} ${jsItemToTS(schema)}`;
 };

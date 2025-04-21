@@ -9,6 +9,7 @@ import { copyToClipboard } from '@lib/clipboard';
 import hljs from '@lib/hljs';
 import { JSONArray, JSONObject, JSONValue } from '@lib/json';
 
+import BlockBottomButtons from './BlockBottomButtons';
 import { ItemProps } from './message_types';
 
 type DisplayType =
@@ -223,7 +224,7 @@ const JSONLikeMessage: Component<ItemProps> = (props) => {
 	/** parsed is parsed json object/array. */
 	const [parsed, setParsed] = createSignal<JSONValue>(null);
 	const [analysis, setAnalysis] = createSignal<JSONAnalysis | undefined>();
-	const [displayType, setDisplayType] = createSignal<DisplayType>('fold');
+	const [displayType, setDisplayType] = createSignal<DisplayType>('raw');
 
 	const [html, setHtml] = createSignal('');
 	// Use highlight.js to highlight code
@@ -256,134 +257,146 @@ const JSONLikeMessage: Component<ItemProps> = (props) => {
 	};
 
 	return (
-		<div class="msg-code-container">
-			<header class="msg-code-header">
-				<span>@</span>
-				<span>{props.type}</span>
-				<button class="tag is-info ml-1" onClick={handleCopy}>
-					Copy
-				</button>
-				<div class="select is-small">
-					<select
-						class="ml-1"
-						onChange={(e) =>
-							setDisplayType(e.currentTarget.value as DisplayType)
-						}
-					>
-						{analysis()?.displayTypes.map((dt) => (
-							<option selected={dt === displayType()} value={dt}>
-								{dt}
-							</option>
-						))}
-					</select>
-				</div>
-			</header>
-			<Switch>
-				<Match when={displayType() === 'raw'}>
-					<div class="msg-code" innerHTML={html()} />
-				</Match>
-				<Match when={displayType() === 'object'}>
-					<div class="msg-code">
-						<table class="table is-striped is-fullwidth">
-							<thead>
-								<tr>
-									<th>Key</th>
-									<th>Value</th>
-								</tr>
-							</thead>
-							<tbody>
-								<For
-									each={Object.entries(
-										parsed() as JSONObject
-									)}
-								>
-									{([key, value]) => (
-										<tr>
-											<td>{key}</td>
-											<td>{JSON.stringify(value)}</td>
-										</tr>
-									)}
-								</For>
-							</tbody>
-						</table>
-					</div>
-				</Match>
-				<Match when={displayType() === 'array'}>
-					<div class="msg-code">
-						<table class="table is-striped is-fullwidth">
-							<thead>
-								<tr>
-									<th>Index</th>
-									<th>Value</th>
-								</tr>
-							</thead>
-							<tbody>
-								<For
-									each={(parsed() as JSONArray).map(
-										(value, index) => ({ index, value })
-									)}
-								>
-									{({ index, value }) => (
-										<tr>
-											<td>{index}</td>
-											<td>{JSON.stringify(value)}</td>
-										</tr>
-									)}
-								</For>
-							</tbody>
-						</table>
-					</div>
-				</Match>
-				<Match when={displayType() === 'table'}>
-					<div class="msg-code">
-						<table class="table is-striped is-fullwidth">
-							<thead>
-								<tr>
-									<th>Index</th>
+		<>
+			<div class="msg-code">
+				<header class="flex-split">
+					<span>@{props.type}</span>
+					<span>
+						<button class="tag is-info ml-1" onClick={handleCopy}>
+							Copy
+						</button>
+						<div class="select is-small">
+							<select
+								class="ml-1"
+								onChange={(e) =>
+									setDisplayType(
+										e.currentTarget.value as DisplayType
+									)
+								}
+							>
+								{analysis()?.displayTypes.map((dt) => (
+									<option
+										selected={dt === displayType()}
+										value={dt}
+									>
+										{dt}
+									</option>
+								))}
+							</select>
+						</div>
+					</span>
+				</header>
+				<Switch>
+					<Match when={displayType() === 'raw'}>
+						<div innerHTML={html()} />
+					</Match>
+					<Match when={displayType() === 'object'}>
+						<div>
+							<table class="table is-striped is-fullwidth">
+								<thead>
+									<tr>
+										<th>Key</th>
+										<th>Value</th>
+									</tr>
+								</thead>
+								<tbody>
 									<For
-										each={Array.from(
-											analysis()?.arrayFields || []
+										each={Object.entries(
+											parsed() as JSONObject
 										)}
 									>
-										{(field) => <th>{field}</th>}
+										{([key, value]) => (
+											<tr>
+												<td>{key}</td>
+												<td>{JSON.stringify(value)}</td>
+											</tr>
+										)}
 									</For>
-								</tr>
-							</thead>
-							<tbody>
-								<For
-									each={(parsed() as JSONObject[]).map(
-										(obj, index) => ({ index, obj })
-									)}
-								>
-									{({ index, obj }) => (
-										<tr>
-											<td>{index}</td>
-											<For
-												each={Array.from(
-													analysis()?.arrayFields ||
-														[]
-												)}
-											>
-												{(field) => (
-													<td>
-														{JSON.stringify(
-															obj[field]
-														)}
-													</td>
-												)}
-											</For>
-										</tr>
-									)}
-								</For>
-							</tbody>
-						</table>
-					</div>
-				</Match>
-				<Match when={displayType() === 'plot'}>
-					<Plot analysis={analysis()!} data={parsed()} />
-				</Match>
-			</Switch>
-		</div>
+								</tbody>
+							</table>
+						</div>
+					</Match>
+					<Match when={displayType() === 'array'}>
+						<div>
+							<table class="table is-striped is-fullwidth">
+								<thead>
+									<tr>
+										<th>Index</th>
+										<th>Value</th>
+									</tr>
+								</thead>
+								<tbody>
+									<For
+										each={(parsed() as JSONArray).map(
+											(value, index) => ({ index, value })
+										)}
+									>
+										{({ index, value }) => (
+											<tr>
+												<td>{index}</td>
+												<td>{JSON.stringify(value)}</td>
+											</tr>
+										)}
+									</For>
+								</tbody>
+							</table>
+						</div>
+					</Match>
+					<Match when={displayType() === 'table'}>
+						<div>
+							<table class="table is-striped is-fullwidth">
+								<thead>
+									<tr>
+										<th>Index</th>
+										<For
+											each={Array.from(
+												analysis()?.arrayFields || []
+											)}
+										>
+											{(field) => <th>{field}</th>}
+										</For>
+									</tr>
+								</thead>
+								<tbody>
+									<For
+										each={(parsed() as JSONObject[]).map(
+											(obj, index) => ({ index, obj })
+										)}
+									>
+										{({ index, obj }) => (
+											<tr>
+												<td>{index}</td>
+												<For
+													each={Array.from(
+														analysis()
+															?.arrayFields || []
+													)}
+												>
+													{(field) => (
+														<td>
+															{JSON.stringify(
+																obj[field]
+															)}
+														</td>
+													)}
+												</For>
+											</tr>
+										)}
+									</For>
+								</tbody>
+							</table>
+						</div>
+					</Match>
+					<Match when={displayType() === 'plot'}>
+						<Plot analysis={analysis()!} data={parsed()} />
+					</Match>
+				</Switch>
+			</div>
+			<BlockBottomButtons
+				getContent={() => props.content}
+				getLang={() => props.type}
+			/>
+		</>
 	);
 };
 

@@ -164,7 +164,6 @@ const SendButton: Component<Props> = (props) => {
 			onPointerUp={handlePointerUp}
 			onPointerLeave={handlePointerLeave}
 			class="control"
-			tabIndex={0}
 		>
 			<button class={className()} type="button" aria-label="Send">
 				<Dynamic component={icon()} />

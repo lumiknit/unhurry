@@ -18,6 +18,7 @@ export default ({ mode }: { mode: string }) => {
 	return defineConfig({
 		base,
 		build: {
+			target: ['es2023', 'chrome97', 'firefox105', 'safari16'],
 			rollupOptions: {
 				output: {
 					manualChunks: {
