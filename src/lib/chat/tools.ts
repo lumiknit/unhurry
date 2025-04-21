@@ -158,14 +158,14 @@ addFunc(
 				},
 				engine: {
 					type: 'string',
-					description: 'Search engine name',
+					description:
+						'Search engine name. If not specified, default is DuckDuckGo.',
 					enum: ['duckduckgo', 'brave'],
-					default: 'duckduckgo',
 				},
 				page: {
 					type: 'number',
-					description: 'Page number. Starts from 1',
-					default: 1,
+					description:
+						'Page number. Starts from 1. If not specified, default is 1.',
 				},
 			},
 			required: ['query'],
