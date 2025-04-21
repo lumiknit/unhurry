@@ -50,7 +50,6 @@ export type BoolSchema = {
 export type NumberSchema = {
 	type: 'number';
 	description?: string;
-	default?: number;
 	minimum?: number; // Minimum value (inclusive).
 	maximum?: number; // Maximum value (inclusive).
 	exclusiveMinimum?: number; // Minimum value (exclusive).
@@ -64,7 +63,6 @@ export type NumberSchema = {
 export type StringSchema = {
 	type: 'string';
 	description?: string;
-	default?: string;
 	enum?: string[];
 	minLength?: number; // Minimum length of the string.
 	maxLength?: number; // Maximum length of the string.
@@ -115,14 +113,12 @@ const jsItemToTS = (item: JSONSchema): string => {
 		case 'number':
 			return item.type;
 		case 'string': {
-			let t: string = item.type;
 			if (item.enum) {
-				t = item.enum.map((value) => JSON.stringify(value)).join(' | ');
+				return item.enum
+					.map((value) => JSON.stringify(value))
+					.join(' | ');
 			}
-			if (item.default !== undefined) {
-				return t + ' = ' + JSON.stringify(item.default);
-			}
-			return t;
+			return item.type;
 		}
 		case 'array':
 			if (item.prefixItems) {
@@ -141,7 +137,7 @@ const jsItemToTS = (item: JSONSchema): string => {
 			}
 		case 'object': {
 			if (!item.properties) return '{}';
-			const lines = [];
+			const lines: string[] = [];
 			for (const [key, value] of Object.entries(item.properties)) {
 				const desc = value.description
 					? `/** ${value.description} */\n`

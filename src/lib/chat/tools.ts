@@ -158,14 +158,14 @@ addFunc(
 				},
 				engine: {
 					type: 'string',
-					description: 'Search engine name',
+					description:
+						'Search engine name. If not specified, default is DuckDuckGo.',
 					enum: ['duckduckgo', 'brave'],
-					default: 'duckduckgo',
 				},
 				page: {
 					type: 'number',
-					description: 'Page number. Starts from 1',
-					default: 1,
+					description:
+						'Page number. Starts from 1. If not specified, default is 1.',
 				},
 			},
 			required: ['query'],
@@ -184,7 +184,7 @@ addFunc(
 		if (!page) page = 1;
 		if (page < 1) page = 1;
 
-		switch (engine) {
+		switch (engine.toLowerCase()) {
 			case 'duckduckgo': {
 				const onHTML = async (doc: Document) => {
 					doc.querySelectorAll(
