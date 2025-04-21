@@ -28,7 +28,9 @@ export class BrowserService implements IBEService {
 		return `Hello, ${name}`;
 	}
 
-	rawFetch = window.fetch;
+	rawFetch = async (...args: Parameters<typeof fetch>) => {
+		return await fetch(...args);
+	};
 
 	async fetch(
 		method: string,

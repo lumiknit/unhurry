@@ -43,7 +43,14 @@ export class TauriService implements IBEService {
 		});
 	}
 
-	rawFetch = fetch;
+	rawFetch: typeof fetch = async (req, init) => {
+		if (init === undefined) {
+			init = {};
+		}
+		init.headers = new Headers(init.headers);
+		init.headers.set('Origin', '');
+		return await fetch(req, init);
+	};
 
 	async fetch(
 		method: string,

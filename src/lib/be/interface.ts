@@ -40,7 +40,7 @@ export interface IBEService {
 	/**
 	 * Fetch
 	 */
-	rawFetch: typeof window.fetch;
+	rawFetch: typeof globalThis.fetch;
 
 	/**
 	 * Fetch a URL.
