@@ -184,7 +184,7 @@ addFunc(
 		if (!page) page = 1;
 		if (page < 1) page = 1;
 
-		switch (engine) {
+		switch (engine.toLowerCase()) {
 			case 'duckduckgo': {
 				const onHTML = async (doc: Document) => {
 					doc.querySelectorAll(

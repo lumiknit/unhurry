@@ -98,7 +98,7 @@ export const systemPrompt = async (
 		'  2. For each step, if you can provide the answer directly, do so.',
 		'  3. Otherwise, use *tools* to get hints, and derive the answer from them.',
 		'- **Use tool calling actively.**.',
-		'  - For precise calculation / string manipulation / pick randomly, use **runJS** tool with proper JavaScript code.',
+		'  - For precise calculation / pick a value randomly, use **runJS** tool with proper JavaScript code.',
 		'  - You can visit and get website content using "visitWeb" tool with URL.',
 		'  - Use **webSearch** tools for web search recent data & precise data. After search, you should list the results, sources.',
 		'- Instead say its impossible, try to use tools to get hints.',
@@ -130,6 +130,8 @@ The list of language names and how they are displayed.
 - 'svg': Shown as image. The content MUST be <svg ...> ... </svg>. You MUST use viewBox instead of width and height.
 - 'mermaid': Shown as a diagram using mermaid.js. Use mermaid syntax.
 - 'qr': Shown as QR Code Image. You can use any words, json, string, or URL.
+
+NOTE: all other languages except above 'svg', 'mermaid', 'qr' just show the code. (No execution)
 
 ${await toolCallSystemPrompt(useToolCall, functions)}
 
