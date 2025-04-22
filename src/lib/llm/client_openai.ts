@@ -346,6 +346,9 @@ export class OpenAIClient implements ILLMService {
 				`Failed to chat stream: ${resp.status} ${resp.statusText}\n${body}`
 			);
 		}
+
+		callbacks.onStart?.();
+
 		const reader = resp.body?.getReader();
 		if (!reader) {
 			throw new Error('Failed to get response reader');

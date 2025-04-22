@@ -11,7 +11,7 @@ import { toast } from 'solid-toast';
 
 import { vibrate } from '@/store/global_actions';
 
-import { getFocusedChatProgressing, store } from '@store';
+import { autoSendLaunchAt, getFocusedChatProgressing } from '@store';
 
 import './send_button.scss';
 
@@ -149,9 +149,9 @@ const SendButton: Component<Props> = (props) => {
 	});
 
 	createEffect(() => {
-		const autoSendLaunchAt = store.autoSendLaunchAt;
-		if (autoSendLaunchAt) {
-			const millisLeft = autoSendLaunchAt - Date.now();
+		const a = autoSendLaunchAt();
+		if (a) {
+			const millisLeft = a - Date.now();
 			animateProgress(millisLeft);
 		} else {
 			resetProgress();

@@ -9,7 +9,7 @@ import {
 	getFocusedChatProgressing,
 	getUphurryMode,
 	getUserConfig,
-	setStore,
+	setAutoSendLaunchAt,
 } from '@store';
 
 import InputTags from './PromptTags';
@@ -151,7 +151,7 @@ const BottomInput: Component = () => {
 	 */
 	const clearAutoSend = () => {
 		autoSendTimeoutId = undefined;
-		setStore('autoSendLaunchAt', null);
+		setAutoSendLaunchAt(null);
 	};
 
 	/**
@@ -167,7 +167,7 @@ const BottomInput: Component = () => {
 			return;
 
 		const now = Date.now();
-		setStore('autoSendLaunchAt', now + as);
+		setAutoSendLaunchAt(now + as);
 		autoSendAt = now + as;
 		if (autoSendTimeoutId === undefined) {
 			autoSendTimeoutId = window.setTimeout(autoSend, as);
@@ -181,7 +181,7 @@ const BottomInput: Component = () => {
 		if (autoSendTimeoutId) {
 			clearTimeout(autoSendTimeoutId);
 		}
-		setStore('autoSendLaunchAt', null);
+		setAutoSendLaunchAt(null);
 		clearAutoSend();
 	};
 

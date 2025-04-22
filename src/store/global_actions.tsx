@@ -11,8 +11,9 @@ import {
 	getChatContext,
 	getCurrentChatOpts,
 	getUserConfig,
-	resetStreaming,
+	resetStreamingState,
 	setChatContext,
+	setChatWarnings,
 	setFocusedChatProgressing,
 	setFocusedChatUphurryProgress,
 	setStreamingParts,
@@ -36,7 +37,7 @@ export const vibrate = async (pattern: VibrationPattern) => {
 export const resetChatMessages = () => {
 	batch(() => {
 		setChatContext({ ...chatManager.emptyChat(getCurrentChatOpts()) });
-		resetStreaming();
+		resetStreamingState();
 		setFocusedChatProgressing(false);
 	});
 };
@@ -47,7 +48,7 @@ export const loadChatContext = async (id: string) => {
 	const progress = chatManager.getProgress(id);
 	batch(() => {
 		setChatContext({ ...ctx });
-		resetStreaming();
+		resetStreamingState();
 		setFocusedChatProgressing(progress.llm);
 		setFocusedChatUphurryProgress(progress.uphurry);
 	});
@@ -150,6 +151,14 @@ chatManager.onContextUpdate = (ctx) => {
 	return true;
 };
 
+chatManager.onWarning = (id, warning) => {
+	const ctx = untrack(getChatContext);
+	if (ctx._id !== id) {
+		return;
+	}
+	setChatWarnings(warning);
+};
+
 chatManager.onChunk = (id, parts, rest) => {
 	const ctx = untrack(getChatContext);
 	if (ctx._id !== id) {
@@ -167,7 +176,7 @@ chatManager.onMessage = async (id, msgPairs) => {
 	if (ctx._id !== id) {
 		return;
 	}
-	resetStreaming();
+	resetStreamingState();
 	setChatContext((c) => ({
 		...c,
 		history: {

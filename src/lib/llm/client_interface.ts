@@ -36,6 +36,11 @@ export interface StreamCallbacks {
 	isCancelled?: () => boolean;
 
 	/**
+	 * Called when the LLM starts streaming without error.
+	 */
+	onStart?: () => void;
+
+	/**
 	 * Called when the LLM sends a chunk of text.
 	 */
 	onText?: (text: string) => void;
