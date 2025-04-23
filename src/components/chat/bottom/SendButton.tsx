@@ -11,7 +11,11 @@ import { toast } from 'solid-toast';
 
 import { vibrate } from '@/store/global_actions';
 
-import { getFocusedChatProgressing, store } from '@store';
+import {
+	autoSendLaunchAt,
+	getFocusedChatProgressing,
+	getUserConfig,
+} from '@store';
 
 import './send_button.scss';
 
@@ -103,7 +107,15 @@ const SendButton: Component<Props> = (props) => {
 	const handlePointerDown = (e: PointerEvent) => {
 		e.stopPropagation();
 		e.preventDefault();
-		(e.currentTarget! as HTMLDivElement).focus();
+
+		// Blur the current focused element
+		if (getUserConfig().blurOnSendButton) {
+			try {
+				(document.activeElement as HTMLElement)?.blur?.();
+			} catch {
+				console.warn('Failed to blur the active element');
+			}
+		}
 
 		stopSRWhenUp = true;
 		clearTimeout(srStartTimeout!);
@@ -149,9 +161,9 @@ const SendButton: Component<Props> = (props) => {
 	});
 
 	createEffect(() => {
-		const autoSendLaunchAt = store.autoSendLaunchAt;
-		if (autoSendLaunchAt) {
-			const millisLeft = autoSendLaunchAt - Date.now();
+		const a = autoSendLaunchAt();
+		if (a) {
+			const millisLeft = a - Date.now();
 			animateProgress(millisLeft);
 		} else {
 			resetProgress();

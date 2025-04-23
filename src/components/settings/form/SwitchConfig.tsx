@@ -16,7 +16,7 @@ const SwitchConfig: Component<Props> = (props) => {
 		<SwitchForm
 			{...props}
 			get={() => !!getUserConfig()?.[props.key]}
-			set={(v) => setUserConfig({ [props.key]: v })}
+			set={(v) => setUserConfig((s) => ({ ...s, [props.key]: v }))}
 		/>
 	);
 };

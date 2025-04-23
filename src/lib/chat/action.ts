@@ -59,6 +59,11 @@ export abstract class SingleLLMAction {
 	// Events
 
 	/**
+	 * Called when LLM send a status code 2xx, and streaming is started.
+	 */
+	onStart?: () => void;
+
+	/**
 	 * Called when LLM sends a chunk of the message.
 	 */
 	onChunk?: (chunk: string, parts: MsgPart[], rest: string) => void;
@@ -164,6 +169,9 @@ export abstract class SingleLLMAction {
 		console.log('History', llmHistory);
 		logr.info('[chat/SingleChatAction/generate] Stream Start');
 		const result = await llm.chatStream(sys, llmHistory, {
+			onStart: () => {
+				this.onStart?.();
+			},
 			onText: (text) => {
 				parser.push(text);
 				this.onChunk?.(text, ...parser.state());

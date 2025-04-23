@@ -74,6 +74,9 @@ export type OngoingChat = {
 
 	/** Max retries */
 	retries: number;
+
+	/** Warnings */
+	warnings: string[];
 };
 
 /**
@@ -115,6 +118,11 @@ export class ChatManager {
 	onContextUpdate: (ctx: ChatContext) => boolean = () => {
 		return false;
 	};
+
+	/**
+	 * Callback for when warning is received.
+	 */
+	onWarning: (id: string, warnings: string[]) => void = () => {};
 
 	/**
 	 * Callback for the chat chunk is received.
@@ -219,6 +227,7 @@ export class ChatManager {
 			ctx,
 			opts: options,
 			retries: 0,
+			warnings: [],
 		};
 		this.chats.set(ctx._id, oc);
 		this.saveState();
@@ -303,6 +312,29 @@ export class ChatManager {
 		});
 	}
 
+	// Warning / retries
+
+	private pushWarning(id: string, ...warnings: string[]) {
+		const ch = this.chat(id);
+		ch.warnings.push(...warnings);
+		this.onWarning(id, ch.warnings);
+	}
+
+	private clearWarnings(id: string) {
+		const ch = this.chat(id);
+		if (ch.warnings.length > 0) {
+			ch.warnings = [];
+			this.onWarning(id, ch.warnings);
+		}
+	}
+
+	private resetFailures(id: string) {
+		const ch = this.chat(id);
+		ch.retries = 0;
+		this.clearWarnings(id);
+		this.saveState();
+	}
+
 	// Chat methods
 
 	/**
@@ -315,7 +347,7 @@ export class ChatManager {
 			return false;
 		}
 		ch.meta.request = req;
-		ch.retries = 0;
+		this.resetFailures(id);
 		this.saveState();
 
 		if (req.type === 'uphurry') {
@@ -409,10 +441,11 @@ export class ChatManager {
 		_idx: number,
 		mc: ModelConfig
 	) {
-		let reason = `'${mc.name}' failed. `;
+		const ch = this.chat(id);
+		let reason = `<${mc.name}> error.`;
 		if (err instanceof BadRequestError) {
 			reason +=
-				'(400) Maybe the input is invalid, or some inputs are not supported. (e.g. Image, ToolCall)';
+				'(400) Maybe inputs are invalid or include unsupported items. (e.g. Image, ToolCall)';
 		} else if (err instanceof RequestEntityTooLargeError) {
 			reason += '(413) Maybe chat history is too long.';
 		} else if (err instanceof RateLimitError) {
@@ -420,6 +453,10 @@ export class ChatManager {
 		} else {
 			reason += `(${err.message})`;
 		}
+		reason += `(retries: ${ch.retries})`;
+
+		this.pushWarning(id, reason);
+
 		if (this.chats.get(id)?.opts.enableLLMFallback) {
 			logr.info(
 				`[ChatManager] LLM fallback enabled, error: ${err.message}; ${reason}`
@@ -469,6 +506,9 @@ export class ChatManager {
 				item.opts.toolConfigs,
 				item.ctx.history
 			);
+			action.onStart = () => {
+				this.clearWarnings(id);
+			};
 			action.onChunk = (_, parts, rest) => this.onChunk(id, parts, rest);
 			action.onLLMFallback = (err, index, mc) =>
 				this.onLLMFallback(id, err, index, mc);
@@ -530,8 +570,7 @@ export class ChatManager {
 			}
 			item.lock = true;
 			await this.checkChatInner(item);
-
-			item.retries = 0;
+			this.resetFailures(item.ctx._id);
 		} catch (e) {
 			item.retries = (item.retries || 0) + 1;
 			if (item.retries > this.maxRetries) {

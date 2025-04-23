@@ -4,6 +4,7 @@ import { MsgPair } from '@/lib/chat';
 
 import {
 	getChatContext,
+	getChatWarnings,
 	getFocusedChatProgressing,
 	getFocusedChatUphurryProgress,
 	getStreamingParts,
@@ -19,6 +20,49 @@ type Props = {
 	pair: MsgPair;
 };
 
+const StreamingInfo: Component = () => {
+	return (
+		<>
+			<Show when={getStreamingParts()}>
+				<Message
+					msg={{
+						role: 'assistant',
+						parts: getStreamingParts(),
+						timestamp: Date.now(),
+					}}
+				/>
+			</Show>
+			<Show when={getStreamingRest()}>
+				<div class="streaming-msg">{getStreamingRest()}</div>
+			</Show>
+			<Show
+				when={
+					!getFocusedChatProgressing() &&
+					getFocusedChatUphurryProgress()
+				}
+			>
+				<div class="message-body msg-user is-uphurry has-text-centered">
+					<span class="spinner" />
+				</div>
+			</Show>
+			<Show when={getFocusedChatProgressing()}>
+				<div class="has-text-centered">
+					<span class="spinner spinner-primary" />
+				</div>
+			</Show>
+			<Show when={getChatWarnings().length > 0}>
+				<div class="notification is-warning px-3 py-2">
+					<ul>
+						<For each={getChatWarnings()}>
+							{(w) => <li>{w}</li>}
+						</For>
+					</ul>
+				</div>
+			</Show>
+		</>
+	);
+};
+
 const MessagePair: Component<Props> = (props) => {
 	return (
 		<div class="msg-group">
@@ -29,33 +73,7 @@ const MessagePair: Component<Props> = (props) => {
 				<Message msg={props.pair.assistant!} />
 			</Show>
 			<Show when={props.isLast}>
-				<Show when={getStreamingParts()}>
-					<Message
-						msg={{
-							role: 'assistant',
-							parts: getStreamingParts(),
-							timestamp: Date.now(),
-						}}
-					/>
-				</Show>
-				<Show when={getStreamingRest()}>
-					<div class="streaming-msg">{getStreamingRest()}</div>
-				</Show>
-				<Show
-					when={
-						!getFocusedChatProgressing() &&
-						getFocusedChatUphurryProgress()
-					}
-				>
-					<div class="message-body msg-user is-uphurry has-text-centered">
-						<span class="spinner" />
-					</div>
-				</Show>
-				<Show when={getFocusedChatProgressing()}>
-					<div class="has-text-centered">
-						<span class="spinner spinner-primary" />
-					</div>
-				</Show>
+				<StreamingInfo />
 			</Show>
 		</div>
 	);

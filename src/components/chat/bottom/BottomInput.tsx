@@ -1,6 +1,7 @@
 import { Component, createSignal, onCleanup, onMount, Show } from 'solid-js';
 import { toast } from 'solid-toast';
 
+import { scrollToLastUserMessage } from '@/lib';
 import { getBEService, ISpeechRecognizer } from '@/lib/be';
 import { logr } from '@/lib/logr';
 import { cancelCurrentChat, chat } from '@/store/global_actions';
@@ -9,16 +10,15 @@ import {
 	getFocusedChatProgressing,
 	getUphurryMode,
 	getUserConfig,
-	setStore,
+	setAutoSendLaunchAt,
 } from '@store';
 
 import InputTags from './PromptTags';
 import SendButton from './SendButton';
+import SlashButton from './SlashButton';
 import SpeechButton from './SpeechButton';
-import UphurryButton from './UpHurryButton';
 import UploadedFiles from './UploadedFiles';
 import UploadFileButton from './UploadFileButton';
-import { scrollToLastUserMessage } from '../../../lib';
 
 interface FileInput {
 	name: string;
@@ -151,7 +151,7 @@ const BottomInput: Component = () => {
 	 */
 	const clearAutoSend = () => {
 		autoSendTimeoutId = undefined;
-		setStore('autoSendLaunchAt', null);
+		setAutoSendLaunchAt(null);
 	};
 
 	/**
@@ -167,7 +167,7 @@ const BottomInput: Component = () => {
 			return;
 
 		const now = Date.now();
-		setStore('autoSendLaunchAt', now + as);
+		setAutoSendLaunchAt(now + as);
 		autoSendAt = now + as;
 		if (autoSendTimeoutId === undefined) {
 			autoSendTimeoutId = window.setTimeout(autoSend, as);
@@ -181,7 +181,7 @@ const BottomInput: Component = () => {
 		if (autoSendTimeoutId) {
 			clearTimeout(autoSendTimeoutId);
 		}
-		setStore('autoSendLaunchAt', null);
+		setAutoSendLaunchAt(null);
 		clearAutoSend();
 	};
 
@@ -231,6 +231,11 @@ const BottomInput: Component = () => {
 				}
 				break;
 			case 'Escape':
+				{
+					unsetAutoSend();
+					taRef!.blur();
+				}
+				break;
 			case 'Backspace':
 				{
 					unsetAutoSend();
@@ -380,7 +385,7 @@ const BottomInput: Component = () => {
 						setFiles((fs) => [...fs, { name, id }])
 					}
 				/>
-				<UphurryButton />
+				<SlashButton />
 				<InputTags
 					textState={inputTriple()}
 					onInsertText={(text, toSend) => {

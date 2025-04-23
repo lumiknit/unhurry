@@ -1,7 +1,6 @@
 /// Global store
 
-import { createEffect, createSignal } from 'solid-js';
-import { createStore, StoreSetter, unwrap } from 'solid-js/store';
+import { createEffect, createSignal, Setter } from 'solid-js';
 
 import { chatManager } from '@/lib/chat-manager/manager';
 import { logr } from '@/lib/logr';
@@ -10,51 +9,32 @@ import { ChatContext, MsgPart } from '../lib/chat';
 import { sanitizeConfig, UserConfig } from '../lib/config';
 import { loadUserConfig, saveUserConfig } from '../lib/idb';
 
-// Streaming message state
-// parts is an array of completed message parts,
-// and rest is an array of generating message parts
+// Global store
 
 /**
- * Streamed message part signal
+ * Navigate Helper. This signal is used in the root component, to navigate to the next URL.
  */
-export const [getStreamingParts, setStreamingParts] = createSignal<MsgPart[]>(
-	[]
+export const [getNextURL, goto] = createSignal<string | undefined>(undefined, {
+	equals: false,
+});
+
+/**
+ * User Config Helper. This signal is used in the root component, to get the user config.
+ */
+export const [getUserConfig, setUserConfig_] = createSignal<UserConfig>(
+	undefined!,
+	{
+		equals: false,
+	}
 );
 
 /**
- * Streamed message rest (not parsed yet) signal
+ * Auto send launch timestamp
  */
-export const [getStreamingRest, setStreamingRest] = createSignal<string>('');
-
-export const resetStreaming = () => {
-	setStreamingParts([]);
-	setStreamingRest('');
-};
-
-/**
- * Whether current focusd chat is progressing. (LLM is running)
- */
-export const [getFocusedChatProgressing, setFocusedChatProgressing] =
-	createSignal<boolean>(false);
-
-/**
- * Whether current focused chat uphurry is running
- */
-export const [getFocusedChatUphurryProgress, setFocusedChatUphurryProgress] =
-	createSignal<boolean>(false);
-
-interface GlobalStore {
-	// Configurations
-	userConfig?: UserConfig;
-
-	/**
-	 * Auto send launch timestamp
-	 */
-	autoSendLaunchAt: number | null;
-}
-
-export const [store, setStore] = createStore<GlobalStore>({
-	autoSendLaunchAt: null,
+export const [autoSendLaunchAt, setAutoSendLaunchAt] = createSignal<
+	number | null
+>(null, {
+	equals: false,
 });
 
 // Config
@@ -62,19 +42,13 @@ export const [store, setStore] = createStore<GlobalStore>({
 (async () => {
 	const c = await loadUserConfig<UserConfig>();
 	const userConfig = sanitizeConfig(c);
-	setStore('userConfig', userConfig);
+	setUserConfig_(userConfig);
 })();
 
-export const getUserConfig = () => store.userConfig;
-export const setUserConfig = (setter: StoreSetter<UserConfig>) => {
+export const setUserConfig: Setter<UserConfig> = (setter) => {
 	logr.info('[store/config] User config updated, will save persistently');
-	setStore(
-		'userConfig',
-		setter as StoreSetter<UserConfig | undefined, ['userConfig']>
-	);
-
-	// Save to IDB
-	saveUserConfig(unwrap(getUserConfig()));
+	const v = setUserConfig_(setter);
+	saveUserConfig(v);
 };
 
 createEffect(() => {
@@ -95,7 +69,7 @@ createEffect(() => {
 });
 
 export const getCurrentChatOpts = () => {
-	const config = unwrap(getUserConfig());
+	const config = getUserConfig();
 	if (!config) {
 		return {
 			modelConfigs: [],
@@ -123,6 +97,45 @@ export const [getChatContext, setChatContext] = createSignal<ChatContext>(
 
 export const [getUphurryMode, setUphurryMode] = createSignal<boolean>(false);
 
-export const [getNextURL, goto] = createSignal<string | undefined>(undefined, {
+// Streaming message state
+// parts is an array of completed message parts,
+// and rest is an array of generating message parts
+
+/**
+ * Current chat warning
+ */
+export const [getChatWarnings, setChatWarnings] = createSignal<string[]>([], {
 	equals: false,
 });
+
+/**
+ * Streamed message part signal
+ */
+export const [getStreamingParts, setStreamingParts] = createSignal<MsgPart[]>(
+	[]
+);
+
+/**
+ * Streamed message rest (not parsed yet) signal
+ */
+export const [getStreamingRest, setStreamingRest] = createSignal<string>('');
+
+/**
+ * Reset current streaming state
+ */
+export const resetStreamingState = () => {
+	setStreamingParts([]);
+	setStreamingRest('');
+};
+
+/**
+ * Whether current focusd chat is progressing. (LLM is running)
+ */
+export const [getFocusedChatProgressing, setFocusedChatProgressing] =
+	createSignal<boolean>(false);
+
+/**
+ * Whether current focused chat uphurry is running
+ */
+export const [getFocusedChatUphurryProgress, setFocusedChatUphurryProgress] =
+	createSignal<boolean>(false);

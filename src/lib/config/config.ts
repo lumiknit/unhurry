@@ -38,6 +38,11 @@ export interface UserConfig {
 	enterKeyToSend: boolean;
 
 	/**
+	 * If true, blur the active element when the send button is clicked.
+	 */
+	blurOnSendButton: boolean;
+
+	/**
 	 * When send the typed text to the server automatically
 	 */
 	autoSendMillis: number;
@@ -75,14 +80,19 @@ export interface UserConfig {
 export const defaultConfig = (): UserConfig => ({
 	models: [],
 	currentModelIdx: 0,
+
 	enableLLMFallback: true,
 	enableTools: true,
 	enableAutoSend: false,
 	enableVibration: true,
 	enterKeyToSend: false,
+	blurOnSendButton: false,
+
 	fontFamily: 'sans-serif',
 	fontSize: 16,
+
 	autoSendMillis: 2000,
+
 	promptTags: [],
 	tools: {},
 });

@@ -380,6 +380,8 @@ export class GeminiClient implements ILLMService {
 			);
 		}
 
+		callbacks.onStart?.();
+
 		// SSE
 		const reader = resp.body?.getReader();
 		if (!reader) {
