@@ -1,23 +1,18 @@
-import { BiSolidChevronsRight } from 'solid-icons/bi';
 import {
 	Component,
 	createEffect,
 	createSignal,
 	For,
 	JSX,
-	Match,
-	Show,
 	splitProps,
-	Switch,
 } from 'solid-js';
 import { toast } from 'solid-toast';
 
-import { createIsMobile } from '@/components/utils/media';
 import { vibrate } from '@/store/global_actions';
 
 import { PromptTag } from '@lib/config';
 
-import { getUserConfig, setUserConfig } from '@store';
+import { getUserConfig } from '@store';
 
 type TagProps = JSX.HTMLAttributes<HTMLButtonElement> & {
 	class?: string;
@@ -42,50 +37,6 @@ const Tag: Component<TagProps> = (props) => {
 		>
 			{tagProps.children}
 		</button>
-	);
-};
-
-const AutoSendTag: Component = () => {
-	const isMobile = createIsMobile();
-
-	const autoSendTimeout = (): number | undefined => {
-		const v = getUserConfig()?.autoSendMillis;
-		if (v && v > 0) {
-			return Math.floor(v);
-		}
-	};
-
-	const toggleAutoSend = (e: MouseEvent) => {
-		e.stopPropagation();
-		const enabled = getUserConfig()?.enableAutoSend;
-		if (enabled) {
-			toast('Auto-send OFF');
-		} else {
-			toast(`Auto-send ON: ${autoSendTimeout()}ms`);
-		}
-		setUserConfig((c) => ({
-			...c,
-			enableAutoSend: !c.enableAutoSend,
-		}));
-	};
-
-	return (
-		<Tag
-			class={getUserConfig()?.enableAutoSend ? 'is-primary' : ''}
-			onClick={toggleAutoSend}
-		>
-			<span class="icon">
-				<BiSolidChevronsRight />
-			</span>
-			<Show when={!isMobile()}>
-				<Switch>
-					<Match when={getUserConfig()?.enableAutoSend}>
-						Auto: {(autoSendTimeout()! / 1000).toFixed(1)}s
-					</Match>
-					<Match when>No-auto</Match>
-				</Switch>
-			</Show>
-		</Tag>
 	);
 };
 
@@ -160,7 +111,6 @@ const PromptTags: Component<Props> = (props) => {
 	return (
 		<div class="input-tags">
 			{props.children}
-			<AutoSendTag />
 			<For each={filtered()}>
 				{(tag) => (
 					<Tag

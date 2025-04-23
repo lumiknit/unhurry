@@ -1,6 +1,7 @@
 import { Component, createSignal, onCleanup, onMount, Show } from 'solid-js';
 import { toast } from 'solid-toast';
 
+import { scrollToLastUserMessage } from '@/lib';
 import { getBEService, ISpeechRecognizer } from '@/lib/be';
 import { logr } from '@/lib/logr';
 import { cancelCurrentChat, chat } from '@/store/global_actions';
@@ -14,11 +15,10 @@ import {
 
 import InputTags from './PromptTags';
 import SendButton from './SendButton';
+import SlashButton from './SlashButton';
 import SpeechButton from './SpeechButton';
-import UphurryButton from './UpHurryButton';
 import UploadedFiles from './UploadedFiles';
 import UploadFileButton from './UploadFileButton';
-import { scrollToLastUserMessage } from '../../../lib';
 
 interface FileInput {
 	name: string;
@@ -231,6 +231,11 @@ const BottomInput: Component = () => {
 				}
 				break;
 			case 'Escape':
+				{
+					unsetAutoSend();
+					taRef!.blur();
+				}
+				break;
 			case 'Backspace':
 				{
 					unsetAutoSend();
@@ -380,7 +385,7 @@ const BottomInput: Component = () => {
 						setFiles((fs) => [...fs, { name, id }])
 					}
 				/>
-				<UphurryButton />
+				<SlashButton />
 				<InputTags
 					textState={inputTriple()}
 					onInsertText={(text, toSend) => {

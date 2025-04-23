@@ -221,6 +221,7 @@ export const openArtifactPreviewModal = (
 								class="textarea"
 								readOnly
 								value={text()!}
+								rows="8"
 							></textarea>
 						</Match>
 					</Switch>

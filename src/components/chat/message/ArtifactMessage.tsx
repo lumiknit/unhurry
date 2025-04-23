@@ -1,5 +1,6 @@
 import { Component, createSignal, Match, onMount, Switch } from 'solid-js';
 
+import { openArtifactPreviewModal } from '@/components/artifact-list/ArtifactPreviewModal';
 import {
 	ArtifactMeta,
 	getArtifact,
@@ -34,9 +35,15 @@ const FileMessage: Component<ItemProps> = (props) => {
 		}
 	});
 
+	const openPreview = () => {
+		const m = meta();
+		if (!m) return;
+		openArtifactPreviewModal(m);
+	};
+
 	return (
 		<div class="msg-code">
-			<header class="flex-split">
+			<header class="flex-split" onClick={openPreview}>
 				<span>
 					<b>Artifact</b> {meta()?.name} ({props.content})
 				</span>

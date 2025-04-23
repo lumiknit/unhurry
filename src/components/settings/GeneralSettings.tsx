@@ -30,7 +30,13 @@ const GeneralSettings: Component = () => {
 			<SwitchConfig
 				key="enterKeyToSend"
 				label="Enter Key to Send"
-				desc="If true, 'Enter' to send and 'Shift-Enter' to newline. If false, 'Enter' to newline, 'Shift-Enter' to send"
+				desc="When enabled, 'Enter' to send and 'Shift-Enter' to newline. If false, 'Enter' to newline, 'Shift-Enter' to send"
+			/>
+
+			<SwitchConfig
+				key="blurOnSendButton"
+				label="Blur on Send Button"
+				desc="Hide keyboard when send button is clicked"
 			/>
 
 			<SwitchConfig

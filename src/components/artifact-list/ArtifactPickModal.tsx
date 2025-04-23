@@ -1,4 +1,11 @@
-import { Component, createSignal, For, onCleanup, onMount } from 'solid-js';
+import {
+	Component,
+	createSignal,
+	For,
+	onCleanup,
+	onMount,
+	Show,
+} from 'solid-js';
 
 import { openModal } from '@/components/modal/ModalContainer';
 import {
@@ -42,9 +49,15 @@ const ArtifactCell: Component<CellProps> = (props) => {
 				'background-image': bgImage() ? `url(${bgImage()})` : 'none',
 			}}
 		>
+			<b>{props.meta.mimeType}</b>
+			<br />
 			{props.meta.name}
 		</a>
 	);
+};
+
+type Meta = ArtifactMeta & {
+	lcName: string;
 };
 
 export const openArtifactPickModal = (): Promise<string | undefined> => {
@@ -52,24 +65,59 @@ export const openArtifactPickModal = (): Promise<string | undefined> => {
 		onClose: (value?: string) => void;
 	};
 	const component = (props: Props) => {
-		const [artifactList, setArtifactList] = createSignal<ArtifactMeta[]>(
+		let filterRef: HTMLInputElement;
+
+		const [fullArtifactList, setFullArtifactList] = createSignal<Meta[]>(
 			[]
 		);
 
-		const loadArtifacts = async () => {
-			const artifacts = await listArtifacts();
+		const [artifactList, setArtifactList] = createSignal<Meta[]>([]);
+
+		const pageSize = 10;
+		const [maxItems, setMaxItems] = createSignal(pageSize);
+
+		const loadFullArtifacts = async () => {
+			const fullArtifacts = await listArtifacts();
 			// Sort by createdAt
-			artifacts.sort((a, b) => b.createdAt - a.createdAt);
-			setArtifactList(artifacts);
+			fullArtifacts.sort((a, b) => b.createdAt - a.createdAt);
+			setFullArtifactList(
+				fullArtifacts.map((v) => ({
+					...v,
+					lcName: v.name.toLowerCase(),
+				}))
+			);
+			updateFilter(filterRef!.value);
 		};
 
-		onMount(() => loadArtifacts());
+		const updateFilter = (query: string) => {
+			const lc = query.toLowerCase();
+			const filteredArtifacts = fullArtifactList().filter((artifact) =>
+				artifact.lcName.includes(lc)
+			);
+			setArtifactList(filteredArtifacts);
+		};
+
+		const handleFilterChange = (event: Event) => {
+			const input = event.target as HTMLInputElement;
+			updateFilter(input.value);
+		};
+
+		onMount(loadFullArtifacts);
 
 		return (
 			<div class="box">
 				<h3 class="title is-3">Pick an Artifact</h3>
-				<div class="grid is-col-min-2">
-					<For each={artifactList()}>
+				<div class="mb-2">
+					<input
+						ref={filterRef!}
+						class="input"
+						type="text"
+						placeholder="Filter..."
+						onChange={handleFilterChange}
+					/>
+				</div>
+				<div class="grid is-gap-0 is-col-min-2">
+					<For each={artifactList().slice(0, maxItems())}>
 						{(artifact) => (
 							<ArtifactCell
 								meta={artifact}
@@ -80,6 +128,16 @@ export const openArtifactPickModal = (): Promise<string | undefined> => {
 						)}
 					</For>
 				</div>
+				<Show when={maxItems() < artifactList().length}>
+					<div class="has-text-centered">
+						<button
+							class="button is-small"
+							onClick={() => setMaxItems((s) => s + pageSize)}
+						>
+							More ({maxItems()} / {artifactList().length})
+						</button>
+					</div>
+				</Show>
 				<div class="buttons is-right">
 					<button class="button" onClick={() => props.onClose()}>
 						Cancel
