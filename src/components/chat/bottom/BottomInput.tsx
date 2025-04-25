@@ -28,6 +28,7 @@ interface FileInput {
 const BottomInput: Component = () => {
 	let topRef: HTMLDivElement;
 	let taRef: HTMLTextAreaElement;
+	let hiddenTARef: HTMLTextAreaElement;
 
 	let autoSendAt = 0;
 	let autoSendTimeoutId: number | undefined;
@@ -314,10 +315,9 @@ const BottomInput: Component = () => {
 	onCleanup(stopSpeechRecognition);
 
 	const autosizeTextarea = () => {
-		if (taRef!) {
-			taRef.style.height = '0';
-			taRef.style.height = `${taRef.scrollHeight + 2}px`;
-		}
+		hiddenTARef!.style.width = `${taRef!.offsetWidth}px`;
+		hiddenTARef!.value = taRef!.value;
+		taRef!.style.height = `${hiddenTARef!.scrollHeight}px`;
 	};
 
 	const handleClickMargin = (e: MouseEvent) => {
@@ -359,6 +359,7 @@ const BottomInput: Component = () => {
 				onKeyDown={handleKeyDown}
 				placeholder={placeholder()}
 			/>
+			<textarea ref={hiddenTARef!} class="autosize-hidden-ta" />
 			<Show when={files().length > 0}>
 				<UploadedFiles
 					files={files()}
@@ -375,7 +376,7 @@ const BottomInput: Component = () => {
 			</Show>
 			<div class="buttons gap-1 no-user-select">
 				<SpeechButton
-					class="control is-size-6 px-1 button-mic"
+					class="control is-size-6 px-1"
 					startRecognition={startSpeechRecognition}
 					stopRecognition={stopSpeechRecognition}
 					recognizing={() => speechRecognizing()}
