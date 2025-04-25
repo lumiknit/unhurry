@@ -67,7 +67,7 @@ const SendButton: Component<Props> = (props) => {
 		} else {
 			additional = 'is-primary';
 		}
-		return 'button button-send p-2 is-size-5 ' + additional;
+		return 'button is-rounded p-2 is-size-5 ' + additional;
 	};
 
 	const icon = () =>
@@ -108,15 +108,6 @@ const SendButton: Component<Props> = (props) => {
 		e.stopPropagation();
 		e.preventDefault();
 
-		// Blur the current focused element
-		if (getUserConfig().blurOnSendButton) {
-			try {
-				(document.activeElement as HTMLElement)?.blur?.();
-			} catch {
-				console.warn('Failed to blur the active element');
-			}
-		}
-
 		stopSRWhenUp = true;
 		clearTimeout(srStartTimeout!);
 		clearTimeout(srHoldTimeout!);
@@ -139,6 +130,15 @@ const SendButton: Component<Props> = (props) => {
 		console.log('Up', e);
 		e.stopPropagation();
 		e.preventDefault();
+
+		// Blur the current focused element
+		if (getUserConfig().blurOnSendButton) {
+			try {
+				(document.activeElement as HTMLElement)?.blur?.();
+			} catch {
+				console.warn('Failed to blur the active element');
+			}
+		}
 
 		if (props.speechRecognizing()) {
 			if (stopSRWhenUp) {

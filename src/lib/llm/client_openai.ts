@@ -22,10 +22,9 @@ import { ModelConfig } from './model_config';
 import { getBEService } from '../be';
 import { logr } from '../logr';
 
-const fetch = async (...args: any[]) => {
+const fetch: typeof globalThis.fetch = async (...args) => {
 	const be = await getBEService();
-	console.log('Injected');
-	return await (be.rawFetch as any)(...args);
+	return await be.rawFetch(...args);
 };
 
 // OpenAI Message

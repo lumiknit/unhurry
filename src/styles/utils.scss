@@ -6,6 +6,19 @@
 	height: 100%;
 }
 
+.bottom-fixed {
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	right: 0;
+}
+
+.text-ellipsis {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
 .flex-split {
 	display: flex;
 	flex-wrap: none;
@@ -21,12 +34,6 @@
 .thin-hr {
 	height: 1px;
 	opacity: 0.1;
-}
-
-.text-ellipsis {
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
 }
 
 @media (max-width: 768px) {
@@ -78,12 +85,6 @@
 // Text no color
 .has-text-default {
 	color: var(--bulma-text-strong);
-}
-
-.multilines {
-	white-space: pre-wrap;
-	word-wrap: break-word;
-	overflow-wrap: break-word;
 }
 
 // Override bulma items

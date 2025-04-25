@@ -1,0 +1,30 @@
+// Bulma nav
+
+nav.navbar {
+	--bulma-navbar-l: var(--uh-navbar-l);
+}
+
+nav.navbar {
+	background-color: hsla(0, 0%, var(--uh-navbar-l), var(--uh-blur-opacity));
+	backdrop-filter: var(--uh-blur);
+	-webkit-backdrop-filter: var(--uh-blur);
+}
+
+.navbar-menu,
+.navbar-menu .navbar-dropdown a.navbar-item {
+	background: #00000000;
+}
+
+.navbar-burger {
+	color: var(--uh-theme-color-hex) !important;
+}
+
+nav a > svg {
+	vertical-align: top;
+	width: 1.25em;
+	height: 1.25em;
+}
+
+.navbar-item > .icon {
+	margin: 0 !important;
+}

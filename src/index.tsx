@@ -3,7 +3,7 @@ import { lazy } from 'solid-js';
 import { render } from 'solid-js/web';
 import 'solid-devtools';
 
-import './index.scss';
+import './styles/index.scss';
 import App from './App.tsx';
 import { rootPath } from './env.ts';
 

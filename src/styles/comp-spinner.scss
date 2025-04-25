@@ -1,0 +1,27 @@
+// Component: spinner
+
+.spinner {
+	animation: spinAround 500ms infinite linear;
+	border: 0.25rem solid currentColor;
+	border-radius: var(--bulma-radius-rounded);
+	border-right-color: transparent;
+	border-top-color: transparent;
+	content: '';
+	display: inline-block;
+	vertical-align: bottom;
+	height: 1.25rem;
+	width: 1.25rem;
+}
+
+.spinner-primary {
+	border-left-color: hsl(
+		var(--bulma-primary-h),
+		var(--bulma-primary-s),
+		var(--bulma-primary-l)
+	);
+	border-bottom-color: hsl(
+		var(--bulma-primary-h),
+		var(--bulma-primary-s),
+		var(--bulma-primary-l)
+	);
+}
