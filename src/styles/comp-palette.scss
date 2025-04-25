@@ -1,0 +1,86 @@
+:root {
+	--plt-text: hsl(0, 0%, 20%);
+	--plt-bg: hsla(0, 0%, 96%, 0.7);
+	--plt-bg-hover: hsl(0, 0%, 90%);
+	--plt-bg-selected: hsl(0, 0%, 85%);
+
+	--plt-pad: 0.33rem;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--plt-text: hsl(0, 0%, 90%);
+		--plt-bg: hsla(0, 0%, 20%, 0.8);
+		--plt-bg-hover: hsl(0, 0%, 25%);
+		--plt-bg-selected: hsl(0, 0%, 32%);
+	}
+}
+
+.plt-container {
+	position: fixed;
+	z-index: 50;
+	inset: 0;
+	padding: 2rem;
+}
+
+.plt {
+	margin: 5dvh auto;
+	max-width: 480px;
+	border-radius: 0.5rem;
+
+	color: var(--plt-text);
+	background: var(--plt-bg);
+	backdrop-filter: blur(4px);
+	-webkit-backdrop-filter: blur(4px);
+	box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.25);
+}
+
+input.plt-input {
+	display: block;
+	background: none;
+	color: var(--plt-text);
+	width: 100%;
+	border: none;
+	border-bottom: 1px solid #88888844;
+	padding: 0.66rem 1rem;
+	font-size: 1rem;
+
+	&:focus {
+		outline: none;
+	}
+}
+
+.plt-items {
+	padding: var(--plt-pad) 0;
+	font-size: 0.8125rem;
+	max-height: 60dvh;
+
+	overflow-x: hidden;
+	overflow-y: scroll;
+}
+
+.plt-item {
+	position: relative;
+
+	margin: 0 var(--plt-pad);
+	padding: 0.175rem 0.67rem;
+	border-radius: 0.33rem;
+
+	user-select: none;
+	-webkit-user-drag: none;
+	-webkit-user-select: none;
+	cursor: pointer;
+
+	&.selected {
+		background: var(--plt-bg-selected);
+	}
+
+	&:hover {
+		background: var(--plt-bg-hover);
+	}
+}
+
+.plt-shortcut {
+	position: absolute;
+	right: 0.67rem;
+}

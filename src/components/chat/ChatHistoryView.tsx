@@ -1,6 +1,7 @@
 import { Component, createMemo, For, onMount, Show } from 'solid-js';
 
 import { MsgPair } from '@/lib/chat';
+import { scrollToLastUserMessage } from '@/lib/utils';
 
 import {
 	getChatContext,
@@ -13,7 +14,6 @@ import {
 
 import { Message } from './message';
 import Title from './Title';
-import { scrollToLastUserMessage } from '../../lib';
 
 type Props = {
 	isLast?: boolean;

@@ -1,9 +1,9 @@
 import { Component, createSignal, onCleanup, onMount, Show } from 'solid-js';
 import { toast } from 'solid-toast';
 
-import { scrollToLastUserMessage } from '@/lib';
 import { getBEService, ISpeechRecognizer } from '@/lib/be';
 import { logr } from '@/lib/logr';
+import { scrollToLastUserMessage } from '@/lib/utils';
 import { cancelCurrentChat, chat } from '@/store/global_actions';
 
 import {
