@@ -214,6 +214,7 @@ textarea::placeholder {
 
 	background-color: hsla(0, 0%, var(--uh-navbar-l), var(--uh-blur-opacity));
 	backdrop-filter: var(--uh-blur);
+	-webkit-backdrop-filter: var(--uh-blur);
 
 	&:focus-within {
 		outline: 1px solid
