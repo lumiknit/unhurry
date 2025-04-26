@@ -90,8 +90,24 @@
 	font-family: monospace;
 }
 
+.msg-raw {
+	padding: 0.25rem 0;
+	white-space: pre-wrap;
+	word-wrap: break-word;
+	word-break: break-all;
+	font-family: monospace;
+	font-size: 0.875rem;
+	line-height: 1.2;
+}
+
 div.msg-user.message-body {
 	margin-left: 2rem;
+	--bulma-text-strong: hsl(
+		var(--bulma-primary-h),
+		var(--bulma-primary-s),
+		var(--bulma-primary-invert-l)
+	);
+	--bulma-strong-color: var(--bulma-text-strong);
 	color: hsl(
 		var(--bulma-primary-h),
 		var(--bulma-primary-s),
@@ -109,6 +125,11 @@ div.msg-user.message-body {
 div.message-body {
 	padding: 0.25rem 0.5rem;
 	overflow: hidden;
+
+	& img {
+		border-radius: 0.5rem;
+		overflow: hidden;
+	}
 }
 
 .msg-code-bottom-btns > span {
@@ -258,7 +279,7 @@ textarea::placeholder {
 	}
 }
 
-a.artifact-cell {
+.artifact-cell {
 	aspect-ratio: 1;
 	border: 1px solid var(--bulma-text-soft);
 	background-size: cover;

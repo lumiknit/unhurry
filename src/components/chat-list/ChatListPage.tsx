@@ -1,4 +1,3 @@
-import { useNavigate } from '@solidjs/router';
 import {
 	BiRegularCalendar,
 	BiRegularCalendarExclamation,
@@ -18,7 +17,8 @@ import { Dynamic } from 'solid-js/web';
 import { toast } from 'solid-toast';
 
 import { openConfirm } from '@/components/modal';
-import { chatManager, OngoingChatSummary } from '@/lib/chat-manager/manager';
+import { chatManager } from '@/lib/chat-manager/manager';
+import { OngoingChatSummary } from '@/lib/chat-manager/structs';
 import { shortRelativeDateFormat } from '@/lib/intl';
 import { getChatContext } from '@/store';
 import { gotoNewChat, openChat } from '@/store/global_actions';
@@ -30,6 +30,7 @@ import {
 	deleteChatByID,
 } from '@lib/idb';
 
+import Buttons from '../utils/Buttons';
 import Pagination, { createPaginatedList } from '../utils/Pagination';
 
 type ClearModalProps = {
@@ -66,12 +67,22 @@ const ClearChatModal: Component<ClearModalProps> = (props) => {
 						</div>
 					</div>
 					<div class="buttons">
-						<button class="button is-danger" onClick={handleClear}>
-							Clear
-						</button>
-						<button class="button" onClick={props.onClose}>
-							Cancel
-						</button>
+						<Buttons
+							autofocus
+							onEscape={() => props.onClose()}
+							buttons={[
+								{
+									class: 'button is-danger',
+									label: 'OK',
+									onClick: () => handleClear(),
+								},
+								{
+									class: 'button',
+									label: 'Cancel',
+									onClick: () => props.onClose(),
+								},
+							]}
+						/>
 					</div>
 				</div>
 			</div>
@@ -155,8 +166,6 @@ const Item: Component<ItemProps> = (props) => {
 };
 
 const ChatListPage: Component = () => {
-	const navigate = useNavigate();
-
 	const [showClearModal, setShowClearModal] = createSignal(false);
 
 	const pageSize = 10;
@@ -233,7 +242,7 @@ const ChatListPage: Component = () => {
 	};
 
 	const handleOpenChat = async (id: string) => {
-		toast.promise(openChat(navigate, id), {
+		toast.promise(openChat(id), {
 			loading: 'Loading...',
 			success: 'Loaded',
 			error: 'Failed to load',
@@ -271,7 +280,7 @@ const ChatListPage: Component = () => {
 						<span>Chats ({chatList()?.length || '-'})</span>
 						<button
 							class="button is-small is-primary"
-							onClick={() => gotoNewChat(navigate)}
+							onClick={() => gotoNewChat()}
 						>
 							<span class="icon mr-1">
 								<BiRegularPlus />

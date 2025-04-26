@@ -1,6 +1,6 @@
 :root {
 	--plt-text: hsl(0, 0%, 20%);
-	--plt-bg: hsla(0, 0%, 96%, 0.7);
+	--plt-bg: hsla(0, 0%, 96%, 0.85);
 	--plt-bg-hover: hsl(0, 0%, 90%);
 	--plt-bg-selected: hsl(0, 0%, 85%);
 
@@ -83,4 +83,17 @@ input.plt-input {
 .plt-shortcut {
 	position: absolute;
 	right: 0.67rem;
+}
+
+.plt-icon {
+	display: inline-block;
+	width: 1em;
+	height: 1em;
+	margin-right: 0.25em;
+
+	& > svg {
+		width: 1em;
+		height: 1em;
+		vertical-align: text-top;
+	}
 }

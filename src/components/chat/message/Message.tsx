@@ -7,8 +7,10 @@ import { Dynamic } from 'solid-js/web';
 import { toast } from 'solid-toast';
 
 import { getBEService } from '@/lib/be';
+import { getShowRawMessage } from '@/store';
 
 import {
+	convertMsgForLLM,
 	Msg,
 	MSG_PART_TYPE_ARTIFACT,
 	MSG_PART_TYPE_FUNCTION_CALL,
@@ -238,6 +240,15 @@ const compMap = new Map([
 	['qr', QRMessage],
 ]);
 
+const RawMessage: Component<Props> = (props) => {
+	const [s, setS] = createSignal('');
+	onMount(async () => {
+		const v = await convertMsgForLLM(props.msg);
+		setS(v.extractText());
+	});
+	return <div class="msg-raw">{s()}</div>;
+};
+
 interface Props {
 	msg: Msg;
 }
@@ -248,17 +259,28 @@ const Message: Component<Props> = (props) => {
 		(props.msg.role === 'user' ? 'msg-user ' : 'msg-assistant ') +
 		(props.msg.uphurry ? ' is-uphurry' : '');
 	return (
-		<div class={cls}>
-			<For each={props.msg.parts}>
-				{(part) => (
-					<Dynamic
-						component={compMap.get(part.type) || BlockMessage}
-						type={part.type}
-						content={part.content}
-					/>
-				)}
-			</For>
-		</div>
+		<Switch>
+			<Match when={getShowRawMessage()}>
+				<div class={cls}>
+					<RawMessage msg={props.msg} />
+				</div>
+			</Match>
+			<Match when>
+				<div class={cls}>
+					<For each={props.msg.parts}>
+						{(part) => (
+							<Dynamic
+								component={
+									compMap.get(part.type) || BlockMessage
+								}
+								type={part.type}
+								content={part.content}
+							/>
+						)}
+					</For>
+				</div>
+			</Match>
+		</Switch>
 	);
 };
 

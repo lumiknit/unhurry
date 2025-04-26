@@ -3,11 +3,10 @@ import { toast } from 'solid-toast';
 
 import { getBEService, ISpeechRecognizer } from '@/lib/be';
 import { logr } from '@/lib/logr';
-import { scrollToLastUserMessage } from '@/lib/utils';
 import { cancelCurrentChat, chat } from '@/store/global_actions';
 
 import {
-	getFocusedChatProgressing,
+	getCurChatProcessing,
 	getUphurryMode,
 	getUserConfig,
 	setAutoSendLaunchAt,
@@ -99,20 +98,16 @@ const BottomInput: Component = () => {
 		const fs = files();
 
 		// Dispatch right arrow event
-		if (!composing) {
+		if (!getUphurryMode() && !composing) {
 			taRef!.value = '';
 			lastSent = 0;
 			autosizeTextarea();
-		} else {
-			// Otherwise, some composing left.
-			// Just ignore the send
 		}
 		setFiles([]);
 		try {
-			logr.info('LLM Input: ', v);
+			logr.info('[BottomInput] Input: ', v);
 
 			// Pick the last user message and scroll to top.
-			setTimeout(scrollToLastUserMessage, 33);
 			await chat(
 				v,
 				fs.map((f) => f.id),
@@ -160,11 +155,7 @@ const BottomInput: Component = () => {
 	 */
 	const setAutoSend = () => {
 		const as = autoSendTimeout();
-		if (
-			!getUserConfig()?.enableAutoSend ||
-			!as ||
-			getFocusedChatProgressing()
-		)
+		if (!getUserConfig()?.enableAutoSend || !as || getCurChatProcessing())
 			return;
 
 		const now = Date.now();
@@ -321,13 +312,11 @@ const BottomInput: Component = () => {
 	};
 
 	const handleClickMargin = (e: MouseEvent) => {
-		let tagName = '';
 		// If event target is 'div' tag
 		if (e.target instanceof HTMLElement) {
-			tagName = e.target.tagName;
-		}
-		if (tagName === 'DIV') {
-			taRef!.focus();
+			if (e.target.classList.contains('bottom-input')) {
+				taRef!.focus();
+			}
 		}
 	};
 
@@ -369,10 +358,7 @@ const BottomInput: Component = () => {
 				/>
 			</Show>
 			<Show when={getUphurryMode()}>
-				<p class="is-size-7">
-					UpHurry mode. Based on your input, it will automatically
-					send the message to achieve goal.
-				</p>
+				<p class="is-size-7">UpHurry mode. Write a goal.</p>
 			</Show>
 			<div class="buttons gap-1 no-user-select">
 				<SpeechButton

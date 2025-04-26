@@ -1,4 +1,9 @@
-import { BiRegularCalendar } from 'solid-icons/bi';
+import { useSearchParams } from '@solidjs/router';
+import {
+	BiRegularCalendar,
+	BiSolidFilePlus,
+	BiSolidImageAdd,
+} from 'solid-icons/bi';
 import { TbTrash } from 'solid-icons/tb';
 import { Component, createSignal, For, Match, onMount, Switch } from 'solid-js';
 import { toast } from 'solid-toast';
@@ -9,15 +14,16 @@ import {
 	ArtifactMeta,
 	listArtifacts,
 	deleteArtifact,
-	getArtifact,
+	getArtifactMeta,
 } from '@/lib/idb/artifact_storage';
 import { shortRelativeDateFormat } from '@/lib/intl';
+import { goto } from '@/store';
 
 import { openArtifactPreviewModal } from './ArtifactPreviewModal';
 import Pagination, { createPaginatedList } from '../utils/Pagination';
 
 type ItemProps = {
-	file: ArtifactMeta;
+	meta: ArtifactMeta;
 	onOpen: () => void;
 	onDelete: () => void;
 };
@@ -29,20 +35,23 @@ const ArtifactListItem: Component<ItemProps> = (props) => {
 				<div class="panel-item-body">
 					<div class="panel-item-title">
 						<Switch>
-							<Match when={props.file.name}>
-								<b>{props.file.name}</b>
+							<Match when={props.meta.name}>
+								<b>{props.meta.name}</b>
 							</Match>
 							<Match when>
-								<i>{props.file._id}</i>
+								<i>{props.meta._id}</i>
 							</Match>
 						</Switch>
+					</div>
+					<div class="is-size-7">
+						{props.meta.mimeType} <code>{props.meta._id}</code>
 					</div>
 				</div>
 				<div class="panel-item-date">
 					<div>
 						<BiRegularCalendar />
 						{shortRelativeDateFormat(
-							new Date(props.file.createdAt)
+							new Date(props.meta.createdAt)
 						)}
 					</div>
 				</div>
@@ -60,6 +69,8 @@ const ArtifactListItem: Component<ItemProps> = (props) => {
 };
 
 const ArtifactListPage: Component = () => {
+	const [searchParams] = useSearchParams();
+
 	const pageSize = 10;
 	const [artifactList, setArtifactList] = createSignal<
 		ArtifactMeta[] | undefined
@@ -118,7 +129,7 @@ const ArtifactListPage: Component = () => {
 	};
 
 	const openFile = (id: string) => async () => {
-		const meta = await getArtifact(id);
+		const meta = await getArtifactMeta(id);
 		if (!meta) {
 			toast.error('File not found');
 			return;
@@ -129,7 +140,10 @@ const ArtifactListPage: Component = () => {
 		}
 	};
 
-	onMount(() => loadFileMeta());
+	onMount(() => {
+		filterRef!.value = `${searchParams.q || ''}`;
+		loadFileMeta();
+	});
 
 	return (
 		<div class="container">
@@ -160,7 +174,7 @@ const ArtifactListPage: Component = () => {
 							<For each={page().items}>
 								{(file) => (
 									<ArtifactListItem
-										file={file}
+										meta={file}
 										onOpen={openFile(file._id)}
 										onDelete={() =>
 											handleDeleteFile(file._id)
@@ -176,6 +190,27 @@ const ArtifactListPage: Component = () => {
 					totalPages={page().totalPages}
 					onPageChange={setPage}
 				/>
+				<div class="my-2">
+					<button
+						class="button is-primary is-outlined"
+						onClick={() => goto('/canvas/_/text')}
+					>
+						<span class="icon">
+							<BiSolidFilePlus />
+						</span>
+						<span>Text </span>
+					</button>
+					<button
+						class="button is-primary is-outlined"
+						onClick={() => goto('/canvas/_/image')}
+					>
+						<span class="icon">
+							<BiSolidImageAdd />
+						</span>
+						<span>Image</span>
+					</button>
+				</div>
+
 				<p class="control is-fullwidth">
 					<button
 						class="button is-danger is-outlined is-fullwidth"

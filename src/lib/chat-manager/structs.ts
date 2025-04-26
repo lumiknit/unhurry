@@ -1,3 +1,4 @@
+import { ChatContext } from '../chat/context';
 import { MsgPart } from '../chat/structs';
 import { ToolConfigs } from '../config/tool';
 import { ModelConfig } from '../llm';
@@ -33,3 +34,36 @@ export type OngoingChatMeta = {
 
 	request?: ChatRequest;
 };
+
+/**
+ * Ongoing chat summary
+ */
+export type OngoingChatSummary = {
+	meta: OngoingChatMeta;
+
+	ctx: ChatContext;
+
+	progressing: boolean;
+};
+
+// Errors
+
+/**
+ * Chat not found error
+ */
+export class ChatNotFoundError extends Error {
+	constructor(id: string) {
+		super(`[ChatManager] Chat ${id} not found`);
+		this.name = 'ChatNotFoundError';
+	}
+}
+
+/**
+ * Chat already processing other task error
+ */
+export class ChatAlreadyProcessingError extends Error {
+	constructor(id: string) {
+		super(`[ChatManager] Chat ${id} is already processing`);
+		this.name = 'ChatAlreadyProcessingError';
+	}
+}

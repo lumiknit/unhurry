@@ -28,14 +28,12 @@ export const toolCallSystemPrompt = async (
 			`
 ## Tools
 
-You can use tools.
 The syntax of tool calling is same as markdown code block, but with some special rules:
 
-- **First line**: '\`\`\`\`*call:<TOOL_NAME>'.
-  - Similar to the markdown code block, but you should put '*call:' with a tool name in the position of language name.
+- **Beginning of code block**: '\`\`\`\`*call:<TOOL_NAME>'.
+  - You should put '*call:<TOOL_NAME>' after backticks. NO NEWLINE between backticks and '*call:<TOOL_NAME>'.
   - System will automatically add call ID in parentheses. (e.g. '*call:print(id_123)')
-- **Last line**: '\`\`\`\`', which is the end of the code block of markdown.
-- The first line and the last line should not be indented.
+- **End of code block**: '\`\`\`\`', which is the end of the code block of markdown.
 - Between the first and last line, **you should provide the arguments in JSON format.**
 
 For example, to call 'runJS' tool with arguments 'value: "console.log(1)"', you can use:

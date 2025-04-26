@@ -8,7 +8,7 @@ import {
 	hasChatUpdate,
 } from '../chat/context';
 import { MsgPartsParser } from '../chat/parser';
-import { MsgPair, MsgPart } from '../chat/structs';
+import { assistantMsg, MsgPair, MsgPart, userMsg } from '../chat/structs';
 import { chatListTx, chatTx, SimpleIDB } from '../idb';
 import {
 	BadRequestError,
@@ -17,19 +17,20 @@ import {
 	RequestEntityTooLargeError,
 } from '../llm';
 import { logr } from '../logr';
-import { generateChatTitle, generateNextQuestion } from './manager-utils';
-import { ChatOptions, ChatRequest, OngoingChatMeta } from './structs';
+import {
+	genChatTitle,
+	genCompactHistory,
+	genNextQuestion,
+} from './manager-utils';
+import {
+	ChatAlreadyProcessingError,
+	ChatNotFoundError,
+	ChatOptions,
+	ChatRequest,
+	OngoingChatMeta,
+	OngoingChatSummary,
+} from './structs';
 import { uniqueID } from '../utils';
-
-/**
- * Chat not found error
- */
-export class ChatNotFoundError extends Error {
-	constructor(id: string) {
-		super(`[ChatManager] Chat ${id} not found`);
-		this.name = 'ChatNotFoundError';
-	}
-}
 
 /**
  * Chat manager state to saved in the IDB
@@ -57,7 +58,7 @@ type ChatProgress = {
 /**
  * Managed chat.
  */
-export type OngoingChat = {
+type OngoingChat = {
 	/**
 	 * Metadata
 	 */
@@ -67,7 +68,13 @@ export type OngoingChat = {
 
 	opts: ChatOptions;
 
-	lock?: boolean;
+	/**
+	 * ProcessingLock.
+	 * If true, some task (chat / uphurry / gen title / compact) is running
+	 */
+	processing?: boolean;
+
+	checkingLock?: boolean;
 
 	/** Current onging chat action */
 	action?: SingleChatAction;
@@ -80,17 +87,6 @@ export type OngoingChat = {
 };
 
 /**
- * Ongoing chat summary
- */
-export type OngoingChatSummary = {
-	meta: OngoingChatMeta;
-
-	ctx: ChatContext;
-
-	progressing: boolean;
-};
-
-/**
  * Chat manager is
  */
 export class ChatManager {
@@ -98,7 +94,7 @@ export class ChatManager {
 
 	private checkInterval: number | null = null;
 	private checkIntervalDelay = 5000;
-	private maxRetries = 5;
+	private maxRetries = 10;
 
 	/**
 	 * Watching contexts
@@ -107,7 +103,7 @@ export class ChatManager {
 
 	// Callbacks
 
-	onProgressChange: (id: string, progress: boolean) => void = () => {};
+	onChatProcessingChange: (id: string, progress: boolean) => void = () => {};
 
 	onUphurryProgressChange: (id: string, progress: boolean) => void = () => {};
 
@@ -155,12 +151,28 @@ export class ChatManager {
 	/**
 	 * Get the chat by ID.
 	 */
-	chat(id: string): OngoingChat {
+	private chat(id: string): OngoingChat {
 		const chat = this.chats.get(id);
 		if (!chat) {
 			throw new ChatNotFoundError(id);
 		}
 		return chat;
+	}
+
+	/**
+	 *
+	 */
+	private tryLock(ch: OngoingChat) {
+		if (ch.processing) {
+			throw new ChatAlreadyProcessingError(ch.meta.id);
+		}
+		ch.processing = true;
+		this.onChatProcessingChange(ch.meta.id, true);
+	}
+
+	private unlock(ch: OngoingChat) {
+		ch.processing = false;
+		this.onChatProcessingChange(ch.meta.id, false);
 	}
 
 	// State methods
@@ -300,7 +312,8 @@ export class ChatManager {
 	}
 
 	/**
-	 * Save new message
+	 * Save new message in DB.
+	 * This does not trigger
 	 */
 	async saveMessage(id: string, msgIdx: number) {
 		const ch = this.chat(id);
@@ -310,6 +323,15 @@ export class ChatManager {
 			...msg,
 			_id: msgIdx,
 		});
+	}
+
+	/**
+	 * Clear all contents from DB
+	 */
+	async clearMessagesDB(id: string) {
+		this.chat(id);
+		const chatDB = await chatTx<MsgPair>(id);
+		await chatDB.clear();
 	}
 
 	// Warning / retries
@@ -341,18 +363,14 @@ export class ChatManager {
 	 * Try to set the chat request.
 	 * If the chat already has a request, it'll do nothing and return false.
 	 */
-	setChatRequest(id: string, req: ChatRequest, force?: boolean): boolean {
+	setChatRequest(id: string, req: ChatRequest): boolean {
 		const ch = this.chat(id);
-		if (ch.meta.request && !force) {
-			return false;
-		}
+		this.tryLock(ch);
 		ch.meta.request = req;
 		this.resetFailures(id);
 		this.saveState();
 
-		if (req.type === 'uphurry') {
-			this.onUphurryProgressChange(id, true);
-		}
+		this.checkChat(ch).catch(() => {});
 		return true;
 	}
 
@@ -384,10 +402,8 @@ export class ChatManager {
 	finishRequest(id: string) {
 		const ch = this.chat(id);
 		if (ch.meta.request) {
-			if (ch.meta.request?.type === 'uphurry') {
-				this.onUphurryProgressChange(id, false);
-			}
 			ch.meta.request = undefined;
+			this.unlock(ch);
 			this.saveChatMeta(id);
 			this.onFinish(id, ch.ctx);
 		}
@@ -401,10 +417,8 @@ export class ChatManager {
 		if (ch.action) {
 			ch.action.cancel();
 		}
-		if (ch.meta.request?.type === 'uphurry') {
-			this.onUphurryProgressChange(id, false);
-		}
 		ch.meta.request = undefined;
+		this.unlock(ch);
 		this.saveChatMeta(id);
 	}
 
@@ -417,20 +431,58 @@ export class ChatManager {
 		this.saveChatMeta(id);
 	}
 
-	async generateChatTitle(id: string) {
-		const ch = this.chat(id);
-		const title = await generateChatTitle(ch.opts, ch.ctx.history);
-		this.updateChatMeta(id, {
-			title,
-		});
-	}
-
 	getOngoings(): OngoingChatSummary[] {
 		return Array.from(this.chats.values()).map((item) => ({
 			meta: item.meta,
 			ctx: item.ctx,
-			progressing: item.meta.request !== undefined,
+			progressing: item.meta.request !== undefined || !!item.processing,
 		}));
+	}
+
+	// Utils
+
+	async generateChatTitle(id: string) {
+		const ch = this.chat(id);
+		this.tryLock(ch);
+		try {
+			const title = await genChatTitle(ch.opts, ch.ctx.history);
+			this.updateChatMeta(id, {
+				title,
+			});
+		} finally {
+			this.unlock(ch);
+		}
+	}
+
+	async compactChat(id: string, toClear?: boolean) {
+		const ch = this.chat(id);
+		this.tryLock(ch);
+		try {
+			const compacted = await genCompactHistory(ch.opts, ch.ctx.history);
+
+			if (toClear) {
+				await this.clearMessagesDB(id);
+				// Clear chat history
+				ch.ctx.history.msgPairs = [];
+			}
+
+			ch.ctx.history.msgPairs.push({
+				user: userMsg(
+					`# Note\nOld messages are clipped, the below is summary of the last chat:\n${compacted}`
+				),
+				assistant: assistantMsg('OK.'),
+			});
+
+			this.onMessage(id, ch.ctx.history.msgPairs);
+
+			// Save to DB
+			await Promise.all([
+				this.saveMessage(id, ch.ctx.history.msgPairs.length - 1),
+				this.saveChatMeta(id),
+			]);
+		} finally {
+			this.unlock(ch);
+		}
 	}
 
 	// Callbacks for the chat actions
@@ -472,10 +524,7 @@ export class ChatManager {
 
 	private callbackOnUpdate(id: string) {
 		return async (idx: number) => {
-			const ch = this.chats.get(id);
-			if (!ch) {
-				throw new Error(`Chat ${id} not found`);
-			}
+			const ch = this.chat(id);
 
 			this.onMessage(id, ch.ctx.history.msgPairs);
 
@@ -514,8 +563,6 @@ export class ChatManager {
 				this.onLLMFallback(id, err, index, mc);
 			action.onUpdate = this.callbackOnUpdate(item.meta.id);
 			item.action = action;
-
-			this.onProgressChange(id, true);
 			return action;
 		};
 
@@ -528,11 +575,13 @@ export class ChatManager {
 					break;
 				case 'uphurry':
 					{
-						const nextQuestion = await generateNextQuestion(
+						this.onUphurryProgressChange(id, true);
+						const nextQuestion = await genNextQuestion(
 							item.opts,
 							item.ctx.history,
 							req.comment
 						);
+						this.onUphurryProgressChange(id, false);
 						if (nextQuestion === null) {
 							this.finishRequest(id);
 						} else {
@@ -546,12 +595,12 @@ export class ChatManager {
 			}
 		} finally {
 			item.action = undefined;
-			this.onProgressChange(id, false);
+			this.onUphurryProgressChange(id, false);
 		}
 
 		if (isFirst) {
 			// Generate the title
-			const title = await generateChatTitle(item.opts, item.ctx.history);
+			const title = await genChatTitle(item.opts, item.ctx.history);
 			item.ctx.title = title;
 			this.saveChatMeta(item.meta.id);
 		}
@@ -564,11 +613,11 @@ export class ChatManager {
 		if (typeof item === 'string') {
 			item = this.chat(item);
 		}
+		if (item.checkingLock || item.retries > this.maxRetries) {
+			return;
+		}
+		item.checkingLock = true;
 		try {
-			if (item.lock || item.retries > this.maxRetries) {
-				return;
-			}
-			item.lock = true;
 			await this.checkChatInner(item);
 			this.resetFailures(item.ctx._id);
 		} catch (e) {
@@ -577,18 +626,19 @@ export class ChatManager {
 				const title = item.ctx.title || 'untitled';
 				logr.error('[ChatManager] Error checking chat', e);
 				toast.error(`[chat '${title}'] ${e}`);
+				this.cancelChat(item.meta.id);
 			}
 		}
-		item.lock = false;
+		item.checkingLock = false;
 	}
 
 	/**
 	 * Periodic check for the chat
 	 */
-	private async checkAll() {
-		await Promise.all(
-			Array.from(this.chats.values()).map((item) => this.checkChat(item))
-		);
+	private checkAll() {
+		for (const c of this.chats.values()) {
+			this.checkChat(c).catch(() => {});
+		}
 	}
 
 	/**

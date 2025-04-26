@@ -1,7 +1,7 @@
 import { Component, For } from 'solid-js';
 
 import { openArtifactPreviewModal } from '@/components/artifact-list/ArtifactPreviewModal';
-import { getArtifact } from '@/lib/idb/artifact_storage';
+import { getArtifactMeta } from '@/lib/idb/artifact_storage';
 
 interface UploadedFile {
 	id: string;
@@ -17,7 +17,7 @@ const UploadedFiles: Component<UploadedFilesProps> = (props) => {
 	const handleClick = (id: string) => async (e: MouseEvent) => {
 		e.stopPropagation();
 		e.preventDefault();
-		const meta = await getArtifact(id);
+		const meta = await getArtifactMeta(id);
 		if (meta) {
 			const v = await openArtifactPreviewModal(meta);
 			if (v) {

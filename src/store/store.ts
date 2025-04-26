@@ -49,6 +49,7 @@ export const setUserConfig: Setter<UserConfig> = (setter) => {
 	logr.info('[store/config] User config updated, will save persistently');
 	const v = setUserConfig_(setter);
 	saveUserConfig(v);
+	return v;
 };
 
 createEffect(() => {
@@ -131,11 +132,14 @@ export const resetStreamingState = () => {
 /**
  * Whether current focusd chat is progressing. (LLM is running)
  */
-export const [getFocusedChatProgressing, setFocusedChatProgressing] =
+export const [getCurChatProcessing, setCurChatProcessing] =
 	createSignal<boolean>(false);
 
 /**
  * Whether current focused chat uphurry is running
  */
 export const [getFocusedChatUphurryProgress, setFocusedChatUphurryProgress] =
+	createSignal<boolean>(false);
+
+export const [getShowRawMessage, setShowRawMessage] =
 	createSignal<boolean>(false);

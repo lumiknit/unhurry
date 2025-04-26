@@ -11,11 +11,7 @@ import { toast } from 'solid-toast';
 
 import { vibrate } from '@/store/global_actions';
 
-import {
-	autoSendLaunchAt,
-	getFocusedChatProgressing,
-	getUserConfig,
-} from '@store';
+import { autoSendLaunchAt, getCurChatProcessing, getUserConfig } from '@store';
 
 import './send_button.scss';
 
@@ -60,7 +56,7 @@ const SendButton: Component<Props> = (props) => {
 
 	const className = () => {
 		let additional = '';
-		if (getFocusedChatProgressing()) {
+		if (getCurChatProcessing()) {
 			additional = 'is-loading is-warning';
 		} else if (props.speechRecognizing()) {
 			additional = 'is-danger';
@@ -113,7 +109,7 @@ const SendButton: Component<Props> = (props) => {
 		clearTimeout(srHoldTimeout!);
 		vibrate('medium');
 
-		if (!getFocusedChatProgressing() && !props.speechRecognizing()) {
+		if (!getCurChatProcessing() && !props.speechRecognizing()) {
 			srStartTimeout = window.setTimeout(startRecog, LONG_PRESS_DURATION);
 			srHoldTimeout = window.setTimeout(setHolding, HOLD_DURATION);
 		}
@@ -144,7 +140,7 @@ const SendButton: Component<Props> = (props) => {
 			if (stopSRWhenUp) {
 				props.stopSpeechRecognition();
 			}
-		} else if (getFocusedChatProgressing()) {
+		} else if (getCurChatProcessing()) {
 			toast('Canceling the current operation...');
 			props.onCancel();
 		} else {

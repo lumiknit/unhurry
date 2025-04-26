@@ -1,22 +1,44 @@
+import {
+	TbChevronsRight,
+	TbFolder,
+	TbList,
+	TbMarkdown,
+	TbMinimize,
+	TbPlus,
+	TbRefresh,
+	TbSettings,
+	TbTrash,
+} from 'solid-icons/tb';
 import { toast } from 'solid-toast';
 
 import { togglePalette } from '@/components/palette/state';
 import {
 	buildCommands,
-	Command,
 	registerCommand,
 	registerShortcut,
-	Shortcut,
 } from '@/lib/command/command';
-import { goto, setUphurryMode, setUserConfig } from '@/store';
-import { resetChatMessages } from '@/store/global_actions';
+import {
+	goto,
+	setShowRawMessage,
+	setUphurryMode,
+	setUserConfig,
+} from '@/store';
+import {
+	compactChat,
+	generateChatTitle,
+	resetChatMessages,
+} from '@/store/global_actions';
+
+import { Command, Shortcut } from './structs';
 
 const commonCommands: Command[] = [
 	{
 		id: 'chat.new',
 		name: 'New Chat',
+		icon: TbPlus,
 		action: () => {
 			resetChatMessages();
+			goto('/');
 			toast.success('New chat created!');
 		},
 	},
@@ -33,16 +55,35 @@ const commonCommands: Command[] = [
 		},
 	},
 	{
-		id: 'chat.toggleUphurry',
+		id: 'chat.genTitle',
+		name: 'Generate Chat Title',
+		action: generateChatTitle,
+	},
+	{
+		id: 'chat.compact',
+		name: 'Compact Chat History',
+		icon: TbMinimize,
+		action: () => compactChat(false),
+	},
+	{
+		id: 'chat.compactAndClear',
+		name: 'Compact Chat History and Clear',
+		icon: TbTrash,
+		action: () => compactChat(true),
+	},
+	{
+		id: 'options.toggleUphurry',
 		name: 'Toggle Uphurry Mode',
+		icon: TbChevronsRight,
 		action: () => {
 			const v = setUphurryMode((v) => !v);
 			toast.success(v ? 'Uphurry enabled!' : 'Uphurry disabled!');
 		},
 	},
 	{
-		id: 'chat.toggleAutoSend',
+		id: 'options.toggleAutoSend',
 		name: 'Toggle Auto Send',
+		icon: TbRefresh,
 		action: () => {
 			const c = setUserConfig((c) => ({
 				...c,
@@ -61,16 +102,19 @@ const commonCommands: Command[] = [
 	{
 		id: 'page.chatList',
 		name: 'Open Chat List',
+		icon: TbList,
 		action: () => goto('/chats'),
 	},
 	{
 		id: 'page.artifactList',
 		name: 'Open Artifact List',
+		icon: TbFolder,
 		action: () => goto('/artifacts'),
 	},
 	{
 		id: 'page.settings',
 		name: 'Open Settings',
+		icon: TbSettings,
 		action: () => goto('/settings'),
 	},
 	{
@@ -83,10 +127,17 @@ const commonCommands: Command[] = [
 		name: 'Toggle Goto Palette',
 		action: () => togglePalette(''),
 	},
+	{
+		id: 'options.toggleRawMessage',
+		name: 'Toggle Show Raw Message',
+		icon: TbMarkdown,
+		action: () => {
+			const v = setShowRawMessage((v) => !v);
+			toast.success(v ? 'Raw message enabled!' : 'Raw message disabled!');
+		},
+	},
 ];
-export const symAlt = '⌥';
-export const symShift = '⇧';
-export const symMeta = '⌘';
+
 const commonShortcuts: Shortcut[] = [
 	{
 		key: '⌘o',
@@ -114,7 +165,7 @@ const commonShortcuts: Shortcut[] = [
 	},
 	{
 		key: '⌘u',
-		id: 'chat.toggleUphurry',
+		id: 'options.toggleUphurry',
 	},
 	{
 		key: '⌘i',
@@ -123,6 +174,18 @@ const commonShortcuts: Shortcut[] = [
 	{
 		key: '⌘1',
 		id: 'page.currentChat',
+	},
+	{
+		key: '⌘k',
+		id: 'chat.compact',
+	},
+	{
+		key: '⇧⌘k',
+		id: 'chat.compactAndClear',
+	},
+	{
+		key: '⌘`',
+		id: 'options.toggleRawMessage',
 	},
 ];
 

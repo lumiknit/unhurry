@@ -1,3 +1,5 @@
+import Buttons from '@/components/utils/Buttons';
+
 import { openModal } from './ModalContainer';
 
 export const openConfirm = (message: string) => {
@@ -9,15 +11,22 @@ export const openConfirm = (message: string) => {
 			<div class="box">
 				<p>{message}</p>
 				<div class="buttons is-right">
-					<button
-						class="button is-danger"
-						onClick={() => props.onClose(true)}
-					>
-						OK
-					</button>
-					<button class="button" onClick={() => props.onClose(false)}>
-						Cancel
-					</button>
+					<Buttons
+						autofocus
+						onEscape={() => props.onClose(false)}
+						buttons={[
+							{
+								class: 'button is-danger',
+								label: 'OK',
+								onClick: () => props.onClose(true),
+							},
+							{
+								class: 'button',
+								label: 'Cancel',
+								onClick: () => props.onClose(false),
+							},
+						]}
+					/>
 				</div>
 			</div>
 		);

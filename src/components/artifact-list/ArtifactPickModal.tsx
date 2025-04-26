@@ -12,7 +12,9 @@ import {
 	listArtifacts,
 	ArtifactMeta,
 	getArtifactBlob,
+	getArtifactData,
 } from '@/lib/idb/artifact_storage';
+import { goto } from '@/store';
 
 type CellProps = {
 	meta: ArtifactMeta;
@@ -21,6 +23,7 @@ type CellProps = {
 
 const ArtifactCell: Component<CellProps> = (props) => {
 	const [bgImage, setBgImage] = createSignal<string | null>(null);
+	const [textPreview, setTextPreview] = createSignal<string | null>(null);
 
 	let cleanUp = () => {};
 
@@ -34,6 +37,16 @@ const ArtifactCell: Component<CellProps> = (props) => {
 					URL.revokeObjectURL(url);
 				};
 			}
+		} else {
+			const data = await getArtifactData(props.meta._id);
+			if (data && data.data.length < 16 * 1024) {
+				if (typeof data.data === 'string') {
+					setTextPreview(data.data);
+				} else {
+					const decoder = new TextDecoder();
+					setTextPreview(decoder.decode(data.data));
+				}
+			}
 		}
 	});
 
@@ -42,17 +55,22 @@ const ArtifactCell: Component<CellProps> = (props) => {
 	});
 
 	return (
-		<a
+		<div
 			class="cell artifact-cell"
 			onClick={() => props.onClick()}
 			style={{
 				'background-image': bgImage() ? `url(${bgImage()})` : 'none',
 			}}
 		>
-			<b>{props.meta.mimeType}</b>
-			<br />
-			{props.meta.name}
-		</a>
+			<div class="has-text-primary">
+				<b>{props.meta.mimeType}</b>
+				<br />
+				{props.meta.name}
+			</div>
+			<Show when={textPreview()}>
+				<div class="pre-wrap">{textPreview()}</div>
+			</Show>
+		</div>
 	);
 };
 
@@ -116,7 +134,7 @@ export const openArtifactPickModal = (): Promise<string | undefined> => {
 						onChange={handleFilterChange}
 					/>
 				</div>
-				<div class="grid is-gap-0 is-col-min-2">
+				<div class="grid is-gap-0 is-col-min-5">
 					<For each={artifactList().slice(0, maxItems())}>
 						{(artifact) => (
 							<ArtifactCell
@@ -139,6 +157,15 @@ export const openArtifactPickModal = (): Promise<string | undefined> => {
 					</div>
 				</Show>
 				<div class="buttons is-right">
+					<button
+						class="button"
+						onClick={() => {
+							goto('/artifacts');
+							props.onClose();
+						}}
+					>
+						Go to List
+					</button>
 					<button class="button" onClick={() => props.onClose()}>
 						Cancel
 					</button>

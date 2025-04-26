@@ -7,15 +7,22 @@ import {
 	Setter,
 	Show,
 } from 'solid-js';
+import { Dynamic } from 'solid-js/web';
 
-import { Command, filterCommands } from '@/lib/command/command';
+import { chatManager } from '@/lib/chat-manager/manager';
+import {
+	bringCommandUp,
+	Command,
+	filterCommands,
+	getCommand,
+} from '@/lib/command';
+import { openChat } from '@/store/global_actions';
 
 import { setShowPalette } from './state';
 
 type PaletteItemProps = {
-	name: string;
+	cmd: Command;
 	selected?: boolean;
-	shortcut?: string;
 
 	onClick: () => void;
 };
@@ -26,9 +33,14 @@ const PaletteItem: Component<PaletteItemProps> = (props) => {
 			class={`plt-item ${props.selected ? 'selected' : ''}`}
 			onClick={props.onClick}
 		>
-			{props.name}
-			<Show when={props.shortcut}>
-				<span class="plt-shortcut">{props.shortcut}</span>
+			<span class="plt-icon">
+				<Show when={props.cmd.icon}>
+					<Dynamic component={props.cmd.icon} />
+				</Show>
+			</span>
+			<span>{props.cmd.name}</span>
+			<Show when={props.cmd.shortcut}>
+				<span class="plt-shortcut">{props.cmd.shortcut}</span>
 			</Show>
 		</div>
 	);
@@ -61,6 +73,7 @@ const Palette: Component<Props> = (props) => {
 		const cmd = commands()[idx];
 		console.log(cmd);
 		if (cmd) {
+			bringCommandUp(cmd.id);
 			setShowPalette(false);
 			cmd.action();
 		}
@@ -98,7 +111,19 @@ const Palette: Component<Props> = (props) => {
 				const filtered = filterCommands(input.slice(1));
 				newCmds = setCommands(filtered);
 			} else {
-				newCmds = setCommands([]);
+				const ongoings = chatManager
+					.getOngoings()
+					.filter((x) => x.ctx.title.includes(input.trim()));
+				newCmds = setCommands([
+					getCommand('chat.new')!,
+					...ongoings.map((x) => ({
+						id: x.ctx._id,
+						name: x.ctx.title || '<Untitled>',
+						action: () => {
+							openChat(x.ctx._id);
+						},
+					})),
+				]);
 			}
 			changeSelected((v) => Math.max(0, Math.min(newCmds.length - 1, v)));
 		});
@@ -129,8 +154,7 @@ const Palette: Component<Props> = (props) => {
 				<For each={commands()}>
 					{(c, idx) => (
 						<PaletteItem
-							name={c.name}
-							shortcut={c.shortcut}
+							cmd={c}
 							selected={idx() === selected()}
 							onClick={() => runCommand(idx())}
 						/>
