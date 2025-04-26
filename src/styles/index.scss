@@ -125,6 +125,11 @@ div.msg-user.message-body {
 div.message-body {
 	padding: 0.25rem 0.5rem;
 	overflow: hidden;
+
+	& img {
+		border-radius: 0.5rem;
+		overflow: hidden;
+	}
 }
 
 .msg-code-bottom-btns > span {
@@ -274,7 +279,7 @@ textarea::placeholder {
 	}
 }
 
-a.artifact-cell {
+.artifact-cell {
 	aspect-ratio: 1;
 	border: 1px solid var(--bulma-text-soft);
 	background-size: cover;

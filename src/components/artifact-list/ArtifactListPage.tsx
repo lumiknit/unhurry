@@ -1,5 +1,9 @@
 import { useSearchParams } from '@solidjs/router';
-import { BiRegularCalendar } from 'solid-icons/bi';
+import {
+	BiRegularCalendar,
+	BiSolidFilePlus,
+	BiSolidImageAdd,
+} from 'solid-icons/bi';
 import { TbTrash } from 'solid-icons/tb';
 import { Component, createSignal, For, Match, onMount, Switch } from 'solid-js';
 import { toast } from 'solid-toast';
@@ -13,6 +17,7 @@ import {
 	getArtifactMeta,
 } from '@/lib/idb/artifact_storage';
 import { shortRelativeDateFormat } from '@/lib/intl';
+import { goto } from '@/store';
 
 import { openArtifactPreviewModal } from './ArtifactPreviewModal';
 import Pagination, { createPaginatedList } from '../utils/Pagination';
@@ -185,6 +190,27 @@ const ArtifactListPage: Component = () => {
 					totalPages={page().totalPages}
 					onPageChange={setPage}
 				/>
+				<div class="my-2">
+					<button
+						class="button is-primary is-outlined"
+						onClick={() => goto('/canvas/_/text')}
+					>
+						<span class="icon">
+							<BiSolidFilePlus />
+						</span>
+						<span>Text </span>
+					</button>
+					<button
+						class="button is-primary is-outlined"
+						onClick={() => goto('/canvas/_/image')}
+					>
+						<span class="icon">
+							<BiSolidImageAdd />
+						</span>
+						<span>Image</span>
+					</button>
+				</div>
+
 				<p class="control is-fullwidth">
 					<button
 						class="button is-danger is-outlined is-fullwidth"

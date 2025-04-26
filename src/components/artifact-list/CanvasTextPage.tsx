@@ -24,6 +24,17 @@ const CanvasTextPage: Component = () => {
 	const [data, setData] = createSignal<string | undefined>();
 
 	onMount(async () => {
+		if (id() === '_') {
+			// Create a new artifact
+			setMeta({
+				_id: '_',
+				name: '',
+				mimeType: 'text/plain',
+				createdAt: Date.now(),
+			});
+			setData('');
+			return;
+		}
 		const a = await getArtifact(id());
 
 		if (!a) {
@@ -66,6 +77,12 @@ const CanvasTextPage: Component = () => {
 	};
 
 	const handleSaveAs = async () => {
+		if (!nameRef!.value) {
+			toast.error('Please enter a name');
+		}
+		if (!mimeRef!.value || mimeRef!.value.split('/').length !== 2) {
+			toast.error('Invalid MIME type');
+		}
 		const id = await toast.promise(
 			createArtifact(nameRef!.value, mimeRef!.value, dataRef!.value),
 			{
