@@ -312,13 +312,11 @@ const BottomInput: Component = () => {
 	};
 
 	const handleClickMargin = (e: MouseEvent) => {
-		let tagName = '';
 		// If event target is 'div' tag
 		if (e.target instanceof HTMLElement) {
-			tagName = e.target.tagName;
-		}
-		if (tagName === 'DIV') {
-			taRef!.focus();
+			if (e.target.classList.contains('bottom-input')) {
+				taRef!.focus();
+			}
 		}
 	};
 

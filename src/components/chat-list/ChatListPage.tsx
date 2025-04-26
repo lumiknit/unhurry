@@ -30,6 +30,7 @@ import {
 	deleteChatByID,
 } from '@lib/idb';
 
+import Buttons from '../utils/Buttons';
 import Pagination, { createPaginatedList } from '../utils/Pagination';
 
 type ClearModalProps = {
@@ -66,12 +67,22 @@ const ClearChatModal: Component<ClearModalProps> = (props) => {
 						</div>
 					</div>
 					<div class="buttons">
-						<button class="button is-danger" onClick={handleClear}>
-							Clear
-						</button>
-						<button class="button" onClick={props.onClose}>
-							Cancel
-						</button>
+						<Buttons
+							autofocus
+							onEscape={() => props.onClose()}
+							buttons={[
+								{
+									class: 'button is-danger',
+									label: 'OK',
+									onClick: () => handleClear(),
+								},
+								{
+									class: 'button',
+									label: 'Cancel',
+									onClick: () => props.onClose(),
+								},
+							]}
+						/>
 					</div>
 				</div>
 			</div>
