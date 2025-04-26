@@ -90,6 +90,16 @@
 	font-family: monospace;
 }
 
+.msg-raw {
+	padding: 0.25rem 0;
+	white-space: pre-wrap;
+	word-wrap: break-word;
+	word-break: break-all;
+	font-family: monospace;
+	font-size: 0.875rem;
+	line-height: 1.2;
+}
+
 div.msg-user.message-body {
 	margin-left: 2rem;
 	--bulma-text-strong: hsl(

@@ -140,3 +140,6 @@ export const [getCurChatProcessing, setCurChatProcessing] =
  */
 export const [getFocusedChatUphurryProgress, setFocusedChatUphurryProgress] =
 	createSignal<boolean>(false);
+
+export const [getShowRawMessage, setShowRawMessage] =
+	createSignal<boolean>(false);

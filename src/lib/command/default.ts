@@ -2,6 +2,7 @@ import {
 	TbChevronsRight,
 	TbFolder,
 	TbList,
+	TbMarkdown,
 	TbMinimize,
 	TbPlus,
 	TbRefresh,
@@ -16,7 +17,12 @@ import {
 	registerCommand,
 	registerShortcut,
 } from '@/lib/command/command';
-import { goto, setUphurryMode, setUserConfig } from '@/store';
+import {
+	goto,
+	setShowRawMessage,
+	setUphurryMode,
+	setUserConfig,
+} from '@/store';
 import {
 	compactChat,
 	generateChatTitle,
@@ -121,6 +127,15 @@ const commonCommands: Command[] = [
 		name: 'Toggle Goto Palette',
 		action: () => togglePalette(''),
 	},
+	{
+		id: 'options.toggleRawMessage',
+		name: 'Toggle Show Raw Message',
+		icon: TbMarkdown,
+		action: () => {
+			const v = setShowRawMessage((v) => !v);
+			toast.success(v ? 'Raw message enabled!' : 'Raw message disabled!');
+		},
+	},
 ];
 
 const commonShortcuts: Shortcut[] = [
@@ -167,6 +182,10 @@ const commonShortcuts: Shortcut[] = [
 	{
 		key: '⇧⌘k',
 		id: 'chat.compactAndClear',
+	},
+	{
+		key: '⌘`',
+		id: 'options.toggleRawMessage',
 	},
 ];
 
