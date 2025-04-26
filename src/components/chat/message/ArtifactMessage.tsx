@@ -3,7 +3,7 @@ import { Component, createSignal, Match, onMount, Switch } from 'solid-js';
 import { openArtifactPreviewModal } from '@/components/artifact-list/ArtifactPreviewModal';
 import {
 	ArtifactMeta,
-	getArtifact,
+	getArtifactMeta,
 	getArtifactBlob,
 	getArtifactDataURL,
 } from '@/lib/idb/artifact_storage';
@@ -17,7 +17,7 @@ const FileMessage: Component<ItemProps> = (props) => {
 	const [objURL, setObjURL] = createSignal<string | undefined>();
 
 	onMount(async () => {
-		const meta = await getArtifact(props.content);
+		const meta = await getArtifactMeta(props.content);
 		if (!meta) {
 			setMeta(null);
 			return;

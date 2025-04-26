@@ -7,6 +7,7 @@ import { Dynamic } from 'solid-js/web';
 import { toast } from 'solid-toast';
 
 import { getBEService } from '@/lib/be';
+import { getShowRawMessage } from '@/store';
 
 import {
 	convertMsgForLLM,
@@ -25,7 +26,6 @@ import BlockBottomButtons from './BlockBottomButtons';
 import FnCallMessage from './FnCallMessage';
 import JSONLikeMessage from './JSONLikeMessage';
 import { ItemProps } from './message_types';
-import { getShowRawMessage } from '@/store';
 
 marked.use(
 	markedKatex({

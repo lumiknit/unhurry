@@ -13,6 +13,7 @@ import {
 	ArtifactMeta,
 	getArtifactBlob,
 } from '@/lib/idb/artifact_storage';
+import { goto } from '@/store';
 
 type CellProps = {
 	meta: ArtifactMeta;
@@ -139,6 +140,15 @@ export const openArtifactPickModal = (): Promise<string | undefined> => {
 					</div>
 				</Show>
 				<div class="buttons is-right">
+					<button
+						class="button"
+						onClick={() => {
+							goto('/artifacts');
+							props.onClose();
+						}}
+					>
+						Go to List
+					</button>
 					<button class="button" onClick={() => props.onClose()}>
 						Cancel
 					</button>

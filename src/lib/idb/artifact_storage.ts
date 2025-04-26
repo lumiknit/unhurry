@@ -83,22 +83,39 @@ export const listArtifacts = async (): Promise<ArtifactMeta[]> => {
 /**
  * Get an artifact from storage.
  */
-export const getArtifact = async (
+export const getArtifactMeta = async (
 	id: string
 ): Promise<ArtifactMeta | undefined> => {
 	const tx = await metaTx();
 	return await tx.get(id);
 };
 
+export const getArtifactData = async (
+	id: string
+): Promise<ArtifactData | undefined> => {
+	const artifact = await getArtifactMeta(id);
+	if (!artifact) return;
+	const tx = await dataTx();
+	return await tx.get(id);
+};
+
+export const getArtifact = async (
+	id: string
+): Promise<{ meta: ArtifactMeta; data: ArtifactData } | undefined> => {
+	const [meta, data] = await Promise.all([
+		getArtifactMeta(id),
+		getArtifactData(id),
+	]);
+	if (!meta || !data) return;
+	return { meta, data };
+};
+
 export const getArtifactBlob = async (
 	id: string
 ): Promise<Blob | undefined> => {
-	const artifact = await getArtifact(id);
-	if (!artifact) return;
-	const tx = await dataTx();
-	const data = await tx.get(id);
-	if (!data) return;
-	return new Blob([data.data], { type: artifact.mimeType });
+	const a = await getArtifact(id);
+	if (!a) return;
+	return new Blob([a.data.data], { type: a.meta.mimeType });
 };
 
 /**
@@ -107,13 +124,10 @@ export const getArtifactBlob = async (
 export const getArtifactDataURL = async (
 	id: string
 ): Promise<string | undefined> => {
-	const artifact = await getArtifact(id);
-	if (!artifact) return;
-	const tx = await dataTx();
-	const data = await tx.get(id);
-	if (!data) return;
+	const a = await getArtifact(id);
+	if (!a) return;
 
-	const blob = new Blob([data.data], { type: artifact.mimeType });
+	const blob = new Blob([a.data.data], { type: a.meta.mimeType });
 	return await new Promise((resolve, reject) => {
 		const fileReader = new FileReader();
 		fileReader.onload = (e) => {

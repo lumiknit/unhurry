@@ -11,7 +11,7 @@ import { toast } from 'solid-toast';
 import { openArtifactPickModal } from '@/components/artifact-list/ArtifactPickModal';
 import { createIsMobile } from '@/components/utils/media';
 import { getBEService } from '@/lib/be';
-import { createArtifact, getArtifact } from '@/lib/idb/artifact_storage';
+import { createArtifact, getArtifactMeta } from '@/lib/idb/artifact_storage';
 import { logr } from '@/lib/logr';
 
 interface Props {
@@ -90,7 +90,7 @@ const UploadFileButton: Component<Props> = (props) => {
 			return;
 		}
 		// Get artifact from IDB
-		const artifactMeta = await getArtifact(artifactID);
+		const artifactMeta = await getArtifactMeta(artifactID);
 		if (!artifactMeta) {
 			toast.error('Artifact not found: ' + artifactID);
 			return;

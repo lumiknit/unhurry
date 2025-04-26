@@ -1,6 +1,7 @@
 import {
 	BiRegularDownload,
 	BiRegularEdit,
+	BiRegularPencil,
 	BiRegularTrash,
 } from 'solid-icons/bi';
 import {
@@ -22,6 +23,7 @@ import {
 	getArtifactBlob,
 	updateArtifactMeta,
 } from '@/lib/idb/artifact_storage';
+import { goto } from '@/store';
 
 import { openConfirm } from '../modal';
 
@@ -195,6 +197,15 @@ export const openArtifactPreviewModal = (
 			}
 		};
 
+		const handleEdit = async () => {
+			if (artifact.mimeType.startsWith('image/')) {
+				goto('/canvas/' + artifact._id + '/image');
+			} else {
+				goto('/canvas/' + artifact._id + '/text');
+			}
+			props.onClose(true);
+		};
+
 		const handleDownload = async () => {
 			const be = await getBEService();
 			const blob = await getArtifactBlob(artifact._id);
@@ -246,6 +257,16 @@ export const openArtifactPreviewModal = (
 							<BiRegularEdit />
 						</span>
 						<span>Rename</span>
+					</button>
+
+					<button
+						class="button is-primary is-small"
+						onClick={handleEdit}
+					>
+						<span class="icon">
+							<BiRegularPencil />
+						</span>
+						<span>Edit</span>
 					</button>
 
 					<button

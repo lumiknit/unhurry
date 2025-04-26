@@ -1,6 +1,6 @@
 import { getMarkdownLanguageFromFileName } from '../artifact/mime';
 import {
-	getArtifact,
+	getArtifactMeta,
 	getArtifactBlob,
 	getArtifactDataURL,
 } from '../idb/artifact_storage';
@@ -123,7 +123,7 @@ export const convertMsgForLLM = async (msg: Msg): Promise<LLMMessage> => {
 				break;
 			case MSG_PART_TYPE_ARTIFACT:
 				{
-					const artifact = await getArtifact(part.content);
+					const artifact = await getArtifactMeta(part.content);
 					if (artifact) {
 						if (artifact.mimeType.startsWith('image/')) {
 							const dataURL = await getArtifactDataURL(
