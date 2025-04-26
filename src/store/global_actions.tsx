@@ -1,9 +1,7 @@
 // Store-based actions
-import { Navigator, useNavigate } from '@solidjs/router';
 import { batch, untrack } from 'solid-js';
 import { toast } from 'solid-toast';
 
-import { rootPath } from '@/env';
 import { getBEService, VibrationPattern } from '@/lib/be';
 import { chatManager } from '@/lib/chat-manager/manager';
 import { scrollToLastUserMessage } from '@/lib/utils';
@@ -12,6 +10,7 @@ import {
 	getChatContext,
 	getCurrentChatOpts,
 	getUserConfig,
+	goto,
 	resetStreamingState,
 	setChatContext,
 	setChatWarnings,
@@ -140,15 +139,19 @@ export const cancelCurrentChat = () => {
 	chatManager.cancelChat(chatContext._id);
 };
 
-export const gotoNewChat = (navigate: Navigator) => {
-	navigate(`${rootPath}/`);
+export const gotoNewChat = () => {
+	goto('/');
 	resetChatMessages();
 	toast.success('New notebook created');
 };
 
-export const openChat = async (navigate: Navigator, id: string) => {
-	await loadChatContext(id);
-	navigate(`${rootPath}/`);
+export const openChat = async (id: string) => {
+	await toast.promise(loadChatContext(id), {
+		loading: 'opening chat...',
+		success: 'Opened',
+		error: 'Error during open chat',
+	});
+	goto('/');
 };
 
 // ChatManager
@@ -220,12 +223,11 @@ chatManager.onFinish = (id, ctx) => {
 	}
 	const title = ctx.title || 'untitled';
 	toast.success((t) => {
-		const navigate = useNavigate();
 		const handle = () =>
 			toast.promise(
 				(async () => {
 					toast.dismiss(t.id);
-					await openChat(navigate, id);
+					await openChat(id);
 					return true;
 				})(),
 				{

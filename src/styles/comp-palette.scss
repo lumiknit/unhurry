@@ -84,3 +84,16 @@ input.plt-input {
 	position: absolute;
 	right: 0.67rem;
 }
+
+.plt-icon {
+	display: inline-block;
+	width: 1em;
+	height: 1em;
+	margin-right: 0.25em;
+
+	& > svg {
+		width: 1em;
+		height: 1em;
+		vertical-align: text-top;
+	}
+}

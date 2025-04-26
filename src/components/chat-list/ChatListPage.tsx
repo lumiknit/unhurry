@@ -1,4 +1,3 @@
-import { useNavigate } from '@solidjs/router';
 import {
 	BiRegularCalendar,
 	BiRegularCalendarExclamation,
@@ -156,8 +155,6 @@ const Item: Component<ItemProps> = (props) => {
 };
 
 const ChatListPage: Component = () => {
-	const navigate = useNavigate();
-
 	const [showClearModal, setShowClearModal] = createSignal(false);
 
 	const pageSize = 10;
@@ -234,7 +231,7 @@ const ChatListPage: Component = () => {
 	};
 
 	const handleOpenChat = async (id: string) => {
-		toast.promise(openChat(navigate, id), {
+		toast.promise(openChat(id), {
 			loading: 'Loading...',
 			success: 'Loaded',
 			error: 'Failed to load',
@@ -272,7 +269,7 @@ const ChatListPage: Component = () => {
 						<span>Chats ({chatList()?.length || '-'})</span>
 						<button
 							class="button is-small is-primary"
-							onClick={() => gotoNewChat(navigate)}
+							onClick={() => gotoNewChat()}
 						>
 							<span class="icon mr-1">
 								<BiRegularPlus />

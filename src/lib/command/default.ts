@@ -1,3 +1,13 @@
+import {
+	TbChevronsRight,
+	TbFolder,
+	TbList,
+	TbMinimize,
+	TbPlus,
+	TbRefresh,
+	TbSettings,
+	TbTrash,
+} from 'solid-icons/tb';
 import { toast } from 'solid-toast';
 
 import { togglePalette } from '@/components/palette/state';
@@ -19,6 +29,7 @@ const commonCommands: Command[] = [
 	{
 		id: 'chat.new',
 		name: 'New Chat',
+		icon: TbPlus,
 		action: () => {
 			resetChatMessages();
 			goto('/');
@@ -39,22 +50,25 @@ const commonCommands: Command[] = [
 	},
 	{
 		id: 'chat.genTitle',
-		name: 'Generate chat title',
+		name: 'Generate Chat Title',
 		action: generateChatTitle,
 	},
 	{
 		id: 'chat.compact',
 		name: 'Compact Chat History',
+		icon: TbMinimize,
 		action: () => compactChat(false),
 	},
 	{
 		id: 'chat.compactAndClear',
 		name: 'Compact Chat History and Clear',
+		icon: TbTrash,
 		action: () => compactChat(true),
 	},
 	{
 		id: 'options.toggleUphurry',
 		name: 'Toggle Uphurry Mode',
+		icon: TbChevronsRight,
 		action: () => {
 			const v = setUphurryMode((v) => !v);
 			toast.success(v ? 'Uphurry enabled!' : 'Uphurry disabled!');
@@ -63,6 +77,7 @@ const commonCommands: Command[] = [
 	{
 		id: 'options.toggleAutoSend',
 		name: 'Toggle Auto Send',
+		icon: TbRefresh,
 		action: () => {
 			const c = setUserConfig((c) => ({
 				...c,
@@ -81,16 +96,19 @@ const commonCommands: Command[] = [
 	{
 		id: 'page.chatList',
 		name: 'Open Chat List',
+		icon: TbList,
 		action: () => goto('/chats'),
 	},
 	{
 		id: 'page.artifactList',
 		name: 'Open Artifact List',
+		icon: TbFolder,
 		action: () => goto('/artifacts'),
 	},
 	{
 		id: 'page.settings',
 		name: 'Open Settings',
+		icon: TbSettings,
 		action: () => goto('/settings'),
 	},
 	{

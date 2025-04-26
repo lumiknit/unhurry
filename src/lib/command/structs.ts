@@ -1,5 +1,7 @@
 // Shortcut symbols
 
+import { Component } from 'solid-js';
+
 export const symAlt = '⌥';
 export const symShift = '⇧';
 export const symMeta = '⌘';
@@ -30,6 +32,7 @@ export type CommandArgs = string[];
 export type Command = {
 	id: string;
 	name: string;
+	icon?: Component;
 	shortcut?: string;
 	action: (args?: CommandArgs) => void;
 

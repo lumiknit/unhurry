@@ -1,4 +1,4 @@
-import { A, useNavigate } from '@solidjs/router';
+import { A } from '@solidjs/router';
 import {
 	BiRegularCog,
 	BiRegularHistory,
@@ -14,8 +14,6 @@ import { gotoNewChat } from '@/store/global_actions';
 import ModelDropdown from './ModelDropdown';
 
 const NavBar: Component = () => {
-	const navigate = useNavigate();
-
 	let burgerRef: HTMLAnchorElement;
 	let menuRef: HTMLDivElement;
 
@@ -53,7 +51,7 @@ const NavBar: Component = () => {
 					</svg>
 				</A>
 
-				<a class="navbar-item" onClick={() => gotoNewChat(navigate)}>
+				<a class="navbar-item" onClick={() => gotoNewChat()}>
 					<BiRegularPlus />
 					<span class="is-hidden-mobile">New</span>
 				</a>
