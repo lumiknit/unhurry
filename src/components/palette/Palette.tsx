@@ -8,7 +8,7 @@ import {
 	Show,
 } from 'solid-js';
 
-import { Command, filterCommands } from '@/lib/command/command';
+import { bringCommandUp, Command, filterCommands } from '@/lib/command';
 
 import { setShowPalette } from './state';
 
@@ -61,6 +61,7 @@ const Palette: Component<Props> = (props) => {
 		const cmd = commands()[idx];
 		console.log(cmd);
 		if (cmd) {
+			bringCommandUp(cmd.id);
 			setShowPalette(false);
 			cmd.action();
 		}

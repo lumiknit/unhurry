@@ -3,13 +3,13 @@ import { toast } from 'solid-toast';
 import { togglePalette } from '@/components/palette/state';
 import {
 	buildCommands,
-	Command,
 	registerCommand,
 	registerShortcut,
-	Shortcut,
 } from '@/lib/command/command';
 import { goto, setUphurryMode, setUserConfig } from '@/store';
 import { resetChatMessages } from '@/store/global_actions';
+
+import { Command, Shortcut } from './structs';
 
 const commonCommands: Command[] = [
 	{
@@ -17,6 +17,7 @@ const commonCommands: Command[] = [
 		name: 'New Chat',
 		action: () => {
 			resetChatMessages();
+			goto('/');
 			toast.success('New chat created!');
 		},
 	},
@@ -84,9 +85,7 @@ const commonCommands: Command[] = [
 		action: () => togglePalette(''),
 	},
 ];
-export const symAlt = '⌥';
-export const symShift = '⇧';
-export const symMeta = '⌘';
+
 const commonShortcuts: Shortcut[] = [
 	{
 		key: '⌘o',
