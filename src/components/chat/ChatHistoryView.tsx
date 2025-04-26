@@ -29,16 +29,16 @@ const StreamingInfo: Component = () => {
 			<Show when={getStreamingRest()}>
 				<div class="streaming-msg">{getStreamingRest()}</div>
 			</Show>
-			<Show
-				when={
-					!getCurChatProcessing() && getFocusedChatUphurryProgress()
-				}
-			>
+			<Show when={getFocusedChatUphurryProgress()}>
 				<div class="message-body msg-user is-uphurry has-text-centered">
 					<span class="spinner" />
 				</div>
 			</Show>
-			<Show when={getCurChatProcessing()}>
+			<Show
+				when={
+					getCurChatProcessing() && !getFocusedChatUphurryProgress()
+				}
+			>
 				<div class="has-text-centered">
 					<span class="spinner spinner-primary" />
 				</div>

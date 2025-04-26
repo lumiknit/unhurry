@@ -98,17 +98,14 @@ const BottomInput: Component = () => {
 		const fs = files();
 
 		// Dispatch right arrow event
-		if (!composing) {
+		if (!getUphurryMode() && !composing) {
 			taRef!.value = '';
 			lastSent = 0;
 			autosizeTextarea();
-		} else {
-			// Otherwise, some composing left.
-			// Just ignore the send
 		}
 		setFiles([]);
 		try {
-			logr.info('LLM Input: ', v);
+			logr.info('[BottomInput] Input: ', v);
 
 			// Pick the last user message and scroll to top.
 			await chat(
@@ -363,10 +360,7 @@ const BottomInput: Component = () => {
 				/>
 			</Show>
 			<Show when={getUphurryMode()}>
-				<p class="is-size-7">
-					UpHurry mode. Based on your input, it will automatically
-					send the message to achieve goal.
-				</p>
+				<p class="is-size-7">UpHurry mode. Write a goal.</p>
 			</Show>
 			<div class="buttons gap-1 no-user-select">
 				<SpeechButton

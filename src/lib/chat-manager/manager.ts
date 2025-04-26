@@ -74,6 +74,8 @@ type OngoingChat = {
 	 */
 	processing?: boolean;
 
+	checkingLock?: boolean;
+
 	/** Current onging chat action */
 	action?: SingleChatAction;
 
@@ -361,18 +363,14 @@ export class ChatManager {
 	 * Try to set the chat request.
 	 * If the chat already has a request, it'll do nothing and return false.
 	 */
-	setChatRequest(id: string, req: ChatRequest, force?: boolean): boolean {
+	setChatRequest(id: string, req: ChatRequest): boolean {
 		const ch = this.chat(id);
-		if (ch.meta.request && !force) {
-			return false;
-		}
+		this.tryLock(ch);
 		ch.meta.request = req;
 		this.resetFailures(id);
 		this.saveState();
 
-		if (req.type === 'uphurry') {
-			this.onUphurryProgressChange(id, true);
-		}
+		this.checkChat(ch).catch(() => {});
 		return true;
 	}
 
@@ -404,10 +402,8 @@ export class ChatManager {
 	finishRequest(id: string) {
 		const ch = this.chat(id);
 		if (ch.meta.request) {
-			if (ch.meta.request?.type === 'uphurry') {
-				this.onUphurryProgressChange(id, false);
-			}
 			ch.meta.request = undefined;
+			this.unlock(ch);
 			this.saveChatMeta(id);
 			this.onFinish(id, ch.ctx);
 		}
@@ -421,10 +417,8 @@ export class ChatManager {
 		if (ch.action) {
 			ch.action.cancel();
 		}
-		if (ch.meta.request?.type === 'uphurry') {
-			this.onUphurryProgressChange(id, false);
-		}
 		ch.meta.request = undefined;
+		this.unlock(ch);
 		this.saveChatMeta(id);
 	}
 
@@ -569,8 +563,6 @@ export class ChatManager {
 				this.onLLMFallback(id, err, index, mc);
 			action.onUpdate = this.callbackOnUpdate(item.meta.id);
 			item.action = action;
-
-			this.onChatProcessingChange(id, true);
 			return action;
 		};
 
@@ -583,11 +575,13 @@ export class ChatManager {
 					break;
 				case 'uphurry':
 					{
+						this.onUphurryProgressChange(id, true);
 						const nextQuestion = await genNextQuestion(
 							item.opts,
 							item.ctx.history,
 							req.comment
 						);
+						this.onUphurryProgressChange(id, false);
 						if (nextQuestion === null) {
 							this.finishRequest(id);
 						} else {
@@ -601,7 +595,7 @@ export class ChatManager {
 			}
 		} finally {
 			item.action = undefined;
-			this.onChatProcessingChange(id, false);
+			this.onUphurryProgressChange(id, false);
 		}
 
 		if (isFirst) {
@@ -619,10 +613,10 @@ export class ChatManager {
 		if (typeof item === 'string') {
 			item = this.chat(item);
 		}
-		if (item.retries > this.maxRetries) {
+		if (item.checkingLock || item.retries > this.maxRetries) {
 			return;
 		}
-		this.tryLock(item);
+		item.checkingLock = true;
 		try {
 			await this.checkChatInner(item);
 			this.resetFailures(item.ctx._id);
@@ -632,21 +626,19 @@ export class ChatManager {
 				const title = item.ctx.title || 'untitled';
 				logr.error('[ChatManager] Error checking chat', e);
 				toast.error(`[chat '${title}'] ${e}`);
+				this.cancelChat(item.meta.id);
 			}
-		} finally {
-			this.unlock(item);
 		}
+		item.checkingLock = false;
 	}
 
 	/**
 	 * Periodic check for the chat
 	 */
-	private async checkAll() {
-		await Promise.allSettled(
-			Array.from(this.chats.values()).map((item) => {
-				this.checkChat(item);
-			})
-		);
+	private checkAll() {
+		for (const c of this.chats.values()) {
+			this.checkChat(c).catch(() => {});
+		}
 	}
 
 	/**

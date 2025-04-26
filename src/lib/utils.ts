@@ -12,11 +12,13 @@ export const scrollToLastUserMessage = () => {
 	if (elems.length > 0) {
 		const last = elems[elems.length - 1];
 		const rect = last.getBoundingClientRect();
-		const top = window.scrollY + rect.top - 54;
-		// current scroll position
-		window.scrollTo({
-			top,
-			behavior: 'smooth',
-		});
+		const dy = rect.top - 54;
+		if (dy > 0) {
+			// current scroll position
+			window.scrollTo({
+				top: window.scrollY + dy,
+				behavior: 'smooth',
+			});
+		}
 	}
 };

@@ -121,23 +121,15 @@ export const chat = async (
 		getCurrentChatOpts()
 	);
 	if (uphurry) {
-		chatManager.setChatRequest(
-			ctx._id,
-			{
-				type: 'uphurry',
-				comment: parts[0]?.content,
-			},
-			true
-		);
+		chatManager.setChatRequest(ctx._id, {
+			type: 'uphurry',
+			comment: parts[0]?.content,
+		});
 	} else {
-		chatManager.setChatRequest(
-			ctx._id,
-			{
-				type: 'user-msg',
-				message: parts,
-			},
-			true
-		);
+		chatManager.setChatRequest(ctx._id, {
+			type: 'user-msg',
+			message: parts,
+		});
 	}
 
 	chatManager.checkChat(ctx._id);

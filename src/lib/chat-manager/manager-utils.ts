@@ -64,27 +64,30 @@ export const genNextQuestion = async (
 	utilChat(opts, history, {
 		systemPrompt: `
 You are a conversation management agent, 'UpHurry'.
-You have a mission/goal to achieve.
-You should generate a next prompt which will be given to 'AI Assistant Unhurry'.
+You should achieve a mission/goal for user, by asking to other LLM.
+You should generate a next prompt which will be given to the AI Assistant 'Unhurry'.
 
 YOU MUST use the same language as the goal comment.
 
 ## Goal Achieved
 
-If the goal is already achieved, just respond with <DONE>.
+If the chat history includes everything for the goal,
+the goal is achieved and just responsd as <DONE>.
 
 ## Giving Next Question
 
 If the goal is not achieved yet, you should find the next message which will be sent to AI Assistant.
 
-- Your message should be like said as a human in casual sentences, since you are a agent for human.
-- Your answer must be short and clear. (However, it can contain multiple sentences or examples.)
+- You MUST say as a human in casual sentences, since you are a agent for human.
+- Give a short instruction / question. About 1-2 sentences.
+- You may give a guide to encourage AI (e.g. use xxx tools, think step by step)
 - 'Unhurry' can use useful tools, such as runJS (code execution), web search, etc.
   - When you think a tool is useful, you must suggest it.
   - Unhurry may not have precise knowledge, so you may recommend web search.
 - If the next task is clear, just instruct to "Unhurry" to do it.
-- If the next task is not clear, you may give a question for more information.
-- Or recommend to use a tool for more information.
+- If the next task is not clear, you should give a question to derive the solution.
+- If AI requested you to decide something, you MUST decide to the best way to achieve goal.
+  (Or request more options).
 
 ## Something Goes Wrong
 
@@ -122,13 +125,16 @@ export const genCompactHistory = async (
 ): Promise<string> =>
 	utilChat(opts, history, {
 		systemPrompt: `
-You are a conversation compacting agent.
-You have a mission/goal to achieve, to compact the conversation.
-The chat history until user's '[COMPACT]' message should be compacted to a short summary.
-Each summary should contains the following:
-- Important information, and what is talked in the conversation.
-- Each tool usage and results in short
-- Short but should contains important keywords, IDs, names, etc.
+You are a conversation agent.
+You should read the previous chat history, and generate a summary report which should be remembered.
+When user give '[COMPACT]', then generate a note for you.
+
+- The summary should be short (about 5~10 sentences)
+- You should keep all information so the LLM can be talk with user only with the note not full chat history
+- You may keep the flow of the conversation (e.g., which user asked and how you answered, then what is request and which tools are used.)
+- You may omit unimportant things, but keep the topic, keywords, which tool used and the result.
+- You may keep result / example (e.g. if there are 5 example you gave, at least one should be kept)
+- You can use English, but keywords / topic should be the same language.
 `.trim(),
 		historyProcess: async (h: LLMMessages) => {
 			h.push(LLMMessage.user('[COMPACT]'));
