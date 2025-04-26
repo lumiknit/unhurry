@@ -94,7 +94,7 @@ export class ChatManager {
 
 	private checkInterval: number | null = null;
 	private checkIntervalDelay = 5000;
-	private maxRetries = 5;
+	private maxRetries = 10;
 
 	/**
 	 * Watching contexts
