@@ -132,7 +132,7 @@ export const resetStreamingState = () => {
 /**
  * Whether current focusd chat is progressing. (LLM is running)
  */
-export const [getFocusedChatProgressing, setFocusedChatProgressing] =
+export const [getCurChatProcessing, setCurChatProcessing] =
 	createSignal<boolean>(false);
 
 /**

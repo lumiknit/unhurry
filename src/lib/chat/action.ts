@@ -2,6 +2,7 @@ import * as YAML from 'yaml';
 
 import { MsgPartsParser } from './parser';
 import {
+	assistantMsg,
 	ChatHistory,
 	convertChatHistoryForLLM,
 	Msg,
@@ -133,20 +134,12 @@ export abstract class SingleLLMAction {
 		if (!last.assistant) {
 			this.history.msgPairs[this.history.msgPairs.length - 1] = {
 				...last,
-				assistant: {
-					role: 'assistant',
-					timestamp: Date.now(),
-					parts: parts,
-				},
+				assistant: assistantMsg(parts),
 			};
 		} else {
 			// Push new assistant message
 			this.history.msgPairs.push({
-				assistant: {
-					role: 'assistant',
-					parts,
-					timestamp: Date.now(),
-				},
+				assistant: assistantMsg(parts),
 			});
 		}
 		this.onUpdate?.(this.history.msgPairs.length - 1);
@@ -256,11 +249,7 @@ export abstract class SingleLLMAction {
 			// Update the last message
 			this.history.msgPairs[this.history.msgPairs.length - 1] = {
 				...this.history.msgPairs[this.history.msgPairs.length - 1],
-				assistant: {
-					role: 'assistant',
-					timestamp: Date.now(),
-					parts: updatedParts,
-				},
+				assistant: assistantMsg(updatedParts),
 			};
 			this.onUpdate?.(this.history.msgPairs.length - 1);
 			return await this.run();

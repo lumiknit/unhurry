@@ -8,7 +8,7 @@ import {
 	hasChatUpdate,
 } from '../chat/context';
 import { MsgPartsParser } from '../chat/parser';
-import { MsgPair, MsgPart } from '../chat/structs';
+import { assistantMsg, MsgPair, MsgPart, userMsg } from '../chat/structs';
 import { chatListTx, chatTx, SimpleIDB } from '../idb';
 import {
 	BadRequestError,
@@ -22,18 +22,15 @@ import {
 	genCompactHistory,
 	genNextQuestion,
 } from './manager-utils';
-import { ChatOptions, ChatRequest, OngoingChatMeta } from './structs';
+import {
+	ChatAlreadyProcessingError,
+	ChatNotFoundError,
+	ChatOptions,
+	ChatRequest,
+	OngoingChatMeta,
+	OngoingChatSummary,
+} from './structs';
 import { uniqueID } from '../utils';
-
-/**
- * Chat not found error
- */
-export class ChatNotFoundError extends Error {
-	constructor(id: string) {
-		super(`[ChatManager] Chat ${id} not found`);
-		this.name = 'ChatNotFoundError';
-	}
-}
 
 /**
  * Chat manager state to saved in the IDB
@@ -61,7 +58,7 @@ type ChatProgress = {
 /**
  * Managed chat.
  */
-export type OngoingChat = {
+type OngoingChat = {
 	/**
 	 * Metadata
 	 */
@@ -71,7 +68,11 @@ export type OngoingChat = {
 
 	opts: ChatOptions;
 
-	lock?: boolean;
+	/**
+	 * ProcessingLock.
+	 * If true, some task (chat / uphurry / gen title / compact) is running
+	 */
+	processing?: boolean;
 
 	/** Current onging chat action */
 	action?: SingleChatAction;
@@ -81,17 +82,6 @@ export type OngoingChat = {
 
 	/** Warnings */
 	warnings: string[];
-};
-
-/**
- * Ongoing chat summary
- */
-export type OngoingChatSummary = {
-	meta: OngoingChatMeta;
-
-	ctx: ChatContext;
-
-	progressing: boolean;
 };
 
 /**
@@ -111,7 +101,7 @@ export class ChatManager {
 
 	// Callbacks
 
-	onProgressChange: (id: string, progress: boolean) => void = () => {};
+	onChatProcessingChange: (id: string, progress: boolean) => void = () => {};
 
 	onUphurryProgressChange: (id: string, progress: boolean) => void = () => {};
 
@@ -159,12 +149,28 @@ export class ChatManager {
 	/**
 	 * Get the chat by ID.
 	 */
-	chat(id: string): OngoingChat {
+	private chat(id: string): OngoingChat {
 		const chat = this.chats.get(id);
 		if (!chat) {
 			throw new ChatNotFoundError(id);
 		}
 		return chat;
+	}
+
+	/**
+	 *
+	 */
+	private tryLock(ch: OngoingChat) {
+		if (ch.processing) {
+			throw new ChatAlreadyProcessingError(ch.meta.id);
+		}
+		ch.processing = true;
+		this.onChatProcessingChange(ch.meta.id, true);
+	}
+
+	private unlock(ch: OngoingChat) {
+		ch.processing = false;
+		this.onChatProcessingChange(ch.meta.id, false);
 	}
 
 	// State methods
@@ -435,7 +441,7 @@ export class ChatManager {
 		return Array.from(this.chats.values()).map((item) => ({
 			meta: item.meta,
 			ctx: item.ctx,
-			progressing: item.meta.request !== undefined,
+			progressing: item.meta.request !== undefined || !!item.processing,
 		}));
 	}
 
@@ -443,52 +449,46 @@ export class ChatManager {
 
 	async generateChatTitle(id: string) {
 		const ch = this.chat(id);
-		const title = await genChatTitle(ch.opts, ch.ctx.history);
-		this.updateChatMeta(id, {
-			title,
-		});
+		this.tryLock(ch);
+		try {
+			const title = await genChatTitle(ch.opts, ch.ctx.history);
+			this.updateChatMeta(id, {
+				title,
+			});
+		} finally {
+			this.unlock(ch);
+		}
 	}
 
 	async compactChat(id: string, toClear?: boolean) {
 		const ch = this.chat(id);
-		const compacted = await genCompactHistory(ch.opts, ch.ctx.history);
+		this.tryLock(ch);
+		try {
+			const compacted = await genCompactHistory(ch.opts, ch.ctx.history);
 
-		if (toClear) {
-			await this.clearMessagesDB(id);
-			// Clear chat history
-			ch.ctx.history.msgPairs = [];
+			if (toClear) {
+				await this.clearMessagesDB(id);
+				// Clear chat history
+				ch.ctx.history.msgPairs = [];
+			}
+
+			ch.ctx.history.msgPairs.push({
+				user: userMsg(
+					`# Note\nOld messages are clipped, the below is summary of the last chat:\n${compacted}`
+				),
+				assistant: assistantMsg('OK.'),
+			});
+
+			this.onMessage(id, ch.ctx.history.msgPairs);
+
+			// Save to DB
+			await Promise.all([
+				this.saveMessage(id, ch.ctx.history.msgPairs.length - 1),
+				this.saveChatMeta(id),
+			]);
+		} finally {
+			this.unlock(ch);
 		}
-
-		ch.ctx.history.msgPairs.push({
-			user: {
-				role: 'user',
-				timestamp: Date.now(),
-				parts: [
-					{
-						type: '',
-						content: `# Note\nOld messages are clipped, the below is summary of the last chat:\n${compacted}`,
-					},
-				],
-			},
-			assistant: {
-				role: 'assistant',
-				timestamp: Date.now(),
-				parts: [
-					{
-						type: '',
-						content: 'OK.',
-					},
-				],
-			},
-		});
-
-		this.onMessage(id, ch.ctx.history.msgPairs);
-
-		// Save to DB
-		await Promise.all([
-			this.saveMessage(id, ch.ctx.history.msgPairs.length - 1),
-			this.saveChatMeta(id),
-		]);
 	}
 
 	// Callbacks for the chat actions
@@ -570,7 +570,7 @@ export class ChatManager {
 			action.onUpdate = this.callbackOnUpdate(item.meta.id);
 			item.action = action;
 
-			this.onProgressChange(id, true);
+			this.onChatProcessingChange(id, true);
 			return action;
 		};
 
@@ -601,7 +601,7 @@ export class ChatManager {
 			}
 		} finally {
 			item.action = undefined;
-			this.onProgressChange(id, false);
+			this.onChatProcessingChange(id, false);
 		}
 
 		if (isFirst) {
@@ -619,11 +619,11 @@ export class ChatManager {
 		if (typeof item === 'string') {
 			item = this.chat(item);
 		}
+		if (item.retries > this.maxRetries) {
+			return;
+		}
+		this.tryLock(item);
 		try {
-			if (item.lock || item.retries > this.maxRetries) {
-				return;
-			}
-			item.lock = true;
 			await this.checkChatInner(item);
 			this.resetFailures(item.ctx._id);
 		} catch (e) {
@@ -633,16 +633,19 @@ export class ChatManager {
 				logr.error('[ChatManager] Error checking chat', e);
 				toast.error(`[chat '${title}'] ${e}`);
 			}
+		} finally {
+			this.unlock(item);
 		}
-		item.lock = false;
 	}
 
 	/**
 	 * Periodic check for the chat
 	 */
 	private async checkAll() {
-		await Promise.all(
-			Array.from(this.chats.values()).map((item) => this.checkChat(item))
+		await Promise.allSettled(
+			Array.from(this.chats.values()).map((item) => {
+				this.checkChat(item);
+			})
 		);
 	}
 

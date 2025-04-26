@@ -1,12 +1,12 @@
 import { Component, createMemo, For, onMount, Show } from 'solid-js';
 
-import { MsgPair } from '@/lib/chat';
+import { assistantMsg, MsgPair } from '@/lib/chat';
 import { scrollToLastUserMessage } from '@/lib/utils';
 
 import {
 	getChatContext,
 	getChatWarnings,
-	getFocusedChatProgressing,
+	getCurChatProcessing,
 	getFocusedChatUphurryProgress,
 	getStreamingParts,
 	getStreamingRest,
@@ -24,28 +24,21 @@ const StreamingInfo: Component = () => {
 	return (
 		<>
 			<Show when={getStreamingParts()}>
-				<Message
-					msg={{
-						role: 'assistant',
-						parts: getStreamingParts(),
-						timestamp: Date.now(),
-					}}
-				/>
+				<Message msg={assistantMsg(getStreamingParts())} />
 			</Show>
 			<Show when={getStreamingRest()}>
 				<div class="streaming-msg">{getStreamingRest()}</div>
 			</Show>
 			<Show
 				when={
-					!getFocusedChatProgressing() &&
-					getFocusedChatUphurryProgress()
+					!getCurChatProcessing() && getFocusedChatUphurryProgress()
 				}
 			>
 				<div class="message-body msg-user is-uphurry has-text-centered">
 					<span class="spinner" />
 				</div>
 			</Show>
-			<Show when={getFocusedChatProgressing()}>
+			<Show when={getCurChatProcessing()}>
 				<div class="has-text-centered">
 					<span class="spinner spinner-primary" />
 				</div>

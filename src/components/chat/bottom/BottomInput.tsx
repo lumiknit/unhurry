@@ -6,7 +6,7 @@ import { logr } from '@/lib/logr';
 import { cancelCurrentChat, chat } from '@/store/global_actions';
 
 import {
-	getFocusedChatProgressing,
+	getCurChatProcessing,
 	getUphurryMode,
 	getUserConfig,
 	setAutoSendLaunchAt,
@@ -158,11 +158,7 @@ const BottomInput: Component = () => {
 	 */
 	const setAutoSend = () => {
 		const as = autoSendTimeout();
-		if (
-			!getUserConfig()?.enableAutoSend ||
-			!as ||
-			getFocusedChatProgressing()
-		)
+		if (!getUserConfig()?.enableAutoSend || !as || getCurChatProcessing())
 			return;
 
 		const now = Date.now();

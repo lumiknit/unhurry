@@ -132,7 +132,7 @@ const commonShortcuts: Shortcut[] = [
 	},
 	{
 		key: '⌘u',
-		id: 'chat.toggleUphurry',
+		id: 'options.toggleUphurry',
 	},
 	{
 		key: '⌘i',

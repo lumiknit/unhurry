@@ -18,7 +18,8 @@ import { Dynamic } from 'solid-js/web';
 import { toast } from 'solid-toast';
 
 import { openConfirm } from '@/components/modal';
-import { chatManager, OngoingChatSummary } from '@/lib/chat-manager/manager';
+import { chatManager } from '@/lib/chat-manager/manager';
+import { OngoingChatSummary } from '@/lib/chat-manager/structs';
 import { shortRelativeDateFormat } from '@/lib/intl';
 import { getChatContext } from '@/store';
 import { gotoNewChat, openChat } from '@/store/global_actions';
