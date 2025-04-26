@@ -7,7 +7,11 @@ import {
 	registerShortcut,
 } from '@/lib/command/command';
 import { goto, setUphurryMode, setUserConfig } from '@/store';
-import { resetChatMessages } from '@/store/global_actions';
+import {
+	compactChat,
+	generateChatTitle,
+	resetChatMessages,
+} from '@/store/global_actions';
 
 import { Command, Shortcut } from './structs';
 
@@ -34,7 +38,22 @@ const commonCommands: Command[] = [
 		},
 	},
 	{
-		id: 'chat.toggleUphurry',
+		id: 'chat.genTitle',
+		name: 'Generate chat title',
+		action: generateChatTitle,
+	},
+	{
+		id: 'chat.compact',
+		name: 'Compact Chat History',
+		action: () => compactChat(false),
+	},
+	{
+		id: 'chat.compactAndClear',
+		name: 'Compact Chat History and Clear',
+		action: () => compactChat(true),
+	},
+	{
+		id: 'options.toggleUphurry',
 		name: 'Toggle Uphurry Mode',
 		action: () => {
 			const v = setUphurryMode((v) => !v);
@@ -42,7 +61,7 @@ const commonCommands: Command[] = [
 		},
 	},
 	{
-		id: 'chat.toggleAutoSend',
+		id: 'options.toggleAutoSend',
 		name: 'Toggle Auto Send',
 		action: () => {
 			const c = setUserConfig((c) => ({
@@ -122,6 +141,14 @@ const commonShortcuts: Shortcut[] = [
 	{
 		key: '⌘1',
 		id: 'page.currentChat',
+	},
+	{
+		key: '⌘k',
+		id: 'chat.compact',
+	},
+	{
+		key: '⇧⌘k',
+		id: 'chat.compactAndClear',
 	},
 ];
 

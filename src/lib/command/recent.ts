@@ -9,7 +9,7 @@
  * - For example, if the DB is [1, 2, 3, 4], [1], [3, 2], [7], then the recent used order is 7, 2, 3, 1, 4.
  */
 
-import { SimpleIDB } from "../idb";
+import { SimpleIDB } from '../idb';
 
 interface RecentCommand {
 	/**
@@ -30,7 +30,7 @@ const tx = async () => {
 
 const newID = () => {
 	return Date.now().toString(36).padStart(12, '0');
-}
+};
 
 /**
  * From the records, reduce into the single list of IDs.

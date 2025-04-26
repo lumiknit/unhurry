@@ -1,44 +1,68 @@
 import { ChatHistory, convertChatHistoryForLLM } from '../chat/structs';
-import { LLMMessage, newClientFromConfig } from '../llm';
-import { logr } from '../logr';
+import { LLMMessage, LLMMessages, newClientFromConfig } from '../llm';
 import { ChatOptions } from './structs';
 
-export const generateChatTitle = async (
+export type UtilChatOpts<Result> = {
+	systemPrompt: string;
+	historyProcess?: (h: LLMMessages) => Promise<LLMMessages>;
+	postProcess: (msg: LLMMessage) => Promise<Result>;
+};
+
+export const utilChat = async <Result>(
+	opts: ChatOptions,
+	history: ChatHistory,
+	uopts: UtilChatOpts<Result>
+): Promise<Result> => {
+	const llm = newClientFromConfig(opts.modelConfigs[0]);
+	let lh = await convertChatHistoryForLLM(history);
+	if (uopts.historyProcess) {
+		lh = await uopts.historyProcess(lh);
+	}
+	const result = await llm.chat(uopts.systemPrompt, lh);
+	return await uopts.postProcess(result);
+};
+
+/**
+ * Generate a title for the chat
+ */
+export const genChatTitle = async (
 	opts: ChatOptions,
 	history: ChatHistory
-): Promise<string> => {
-	const llm = newClientFromConfig(opts.modelConfigs[0]);
-	const systemPrompt = `
+): Promise<string> =>
+	utilChat(opts, history, {
+		systemPrompt: `
 You are a title generator.
 Based on the following conversation, please generate a title for this chat.
 - Language should be short and clear (At least 2 words, at most 10 words. Single sentence)
 - Should be relevant to the conversation
 - Use the most used language in the conversation
 - DO NOT answer except the title. You ONLY give a title in plain text.
-`.trim();
+`.trim(),
+		historyProcess: async (h: LLMMessages) => {
+			h.push(
+				LLMMessage.user('[Give me a title for the above conversation]')
+			);
+			return h;
+		},
+		postProcess: async (msg: LLMMessage) =>
+			msg
+				.extractText()
+				.split('\n')
+				.map((l) => l.trim())
+				.filter((l) => l)
+				.pop() || '',
+	});
 
-	const llmHistory = await convertChatHistoryForLLM(history);
-	llmHistory.push(
-		LLMMessage.user('[Give me a title for the above conversation]')
-	);
-	const result = await llm.chat(systemPrompt, llmHistory);
-	logr.info('[ChatManager/utils] Generated Title', result.content);
-	const list = result
-		.extractText()
-		.split('\n')
-		.map((l) => l.trim())
-		.filter((l) => l);
-	// Return only last line
-	return list[list.length - 1];
-};
-
-export const generateNextQuestion = async (
+/**
+ * Generate a next question for the Chat
+ */
+export const genNextQuestion = async (
 	opts: ChatOptions,
 	history: ChatHistory,
 	comment: string
-): Promise<string | null> => {
-	const llm = newClientFromConfig(opts.modelConfigs[0]);
-	const systemPrompt = `
+): Promise<string | null> =>
+	utilChat(opts, history, {
+		systemPrompt: `
 You are a conversation management agent, 'UpHurry'.
 You have a mission/goal to achieve.
 You should generate a next prompt which will be given to 'AI Assistant Unhurry'.
@@ -71,19 +95,44 @@ But if you think it's hard, just say '<DONE>' to stop the conversation.
 ${comment}
 
 # Current Conversation
-`.trim();
+`.trim(),
+		historyProcess: async (h: LLMMessages) => {
+			h.push(
+				LLMMessage.user(
+					`# Goal\n${comment}\n\n# The next question (or <DONE>)?\n`
+				)
+			);
+			return h;
+		},
+		postProcess: async (msg: LLMMessage) => {
+			const text = msg.extractText().trim();
+			if (text.toLowerCase() === '<done>') {
+				return null;
+			}
+			return text;
+		},
+	});
 
-	const llmHistory = await convertChatHistoryForLLM(history);
-	llmHistory.push(
-		LLMMessage.user(
-			`# Goal\n${comment}\n\n# The next question (or <DONE>)?\n`
-		)
-	);
-	const result = await llm.chat(systemPrompt, llmHistory);
-	logr.info('[ChatManager/utils] Generated next question', result.content);
-	const text = result.extractText().trim();
-	if (text.toLowerCase() === '<done>') {
-		return null;
-	}
-	return result.extractText().trim();
-};
+/**
+ * Compact the chat history
+ */
+export const genCompactHistory = async (
+	opts: ChatOptions,
+	history: ChatHistory
+): Promise<string> =>
+	utilChat(opts, history, {
+		systemPrompt: `
+You are a conversation compacting agent.
+You have a mission/goal to achieve, to compact the conversation.
+The chat history until user's '[COMPACT]' message should be compacted to a short summary.
+Each summary should contains the following:
+- Important information, and what is talked in the conversation.
+- Each tool usage and results in short
+- Short but should contains important keywords, IDs, names, etc.
+`.trim(),
+		historyProcess: async (h: LLMMessages) => {
+			h.push(LLMMessage.user('[COMPACT]'));
+			return h;
+		},
+		postProcess: async (msg: LLMMessage) => msg.extractText(),
+	});

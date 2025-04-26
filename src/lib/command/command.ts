@@ -31,7 +31,7 @@ export const registerShortcut = (shortcut: Shortcut) => {
 
 export const getCommand = (id: string) => {
 	return rawCommands.get(id);
-}
+};
 
 /**
  * Test if the command name contains the query
@@ -103,7 +103,7 @@ export const buildCommands = async () => {
 	// Load recent commands, and push first
 	try {
 		const ids = await load();
-		for(const id of ids) {
+		for (const id of ids) {
 			const cmd = rawCommands.get(id);
 			if (cmd) {
 				cmds.push(cmd.id);
@@ -114,7 +114,7 @@ export const buildCommands = async () => {
 		logr.warn('Error loading recent commands', e);
 	}
 
-	for(const cmd of rawCommands.values()) {
+	for (const cmd of rawCommands.values()) {
 		if (!idSet.has(cmd.id)) {
 			cmds.push(cmd.id);
 		}

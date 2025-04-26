@@ -3,7 +3,6 @@ import { toast } from 'solid-toast';
 
 import { getBEService, ISpeechRecognizer } from '@/lib/be';
 import { logr } from '@/lib/logr';
-import { scrollToLastUserMessage } from '@/lib/utils';
 import { cancelCurrentChat, chat } from '@/store/global_actions';
 
 import {
@@ -112,7 +111,6 @@ const BottomInput: Component = () => {
 			logr.info('LLM Input: ', v);
 
 			// Pick the last user message and scroll to top.
-			setTimeout(scrollToLastUserMessage, 33);
 			await chat(
 				v,
 				fs.map((f) => f.id),

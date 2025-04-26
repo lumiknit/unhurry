@@ -17,7 +17,11 @@ import {
 	RequestEntityTooLargeError,
 } from '../llm';
 import { logr } from '../logr';
-import { generateChatTitle, generateNextQuestion } from './manager-utils';
+import {
+	genChatTitle,
+	genCompactHistory,
+	genNextQuestion,
+} from './manager-utils';
 import { ChatOptions, ChatRequest, OngoingChatMeta } from './structs';
 import { uniqueID } from '../utils';
 
@@ -300,7 +304,8 @@ export class ChatManager {
 	}
 
 	/**
-	 * Save new message
+	 * Save new message in DB.
+	 * This does not trigger
 	 */
 	async saveMessage(id: string, msgIdx: number) {
 		const ch = this.chat(id);
@@ -310,6 +315,15 @@ export class ChatManager {
 			...msg,
 			_id: msgIdx,
 		});
+	}
+
+	/**
+	 * Clear all contents from DB
+	 */
+	async clearMessagesDB(id: string) {
+		this.chat(id);
+		const chatDB = await chatTx<MsgPair>(id);
+		await chatDB.clear();
 	}
 
 	// Warning / retries
@@ -417,20 +431,64 @@ export class ChatManager {
 		this.saveChatMeta(id);
 	}
 
-	async generateChatTitle(id: string) {
-		const ch = this.chat(id);
-		const title = await generateChatTitle(ch.opts, ch.ctx.history);
-		this.updateChatMeta(id, {
-			title,
-		});
-	}
-
 	getOngoings(): OngoingChatSummary[] {
 		return Array.from(this.chats.values()).map((item) => ({
 			meta: item.meta,
 			ctx: item.ctx,
 			progressing: item.meta.request !== undefined,
 		}));
+	}
+
+	// Utils
+
+	async generateChatTitle(id: string) {
+		const ch = this.chat(id);
+		const title = await genChatTitle(ch.opts, ch.ctx.history);
+		this.updateChatMeta(id, {
+			title,
+		});
+	}
+
+	async compactChat(id: string, toClear?: boolean) {
+		const ch = this.chat(id);
+		const compacted = await genCompactHistory(ch.opts, ch.ctx.history);
+
+		if (toClear) {
+			await this.clearMessagesDB(id);
+			// Clear chat history
+			ch.ctx.history.msgPairs = [];
+		}
+
+		ch.ctx.history.msgPairs.push({
+			user: {
+				role: 'user',
+				timestamp: Date.now(),
+				parts: [
+					{
+						type: '',
+						content: `# Note\nOld messages are clipped, the below is summary of the last chat:\n${compacted}`,
+					},
+				],
+			},
+			assistant: {
+				role: 'assistant',
+				timestamp: Date.now(),
+				parts: [
+					{
+						type: '',
+						content: 'OK.',
+					},
+				],
+			},
+		});
+
+		this.onMessage(id, ch.ctx.history.msgPairs);
+
+		// Save to DB
+		await Promise.all([
+			this.saveMessage(id, ch.ctx.history.msgPairs.length - 1),
+			this.saveChatMeta(id),
+		]);
 	}
 
 	// Callbacks for the chat actions
@@ -472,10 +530,7 @@ export class ChatManager {
 
 	private callbackOnUpdate(id: string) {
 		return async (idx: number) => {
-			const ch = this.chats.get(id);
-			if (!ch) {
-				throw new Error(`Chat ${id} not found`);
-			}
+			const ch = this.chat(id);
 
 			this.onMessage(id, ch.ctx.history.msgPairs);
 
@@ -528,7 +583,7 @@ export class ChatManager {
 					break;
 				case 'uphurry':
 					{
-						const nextQuestion = await generateNextQuestion(
+						const nextQuestion = await genNextQuestion(
 							item.opts,
 							item.ctx.history,
 							req.comment
@@ -551,7 +606,7 @@ export class ChatManager {
 
 		if (isFirst) {
 			// Generate the title
-			const title = await generateChatTitle(item.opts, item.ctx.history);
+			const title = await genChatTitle(item.opts, item.ctx.history);
 			item.ctx.title = title;
 			this.saveChatMeta(item.meta.id);
 		}

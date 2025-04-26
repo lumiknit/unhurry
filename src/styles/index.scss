@@ -92,6 +92,12 @@
 
 div.msg-user.message-body {
 	margin-left: 2rem;
+	--bulma-text-strong: hsl(
+		var(--bulma-primary-h),
+		var(--bulma-primary-s),
+		var(--bulma-primary-invert-l)
+	);
+	--bulma-strong-color: var(--bulma-text-strong);
 	color: hsl(
 		var(--bulma-primary-h),
 		var(--bulma-primary-s),

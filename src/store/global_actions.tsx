@@ -6,6 +6,7 @@ import { toast } from 'solid-toast';
 import { rootPath } from '@/env';
 import { getBEService, VibrationPattern } from '@/lib/be';
 import { chatManager } from '@/lib/chat-manager/manager';
+import { scrollToLastUserMessage } from '@/lib/utils';
 
 import {
 	getChatContext,
@@ -70,7 +71,23 @@ export const generateChatTitle = async () => {
 	if (!ctx) {
 		throw new Error('No chat context');
 	}
-	await chatManager.generateChatTitle(ctx._id);
+	await toast.promise(chatManager.generateChatTitle(ctx._id), {
+		loading: 'Generating title...',
+		success: 'Title generated',
+		error: 'Failed to generate title',
+	});
+};
+
+export const compactChat = async (toClear?: boolean) => {
+	const ctx = getChatContext();
+	if (!ctx) {
+		throw new Error('No chat context');
+	}
+	await toast.promise(chatManager.compactChat(ctx._id, toClear), {
+		loading: 'Compacting chat...',
+		success: 'Chat compacted',
+		error: 'Failed to compact chat',
+	});
 };
 
 export const chat = async (
@@ -183,6 +200,9 @@ chatManager.onMessage = async (id, msgPairs) => {
 			msgPairs: [...msgPairs],
 		},
 	}));
+	setTimeout(() => {
+		scrollToLastUserMessage();
+	}, 33);
 };
 
 chatManager.onProgressChange = (id, progress) => {
