@@ -5,8 +5,11 @@ import {
 	createSignal,
 	For,
 	JSX,
+	Match,
+	onCleanup,
 	Show,
 	splitProps,
+	Switch,
 } from 'solid-js';
 import { toast } from 'solid-toast';
 
@@ -90,7 +93,7 @@ interface Props {
 const urlRE = /https?:\/\/[^\s]+\s*$/;
 
 const PromptTags: Component<Props> = (props) => {
-	const [filtered, setFiltered] = createSignal<PromptTag[]>([]);
+	const [filtered, setFiltered] = createSignal<PromptTag[] | undefined>();
 	const [showUploadByURL, setShowUploadByURL] = createSignal<string | false>(
 		false
 	);
@@ -117,7 +120,10 @@ const PromptTags: Component<Props> = (props) => {
 		}
 	};
 
-	createEffect(() => {
+	let filterTO: number | undefined;
+
+	const updateFilter = () => {
+		filterTO = undefined;
 		const ts = props.textState();
 		const ln = ts[0].length + ts[1].length + ts[2].length;
 		const nonWordIdx = ts[0].lastIndexOf(' ');
@@ -146,6 +152,21 @@ const PromptTags: Component<Props> = (props) => {
 		} else {
 			setShowUploadByURL(false);
 		}
+	};
+
+	createEffect(() => {
+		props.textState();
+		if (!filterTO) {
+			filterTO = window.setTimeout(updateFilter, 1000);
+			setFiltered(undefined);
+		}
+	});
+
+	onCleanup(() => {
+		if (filterTO) {
+			window.clearTimeout(filterTO);
+			filterTO = undefined;
+		}
 	});
 
 	return (
@@ -158,7 +179,12 @@ const PromptTags: Component<Props> = (props) => {
 					onFile={props.onFile}
 				/>
 			</Show>
-			<For each={filtered()}>
+			<Switch>
+				<Match when={filtered() === undefined}>
+					<span>...</span>
+				</Match>
+				<Match when>
+				<For each={filtered()}>
 				{(tag) => (
 					<Tag
 						class={'is-' + tag.color}
@@ -170,6 +196,8 @@ const PromptTags: Component<Props> = (props) => {
 					</Tag>
 				)}
 			</For>
+				</Match>
+			</Switch>
 		</div>
 	);
 };
