@@ -67,6 +67,9 @@ const openRenameModal = (
 					<strong>ID:</strong> {artifact._id}
 				</p>
 				<p>
+					<strong>URI:</strong> {artifact.uri}
+				</p>
+				<p>
 					<strong>Name:</strong> {artifact.name}
 				</p>
 				<p>
@@ -219,6 +222,12 @@ export const openArtifactPreviewModal = (
 				<h4 class="title is-4">{artifact.name}</h4>
 				<p>
 					<strong>ID:</strong> {artifact._id}
+				</p>
+				<p>
+					<strong>URI:</strong> {artifact.uri}
+				</p>
+				<p>
+					<strong>Created At:</strong> {artifact.createdAt}
 				</p>
 
 				{/* Preview */}

@@ -103,7 +103,12 @@ const UploadFileButton: Component<Props> = (props) => {
 		const be = await getBEService();
 		const handleDnD = (artifacts: UploadedArtifact[]) => {
 			artifacts.map(async (x) => {
-				const meta = await createArtifact(x.name, x.mimeType, x.data);
+				const meta = await createArtifact(
+					x.uri,
+					x.name,
+					x.mimeType,
+					x.data
+				);
 				logr.info('[UploadFileButton] File selected:', meta._id);
 				toast.success('File uploaded: ' + meta._id);
 				props.onFile(meta.name, meta._id);

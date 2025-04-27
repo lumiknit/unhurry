@@ -27,6 +27,7 @@ const dataTx = async () => {
  * Create an artifact for storage.
  */
 export const createArtifact = async (
+	uri: string,
 	name: string,
 	mimeType: string,
 	fileData: string | Uint8Array
@@ -34,6 +35,7 @@ export const createArtifact = async (
 	const id = uniqueID();
 	const meta = {
 		_id: id,
+		uri,
 		name,
 		createdAt: Date.now(),
 		mimeType,

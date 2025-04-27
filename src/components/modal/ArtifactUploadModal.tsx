@@ -80,7 +80,12 @@ export const openArtifactUploadModal = async (options: Options = {}) =>
 			const v = a();
 			if (!v) return;
 
-			const meta = await createArtifact(v.name, v.mimeType, v.data);
+			const meta = await createArtifact(
+				v.uri,
+				v.name,
+				v.mimeType,
+				v.data
+			);
 			toast.success('File uploaded: ' + meta._id);
 			props.onClose(meta);
 		};

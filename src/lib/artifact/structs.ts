@@ -10,6 +10,7 @@ export type UploadedArtifact = {
  */
 export interface ArtifactMeta {
 	_id: string;
+	uri: string;
 	name: string;
 	createdAt: number;
 	mimeType: string;

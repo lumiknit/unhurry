@@ -13,6 +13,7 @@ const CanvasTextPage: Component = () => {
 	const params = useParams();
 	const id = () => params.artifactID as string;
 
+	let uriRef: HTMLInputElement;
 	let nameRef: HTMLInputElement;
 	let mimeRef: HTMLInputElement;
 	let dataRef: HTMLTextAreaElement;
@@ -25,6 +26,7 @@ const CanvasTextPage: Component = () => {
 			// Create a new artifact
 			setMeta({
 				_id: '_',
+				uri: '',
 				name: '',
 				mimeType: 'text/plain',
 				createdAt: Date.now(),
@@ -81,7 +83,12 @@ const CanvasTextPage: Component = () => {
 			toast.error('Invalid MIME type');
 		}
 		const id = await toast.promise(
-			createArtifact(nameRef!.value, mimeRef!.value, dataRef!.value),
+			createArtifact(
+				uriRef!.value,
+				nameRef!.value,
+				mimeRef!.value,
+				dataRef!.value
+			),
 			{
 				loading: 'Saving...',
 				success: 'Saved!',
@@ -104,6 +111,19 @@ const CanvasTextPage: Component = () => {
 					<b>Created At</b>:{' '}
 					{new Date(meta()?.createdAt || 0).toLocaleString()}
 				</div>
+
+				<label class="is-flex flex-split gap-2 is-align-items-center my-1">
+					<div class="label mb-0">URI</div>
+					<div class="control w-full">
+						<input
+							ref={uriRef!}
+							class="input"
+							type="text"
+							value={meta()?.uri}
+							onChange={handleNameChange}
+						/>
+					</div>
+				</label>
 
 				<label class="is-flex flex-split gap-2 is-align-items-center my-1">
 					<div class="label mb-0">Name</div>

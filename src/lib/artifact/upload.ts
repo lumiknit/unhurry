@@ -19,7 +19,12 @@ export const openUploadArtifactDialog = async (
 	const f = await uploadFiles(mime, capture);
 	return await Promise.all(
 		f.map(async (f) => {
-			const artifact = await createArtifact(f.name, f.mimeType, f.data);
+			const artifact = await createArtifact(
+				f.uri,
+				f.name,
+				f.mimeType,
+				f.data
+			);
 			return artifact;
 		})
 	);
