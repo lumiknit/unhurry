@@ -19,6 +19,11 @@ export interface ArtifactData {
 	data: string | Uint8Array;
 }
 
+export type Artifact = {
+	meta: ArtifactMeta;
+	data: ArtifactData;
+};
+
 /**
  * IDB for artifact storage
  */
@@ -47,7 +52,7 @@ export const createArtifact = async (
 	name: string,
 	mimeType: string,
 	fileData: string | Uint8Array
-): Promise<string> => {
+): Promise<ArtifactMeta> => {
 	const id = uniqueID();
 	const meta = {
 		_id: id,
@@ -69,7 +74,7 @@ export const createArtifact = async (
 			await tx.put(data);
 		})(),
 	]);
-	return id;
+	return meta;
 };
 
 /**

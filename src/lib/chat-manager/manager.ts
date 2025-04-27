@@ -456,6 +456,7 @@ export class ChatManager {
 
 	async compactChat(id: string, toClear?: boolean) {
 		const ch = this.chat(id);
+
 		this.tryLock(ch);
 		try {
 			const compacted = await genCompactHistory(ch.opts, ch.ctx.history);
