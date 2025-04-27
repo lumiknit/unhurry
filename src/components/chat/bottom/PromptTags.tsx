@@ -184,18 +184,18 @@ const PromptTags: Component<Props> = (props) => {
 					<span>...</span>
 				</Match>
 				<Match when>
-				<For each={filtered()}>
-				{(tag) => (
-					<Tag
-						class={'is-' + tag.color}
-						onClick={(e: MouseEvent) =>
-							handlePromptTagClick(e, tag)
-						}
-					>
-						{tag.tag}
-					</Tag>
-				)}
-			</For>
+					<For each={filtered()}>
+						{(tag) => (
+							<Tag
+								class={'is-' + tag.color}
+								onClick={(e: MouseEvent) =>
+									handlePromptTagClick(e, tag)
+								}
+							>
+								{tag.tag}
+							</Tag>
+						)}
+					</For>
 				</Match>
 			</Switch>
 		</div>

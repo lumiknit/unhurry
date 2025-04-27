@@ -169,8 +169,7 @@ addFunc(
 				},
 				page: {
 					type: 'number',
-					description:
-						'Page number. Starts from 1. Default is 1.',
+					description: 'Page number. Starts from 1. Default is 1.',
 				},
 			},
 			required: ['query'],
@@ -228,7 +227,9 @@ addFunc(
 						doc.querySelectorAll(
 							'noscript, style, script, link, meta, noscript, iframe, embed, object, svg'
 						).forEach((el) => el.remove());
-						const results = doc.querySelectorAll('#results > .snippet');
+						const results = doc.querySelectorAll(
+							'#results > .snippet'
+						);
 						if (results.length === 0) {
 							return '';
 						}
@@ -261,8 +262,9 @@ addFunc(
 								const link = nodeA?.getAttribute('href') || '';
 								const title = nodeA?.textContent || '';
 								const abstract =
-									node.querySelector('p[class^="b_lineclamp"]')
-										?.textContent || '';
+									node.querySelector(
+										'p[class^="b_lineclamp"]'
+									)?.textContent || '';
 								return `## [${title}](${link})\n${abstract}`;
 							})
 							.join('\n\n');
