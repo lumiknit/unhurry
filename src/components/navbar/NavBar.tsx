@@ -6,7 +6,7 @@ import {
 	BiRegularQuestionMark,
 	BiSolidBox,
 } from 'solid-icons/bi';
-import { Component, onMount } from 'solid-js';
+import { Component, createSignal, onCleanup, onMount, Setter } from 'solid-js';
 
 import { rootPath } from '@/env';
 import { gotoNewChat } from '@/store/global_actions';
@@ -14,17 +14,35 @@ import { gotoNewChat } from '@/store/global_actions';
 import ModelDropdown from './ModelDropdown';
 
 const NavBar: Component = () => {
+	let rootRef: HTMLDivElement;
 	let burgerRef: HTMLAnchorElement;
 	let menuRef: HTMLDivElement;
 
+	const [showMenu, setShowMenu_] = createSignal(false);
+
+	const handleOutsideClick = (e: MouseEvent) => {
+		// If outside of rootRef is clicked, close window
+		if (!rootRef!.contains(e.target as Node)) {
+			setShowMenu(false);
+		}
+	};
+
+	const setShowMenu: Setter<boolean> = (value) => {
+		const v = setShowMenu_(value);
+		if (v) {
+			window.addEventListener('click', handleOutsideClick, {});
+		} else {
+			window.removeEventListener('click', handleOutsideClick);
+		}
+	};
+
 	const handleBurgerClick = () => {
-		burgerRef!.classList.toggle('is-active');
-		menuRef!.classList.toggle('is-active');
+		setShowMenu((s) => !s);
 	};
 
 	const close = () => {
-		burgerRef!.classList.remove('is-active');
-		menuRef!.classList.remove('is-active');
+		console.log('Close');
+		setShowMenu(false);
 	};
 
 	onMount(() => {
@@ -34,8 +52,13 @@ const NavBar: Component = () => {
 		});
 	});
 
+	onCleanup(() => {
+		window.removeEventListener('click', handleOutsideClick);
+	});
+
 	return (
 		<nav
+			ref={rootRef!}
 			class="navbar is-fixed-top"
 			role="navigation"
 			aria-label="main navigation"
@@ -64,7 +87,7 @@ const NavBar: Component = () => {
 				<a
 					ref={burgerRef!}
 					role="button"
-					class="navbar-burger"
+					class={'navbar-burger' + (showMenu() ? ' is-active' : '')}
 					aria-label="menu"
 					aria-expanded="false"
 					data-target="navbarTarget"
@@ -79,7 +102,10 @@ const NavBar: Component = () => {
 			<div
 				ref={menuRef!}
 				id="navbarTarget"
-				class="navbar-menu no-user-select"
+				class={
+					'navbar-menu no-user-select' +
+					(showMenu() ? ' is-active' : '')
+				}
 			>
 				<div class="navbar-end">
 					<div class="navbar-item">
@@ -87,7 +113,7 @@ const NavBar: Component = () => {
 					</div>
 					<div class="navbar-item has-dropdown is-hoverable">
 						<a class="navbar-link">Menu</a>
-						<div class="navbar-dropdown is-right">
+						<div class="navbar-dropdown is-boxed is-right">
 							<A
 								class="navbar-item"
 								href={`${rootPath}/artifacts`}

@@ -1,3 +1,5 @@
+import { getFileExtension } from '../path';
+
 // A dictionary mapping extensions to MIME types and vice versa.
 const extensionToMimeMap: Record<string, string> = {
 	'7z': 'application/7z-compressed',
@@ -171,14 +173,8 @@ export function getExtensionFromMimeType(mimeType: string): string {
 	return parts[0];
 }
 
-export const getMimeTypeFromFileName = (fileName: string): string => {
-	const lastSliceIdx = Math.max(
-		fileName.lastIndexOf('\\'),
-		fileName.lastIndexOf('/')
-	);
-	const name =
-		lastSliceIdx >= 0 ? fileName.slice(lastSliceIdx + 1) : fileName;
-	const ext = name.split('.').pop() || '';
+export const getMimeTypeFromFileName = (path: string): string => {
+	const ext = getFileExtension(path);
 	return getMimeTypeFromExtension(ext);
 };
 

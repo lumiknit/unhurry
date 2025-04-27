@@ -260,8 +260,8 @@ const ChatListPage: Component = () => {
 			</Show>
 			<div class="m-2">
 				<nav class="panel is-primary">
-					<p class="panel-block has-background-text-soft has-text-weight-bold flex-split">
-						<span>Ongoing Chats ({ongoing()?.length || '-'})</span>
+					<p class="panel-block has-background-text-soft has-text-weight-bold">
+						Ongoing Chats ({ongoing()?.length || '-'})
 					</p>
 					<For each={ongoing()}>
 						{(chat) => (

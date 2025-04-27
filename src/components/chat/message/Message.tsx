@@ -256,7 +256,9 @@ interface Props {
 const Message: Component<Props> = (props) => {
 	const cls =
 		'message-body ' +
-		(props.msg.role === 'user' ? 'msg-user ' : 'msg-assistant ') +
+		(props.msg.role === 'user'
+			? 'msg-user theme-dark '
+			: 'msg-assistant ') +
 		(props.msg.uphurry ? ' is-uphurry' : '');
 	return (
 		<Switch>

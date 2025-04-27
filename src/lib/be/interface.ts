@@ -27,15 +27,12 @@ export type VibrationPattern = number | ImpactVibePattern | NotiVibePattern;
  * It'll help some actions which are not possible in the browser.
  */
 export interface IBEService {
+	// Meta
+
 	/**
 	 * Backend service name.
 	 */
 	name(): string;
-
-	/**
-	 * Test method.
-	 */
-	greet(name: string): Promise<string>;
 
 	/**
 	 * Fetch
@@ -80,6 +77,14 @@ export interface IBEService {
 	mountDragAndDrop(
 		onDrop: (artifacts: UploadedArtifact[]) => void
 	): void | Promise<void>;
+
+	/**
+	 * Upload File
+	 */
+	uploadFiles(
+		mimeType: string,
+		capture?: 'user' | 'environment'
+	): Promise<UploadedArtifact[]>;
 
 	/**
 	 * Download File

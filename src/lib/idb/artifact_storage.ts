@@ -1,23 +1,6 @@
+import { Artifact, ArtifactData, ArtifactMeta } from '../artifact/structs';
 import { uniqueID } from '../utils';
 import { SimpleIDB } from './client';
-
-/**
- * Artifact Meta
- */
-export interface ArtifactMeta {
-	_id: string;
-	name: string;
-	createdAt: number;
-	mimeType: string;
-}
-
-/**
- * Artifact Data
- */
-export interface ArtifactData {
-	_id: string;
-	data: string | Uint8Array;
-}
 
 /**
  * IDB for artifact storage
@@ -44,13 +27,15 @@ const dataTx = async () => {
  * Create an artifact for storage.
  */
 export const createArtifact = async (
+	uri: string,
 	name: string,
 	mimeType: string,
 	fileData: string | Uint8Array
-): Promise<string> => {
+): Promise<ArtifactMeta> => {
 	const id = uniqueID();
 	const meta = {
 		_id: id,
+		uri,
 		name,
 		createdAt: Date.now(),
 		mimeType,
@@ -69,7 +54,7 @@ export const createArtifact = async (
 			await tx.put(data);
 		})(),
 	]);
-	return id;
+	return meta;
 };
 
 /**
@@ -101,7 +86,7 @@ export const getArtifactData = async (
 
 export const getArtifact = async (
 	id: string
-): Promise<{ meta: ArtifactMeta; data: ArtifactData } | undefined> => {
+): Promise<Artifact | undefined> => {
 	const [meta, data] = await Promise.all([
 		getArtifactMeta(id),
 		getArtifactData(id),
@@ -135,6 +120,25 @@ export const getArtifactDataURL = async (
 		};
 		fileReader.onerror = reject;
 		fileReader.readAsDataURL(blob);
+	});
+};
+
+/**
+ * GetDataString for an artifact.
+ * If the artifact is a text file with correct encoding (utf-8), return string.
+ */
+export const getArtifactDataString = async (id: string): Promise<string> => {
+	const a = await getArtifact(id);
+	if (!a) throw new Error('Artifact not found: ' + id);
+
+	const blob = new Blob([a.data.data], { type: a.meta.mimeType });
+	return await new Promise((resolve, reject) => {
+		const fileReader = new FileReader();
+		fileReader.onload = (e) => {
+			resolve(e.target?.result as string);
+		};
+		fileReader.onerror = reject;
+		fileReader.readAsText(blob, 'utf-8');
 	});
 };
 

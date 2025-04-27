@@ -8,9 +8,9 @@ import {
 } from 'solid-js';
 
 import { openModal } from '@/components/modal/ModalContainer';
+import { ArtifactMeta } from '@/lib/artifact/structs';
 import {
 	listArtifacts,
-	ArtifactMeta,
 	getArtifactBlob,
 	getArtifactData,
 } from '@/lib/idb/artifact_storage';

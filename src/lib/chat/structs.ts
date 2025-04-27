@@ -157,7 +157,7 @@ export const convertMsgForLLM = async (msg: Msg): Promise<LLMMessage> => {
 							content.push({
 								type: 'text',
 								text:
-									`(Artifact Name: ${artifact.name}, Artifact ID: ${artifact._id})\n` +
+									`(Below is an artifact; URI=${artifact.uri}; ID=${artifact._id})\n` +
 									stringToMDCodeBlock(
 										`${mdLang}`,
 										textContent

@@ -4,21 +4,14 @@ import {
 	BiRegularPencil,
 	BiRegularTrash,
 } from 'solid-icons/bi';
-import {
-	Component,
-	createSignal,
-	onMount,
-	onCleanup,
-	Switch,
-	Match,
-} from 'solid-js';
+import { Component } from 'solid-js';
 import { toast } from 'solid-toast';
 
 import { openModal } from '@/components/modal/ModalContainer';
 import { getMimeTypeFromFileName } from '@/lib/artifact/mime';
+import { ArtifactMeta } from '@/lib/artifact/structs';
 import { getBEService } from '@/lib/be';
 import {
-	ArtifactMeta,
 	deleteArtifact,
 	getArtifactBlob,
 	updateArtifactMeta,
@@ -26,6 +19,7 @@ import {
 import { goto } from '@/store';
 
 import { openConfirm } from '../modal';
+import ArtifactPreview from './ArtifactPreview';
 
 type RenameResult = {
 	name: string;
@@ -65,6 +59,9 @@ const openRenameModal = (
 				<h4 class="title is-4">Rename Artifact</h4>
 				<p>
 					<strong>ID:</strong> {artifact._id}
+				</p>
+				<p>
+					<strong>URI:</strong> {artifact.uri}
 				</p>
 				<p>
 					<strong>Name:</strong> {artifact.name}
@@ -126,45 +123,6 @@ export const openArtifactPreviewModal = (
 		onClose: (v: boolean) => void;
 	};
 	const component: Component<Props> = (props) => {
-		const [imgURL, setImgURL] = createSignal<string | null>(null);
-		const [text, setText] = createSignal<string | null>(null);
-
-		let cleanUp = () => {};
-
-		onMount(async () => {
-			const blob = await getArtifactBlob(artifact._id);
-			if (blob) {
-				if (artifact.mimeType.startsWith('image/')) {
-					const url = URL.createObjectURL(blob);
-					setImgURL(url);
-					cleanUp = () => {
-						URL.revokeObjectURL(url);
-					};
-				} else if (blob.size > 32 * 1024) {
-					// File is too large, show error
-					setText('(File is too large to preview)');
-				} else {
-					// Try to decode as UTF-8
-					const reader = new FileReader();
-					reader.onload = (e) => {
-						const textContent = e.target!.result as string;
-						setText(textContent);
-					};
-					reader.onerror = (e) => {
-						console.error('Error reading file:', e);
-						setText(
-							'(Error reading file: ' + e.target!.error + ')'
-						);
-					};
-					reader.readAsText(blob, 'utf-8');
-				}
-			}
-		});
-
-		onCleanup(() => {
-			cleanUp();
-		});
-
 		const handleRename = async () => {
 			const result = await openRenameModal(artifact);
 			if (result) {
@@ -220,22 +178,19 @@ export const openArtifactPreviewModal = (
 				<p>
 					<strong>ID:</strong> {artifact._id}
 				</p>
+				<p>
+					<strong>MIME:</strong> {artifact.mimeType}
+				</p>
+				<p>
+					<strong>URI:</strong> {artifact.uri}
+				</p>
+				<p>
+					<strong>Created At:</strong> {artifact.createdAt}
+				</p>
 
 				{/* Preview */}
-				<div class="preview">
-					<Switch>
-						<Match when={imgURL()}>
-							<img src={imgURL()!} alt="Artifact Preview" />
-						</Match>
-						<Match when={text()}>
-							<textarea
-								class="textarea"
-								readOnly
-								value={text()!}
-								rows="8"
-							></textarea>
-						</Match>
-					</Switch>
+				<div class="preview msg-code">
+					<ArtifactPreview meta={artifact} />
 				</div>
 
 				<div class="buttons mt-2">

@@ -1,17 +1,18 @@
 import { useSearchParams } from '@solidjs/router';
 import {
 	BiRegularCalendar,
-	BiSolidFilePlus,
-	BiSolidImageAdd,
+	BiRegularImageAdd,
+	BiRegularPlus,
+	BiRegularUpload,
 } from 'solid-icons/bi';
 import { TbTrash } from 'solid-icons/tb';
 import { Component, createSignal, For, Match, onMount, Switch } from 'solid-js';
 import { toast } from 'solid-toast';
 
 import { openConfirm } from '@/components/modal';
+import { ArtifactMeta } from '@/lib/artifact/structs';
 import {
 	deleteAllArtifacts,
-	ArtifactMeta,
 	listArtifacts,
 	deleteArtifact,
 	getArtifactMeta,
@@ -20,6 +21,8 @@ import { shortRelativeDateFormat } from '@/lib/intl';
 import { goto } from '@/store';
 
 import { openArtifactPreviewModal } from './ArtifactPreviewModal';
+import { openArtifactUploadModal } from '../modal/ArtifactUploadModal';
+import Dropdown from '../utils/Dropdown';
 import Pagination, { createPaginatedList } from '../utils/Pagination';
 
 type ItemProps = {
@@ -149,9 +152,44 @@ const ArtifactListPage: Component = () => {
 		<div class="container">
 			<div class="m-2">
 				<nav class="panel is-primary">
-					<p class="panel-block has-background-text-soft has-text-weight-bold">
-						Artifacts ({filteredList().length}/
-						{artifactList()?.length})
+					<p class="panel-block has-background-text-soft has-text-weight-bold flex-split">
+						<span>
+							Artifacts ({filteredList().length}/
+							{artifactList()?.length})
+						</span>
+						<Dropdown
+							divClass="is-right"
+							btnClass="button is-primary is-small"
+							items={[
+								[
+									{
+										label: 'Upload File',
+										icon: BiRegularUpload,
+										onClick: async () => {
+											await openArtifactUploadModal();
+											loadFileMeta();
+										},
+									},
+								],
+								[
+									{
+										label: 'New File',
+										icon: BiRegularPlus,
+										onClick: () => goto('/canvas/_/text'),
+									},
+									{
+										label: 'New Image',
+										icon: BiRegularImageAdd,
+										onClick: () => goto('/canvas/_/image'),
+									},
+								],
+							]}
+						>
+							<span class="icon">
+								<BiRegularPlus />
+							</span>
+							<span>Add</span>
+						</Dropdown>
 					</p>
 					<div class="panel-block">
 						<p class="control">
@@ -190,27 +228,6 @@ const ArtifactListPage: Component = () => {
 					totalPages={page().totalPages}
 					onPageChange={setPage}
 				/>
-				<div class="my-2">
-					<button
-						class="button is-primary is-outlined"
-						onClick={() => goto('/canvas/_/text')}
-					>
-						<span class="icon">
-							<BiSolidFilePlus />
-						</span>
-						<span>Text </span>
-					</button>
-					<button
-						class="button is-primary is-outlined"
-						onClick={() => goto('/canvas/_/image')}
-					>
-						<span class="icon">
-							<BiSolidImageAdd />
-						</span>
-						<span>Image</span>
-					</button>
-				</div>
-
 				<p class="control is-fullwidth">
 					<button
 						class="button is-danger is-outlined is-fullwidth"
