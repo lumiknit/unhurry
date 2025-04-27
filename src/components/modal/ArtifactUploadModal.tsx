@@ -93,6 +93,7 @@ export const openArtifactUploadModal = async (options: Options = {}) =>
 		onMount(() => {
 			if (options.initURL) {
 				urlRef!.value = options.initURL;
+				uploadRemoteFile();
 			}
 		});
 

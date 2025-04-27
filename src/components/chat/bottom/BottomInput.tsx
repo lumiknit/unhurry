@@ -394,6 +394,19 @@ const BottomInput: Component = () => {
 						}
 					}}
 					onReplaceText={replaceText}
+					onRemovePrev={(text) => {
+						const it = inputTriple();
+						let start = it[0];
+						if (it[0].endsWith(text)) {
+							start = it[0].slice(0, -text.length);
+						}
+						const newText = start + it[1] + it[2];
+						replaceText(newText);
+						taRef!.setSelectionRange(start.length, start.length);
+					}}
+					onFile={(name, id) => {
+						setFiles((fs) => [...fs, { name, id }]);
+					}}
 				/>
 				<SendButton
 					speechRecognizing={speechRecognizing}

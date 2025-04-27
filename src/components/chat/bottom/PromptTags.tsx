@@ -4,10 +4,12 @@ import {
 	createSignal,
 	For,
 	JSX,
+	Show,
 	splitProps,
 } from 'solid-js';
 import { toast } from 'solid-toast';
 
+import { openArtifactUploadModal } from '@/components/modal/ArtifactUploadModal';
 import { vibrate } from '@/store/global_actions';
 
 import { PromptTag } from '@lib/config';
@@ -40,6 +42,32 @@ const Tag: Component<TagProps> = (props) => {
 	);
 };
 
+type UploadByURLTag = {
+	url: string;
+	onRemovePrev: (text: string) => void;
+	onFile(name: string, id: string): void;
+};
+
+const UploadByURLTag: Component<UploadByURLTag> = (props) => {
+	return (
+		<Tag
+			color="primary"
+			onClick={async () => {
+				const meta = await openArtifactUploadModal({
+					initURL: props.url.trim(),
+				});
+				if (meta) {
+					// Trim the url from the textarea
+					props.onFile(meta.name, meta._id);
+					props.onRemovePrev(props.url);
+				}
+			}}
+		>
+			Upload by URL
+		</Tag>
+	);
+};
+
 interface Props {
 	children?: JSX.Element | JSX.Element[];
 
@@ -53,10 +81,18 @@ interface Props {
 	onInsertStartText: (text: string, send: boolean) => void;
 	onInsertEndText: (text: string, send: boolean) => void;
 	onReplaceText: (text: string, send: boolean) => void;
+	onRemovePrev: (text: string) => void;
+
+	onFile: (name: string, id: string) => void;
 }
+
+const urlRE = /https?:\/\/[^\s]+\s*$/;
 
 const PromptTags: Component<Props> = (props) => {
 	const [filtered, setFiltered] = createSignal<PromptTag[]>([]);
+	const [showUploadByURL, setShowUploadByURL] = createSignal<string | false>(
+		false
+	);
 
 	const promptTags = () => getUserConfig()?.promptTags || [];
 
@@ -106,11 +142,25 @@ const PromptTags: Component<Props> = (props) => {
 			}
 		});
 		setFiltered(v);
+
+		const url = props.textState[0].match(urlRE);
+		if (url) {
+			setShowUploadByURL(url[0]);
+		} else {
+			setShowUploadByURL(false);
+		}
 	});
 
 	return (
 		<div class="input-tags">
 			{props.children}
+			<Show when={showUploadByURL()}>
+				<UploadByURLTag
+					url={showUploadByURL() as string}
+					onRemovePrev={props.onRemovePrev}
+					onFile={props.onFile}
+				/>
+			</Show>
 			<For each={filtered()}>
 				{(tag) => (
 					<Tag
