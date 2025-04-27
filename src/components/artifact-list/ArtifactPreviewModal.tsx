@@ -143,7 +143,7 @@ export const openArtifactPreviewModal = (
 					cleanUp = () => {
 						URL.revokeObjectURL(url);
 					};
-				} else if (blob.size > 32 * 1024) {
+				} else if (blob.size > 128 * 1024) {
 					// File is too large, show error
 					setText('(File is too large to preview)');
 				} else {

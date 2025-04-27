@@ -374,7 +374,7 @@ const BottomInput: Component = () => {
 				/>
 				<SlashButton />
 				<InputTags
-					textState={inputTriple()}
+					textState={inputTriple}
 					onInsertText={(text, toSend) => {
 						insertText(text);
 						if (toSend) {

@@ -1,4 +1,5 @@
 import {
+	Accessor,
 	Component,
 	createEffect,
 	createSignal,
@@ -75,7 +76,7 @@ interface Props {
 	 * Text state.
 	 * BeforeCursor, Selection, AfterCursor
 	 */
-	textState: [string, string, string];
+	textState: Accessor<[string, string, string]>;
 
 	onInsertText: (text: string, send: boolean) => void;
 	onInsertStartText: (text: string, send: boolean) => void;
@@ -117,15 +118,11 @@ const PromptTags: Component<Props> = (props) => {
 	};
 
 	createEffect(() => {
-		const ln =
-			props.textState[0].length +
-			props.textState[1].length +
-			props.textState[2].length;
-		const nonWordIdx = props.textState[0].lastIndexOf(' ');
+		const ts = props.textState();
+		const ln = ts[0].length + ts[1].length + ts[2].length;
+		const nonWordIdx = ts[0].lastIndexOf(' ');
 		const lastWord =
-			nonWordIdx === -1
-				? props.textState[0]
-				: props.textState[0].slice(nonWordIdx + 1);
+			nonWordIdx === -1 ? ts[0] : ts[0].slice(nonWordIdx + 1);
 		const v = [...promptTags()].filter((tag) => {
 			switch (tag.showCondition) {
 				case 'empty':
@@ -143,7 +140,7 @@ const PromptTags: Component<Props> = (props) => {
 		});
 		setFiltered(v);
 
-		const url = props.textState[0].match(urlRE);
+		const url = ts[0].match(urlRE);
 		if (url) {
 			setShowUploadByURL(url[0]);
 		} else {
