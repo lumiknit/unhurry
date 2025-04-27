@@ -51,7 +51,7 @@ addFunc(
 		description: [
 			'Execute the given JavaScript code in web worker.',
 			'The result is the output of the code (console.log).',
-			'When user request precise calculation, date processing, random, string manipulation, etc., you may use this function.',
+			'Use it for precise calculation, date processing, random, string manipulation, etc',
 		].join('\n'),
 		parameters: {
 			type: 'object',
@@ -59,7 +59,7 @@ addFunc(
 				code: {
 					type: 'string',
 					description:
-						'The JavaScript code to execute. Run in web worker. Use console to output.',
+						'The JavaScript code to be executed. Run in web worker. Use console to output.',
 				},
 			},
 			required: ['code'],
@@ -152,7 +152,6 @@ addFunc(
 			'Search the given query from web search engine.',
 			'If user request "search", "find", "invest", etc., you may used this function first.',
 			'When you rephrase the result, show source. you should show link as markdown grammar. (e.g. [link](url))',
-			'Default search engine is DuckDuckGo, but more options are available: DuckDuckGo, Brave Search, Bing.',
 		].join('\n'),
 		parameters: {
 			type: 'object',
@@ -171,7 +170,7 @@ addFunc(
 				page: {
 					type: 'number',
 					description:
-						'Page number. Starts from 1. If not specified, default is 1.',
+						'Page number. Starts from 1. Default is 1.',
 				},
 			},
 			required: ['query'],
@@ -187,98 +186,115 @@ addFunc(
 		page?: number;
 	}) => {
 		console.log('webSearch', query, engine, page);
-		if (!engine) engine = 'duckduckgo';
+		const search = async (engine: string): Promise<string> => {
+			switch (engine.toLowerCase()) {
+				case 'ddg':
+				case 'duckduckgo': {
+					const onHTML = async (doc: Document) => {
+						doc.querySelectorAll(
+							'style, input, select, script'
+						).forEach((el) => el.remove());
+						console.log(doc);
+						const results = doc.querySelectorAll('.results_links');
+						if (results.length === 0) {
+							return '';
+						}
+						return Array.from(results)
+							.map((node) => {
+								const nodeA = node.querySelector('.result__a');
+								const link = nodeA?.getAttribute('href') || '';
+								const title = nodeA?.textContent || '';
+								const abstract =
+									node.querySelector('.result__snippet')
+										?.textContent || '';
+								return `## [${title}](${link})\n${abstract}`;
+							})
+							.join('\n\n');
+					};
+					return await fetchDocFromURL(
+						`https://html.duckduckgo.com/html/`,
+						onHTML,
+						new URLSearchParams({
+							q: query,
+							df: 'y',
+							s: '10',
+							dc: `${1 + 10 * (page - 1)}`,
+						})
+					);
+				}
+				case 'bravesearch':
+				case 'brave': {
+					const onHTML = async (doc: Document) => {
+						doc.querySelectorAll(
+							'noscript, style, script, link, meta, noscript, iframe, embed, object, svg'
+						).forEach((el) => el.remove());
+						const results = doc.querySelectorAll('#results > .snippet');
+						if (results.length === 0) {
+							return '';
+						}
+						return Array.from(results)
+							.map((node) => {
+								return turndownService.turndown(node.innerHTML);
+							})
+							.join('\n\n');
+					};
+					const content = await fetchDocFromURL(
+						`https://search.brave.com/search?q=${encodeURI(query)}&offset=${page - 1}`,
+						onHTML
+					);
+					const out = turndownService.turndown(content);
+					console.log(out);
+					return out;
+				}
+				case 'bing': {
+					const onHTML = async (doc: Document) => {
+						const results = doc.querySelectorAll(
+							'#b_results > li.b_algo'
+						);
+						if (results.length === 0) {
+							return '';
+						}
+						return Array.from(results)
+							.slice(0, 10)
+							.map((node) => {
+								const nodeA = node.querySelector('h2 > a');
+								const link = nodeA?.getAttribute('href') || '';
+								const title = nodeA?.textContent || '';
+								const abstract =
+									node.querySelector('p[class^="b_lineclamp"]')
+										?.textContent || '';
+								return `## [${title}](${link})\n${abstract}`;
+							})
+							.join('\n\n');
+					};
+					return await fetchDocFromURL(
+						`https://www.bing.com/search?q=${encodeURIComponent(query)}&first=${1 + 10 * (page - 1)}`,
+						onHTML
+					);
+				}
+				default:
+					throw new Error(`Unsupported search engine: ${engine}`);
+			}
+		};
 		if (!page) page = 1;
 		if (page < 1) page = 1;
-
-		switch (engine.toLowerCase()) {
-			case 'ddg':
-			case 'duckduckgo': {
-				const onHTML = async (doc: Document) => {
-					doc.querySelectorAll(
-						'style, input, select, script'
-					).forEach((el) => el.remove());
-					console.log(doc);
-					const results = doc.querySelectorAll('.results_links');
-					if (results.length === 0) {
-						return 'No results';
+		if (engine) {
+			return await search(engine);
+		} else {
+			// Fallback to default engines
+			const engines = ['duckduckgo', 'brave', 'bing'];
+			for (const e of engines) {
+				try {
+					const result = await search(e);
+					if (result) {
+						return result;
 					}
-					return Array.from(results)
-						.map((node) => {
-							const nodeA = node.querySelector('.result__a');
-							const link = nodeA?.getAttribute('href') || '';
-							const title = nodeA?.textContent || '';
-							const abstract =
-								node.querySelector('.result__snippet')
-									?.textContent || '';
-							return `## [${title}](${link})\n${abstract}`;
-						})
-						.join('\n\n');
-				};
-				return await fetchDocFromURL(
-					`https://html.duckduckgo.com/html/`,
-					onHTML,
-					new URLSearchParams({
-						q: query,
-						df: 'y',
-						s: '10',
-						dc: `${1 + 10 * (page - 1)}`,
-					})
-				);
+				} catch {
+					logr.warn(`Failed to search with ${e}`);
+				}
 			}
-			case 'bravesearch':
-			case 'brave': {
-				const onHTML = async (doc: Document) => {
-					doc.querySelectorAll(
-						'noscript, style, script, link, meta, noscript, iframe, embed, object, svg'
-					).forEach((el) => el.remove());
-					const results = doc.querySelectorAll('#results > .snippet');
-					if (results.length === 0) {
-						return 'No results';
-					}
-					return Array.from(results)
-						.map((node) => {
-							return turndownService.turndown(node.innerHTML);
-						})
-						.join('\n\n');
-				};
-				const content = await fetchDocFromURL(
-					`https://search.brave.com/search?q=${encodeURI(query)}&offset=${page - 1}`,
-					onHTML
-				);
-				const out = turndownService.turndown(content);
-				console.log(out);
-				return out;
-			}
-			case 'bing': {
-				const onHTML = async (doc: Document) => {
-					const results = doc.querySelectorAll(
-						'#b_results > li.b_algo'
-					);
-					if (results.length === 0) {
-						return 'No results';
-					}
-					return Array.from(results)
-						.slice(0, 10)
-						.map((node) => {
-							const nodeA = node.querySelector('h2 > a');
-							const link = nodeA?.getAttribute('href') || '';
-							const title = nodeA?.textContent || '';
-							const abstract =
-								node.querySelector('p[class^="b_lineclamp"]')
-									?.textContent || '';
-							return `## [${title}](${link})\n${abstract}`;
-						})
-						.join('\n\n');
-				};
-				return await fetchDocFromURL(
-					`https://www.bing.com/search?q=${encodeURIComponent(query)}&first=${1 + 10 * (page - 1)}`,
-					onHTML
-				);
-			}
-			default:
-				throw new Error(`Unsupported search engine: ${engine}`);
 		}
+		return 'Failed to search. Maybe search engine is not available temporarily.';
 	}
 );
 

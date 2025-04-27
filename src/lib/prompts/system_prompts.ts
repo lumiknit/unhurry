@@ -21,6 +21,14 @@ export const toolCallSystemPrompt = async (
   - Based on the history, you should guess the arguments.
   - If you did not provide the arguments, you will see Argument Error.
 - Do not forget to use tools, and do not say it's impossible which can be done by tools.
+
+### Tools
+
+Tool list in typescript format.
+
+\`\`\`typescript
+${functions.map((f) => functionToolToTS(f)).join('\n\n')}
+\`\`\`
 `.trim();
 	} else {
 		toolDesc =
