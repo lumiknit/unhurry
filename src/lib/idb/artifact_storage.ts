@@ -123,6 +123,25 @@ export const getArtifactDataURL = async (
 	});
 };
 
+/**
+ * GetDataString for an artifact.
+ * If the artifact is a text file with correct encoding (utf-8), return string.
+ */
+export const getArtifactDataString = async (id: string): Promise<string> => {
+	const a = await getArtifact(id);
+	if (!a) throw new Error('Artifact not found: ' + id);
+
+	const blob = new Blob([a.data.data], { type: a.meta.mimeType });
+	return await new Promise((resolve, reject) => {
+		const fileReader = new FileReader();
+		fileReader.onload = (e) => {
+			resolve(e.target?.result as string);
+		};
+		fileReader.onerror = reject;
+		fileReader.readAsText(blob, 'utf-8');
+	});
+};
+
 export const updateArtifactMeta = async (
 	id: string,
 	artifactMeta: Partial<ArtifactMeta>

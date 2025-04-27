@@ -4,14 +4,7 @@ import {
 	BiRegularPencil,
 	BiRegularTrash,
 } from 'solid-icons/bi';
-import {
-	Component,
-	createSignal,
-	onMount,
-	onCleanup,
-	Switch,
-	Match,
-} from 'solid-js';
+import { Component } from 'solid-js';
 import { toast } from 'solid-toast';
 
 import { openModal } from '@/components/modal/ModalContainer';
@@ -26,6 +19,7 @@ import {
 import { goto } from '@/store';
 
 import { openConfirm } from '../modal';
+import ArtifactPreview from './ArtifactPreview';
 
 type RenameResult = {
 	name: string;
@@ -129,45 +123,6 @@ export const openArtifactPreviewModal = (
 		onClose: (v: boolean) => void;
 	};
 	const component: Component<Props> = (props) => {
-		const [imgURL, setImgURL] = createSignal<string | null>(null);
-		const [text, setText] = createSignal<string | null>(null);
-
-		let cleanUp = () => {};
-
-		onMount(async () => {
-			const blob = await getArtifactBlob(artifact._id);
-			if (blob) {
-				if (artifact.mimeType.startsWith('image/')) {
-					const url = URL.createObjectURL(blob);
-					setImgURL(url);
-					cleanUp = () => {
-						URL.revokeObjectURL(url);
-					};
-				} else if (blob.size > 128 * 1024) {
-					// File is too large, show error
-					setText('(File is too large to preview)');
-				} else {
-					// Try to decode as UTF-8
-					const reader = new FileReader();
-					reader.onload = (e) => {
-						const textContent = e.target!.result as string;
-						setText(textContent);
-					};
-					reader.onerror = (e) => {
-						console.error('Error reading file:', e);
-						setText(
-							'(Error reading file: ' + e.target!.error + ')'
-						);
-					};
-					reader.readAsText(blob, 'utf-8');
-				}
-			}
-		});
-
-		onCleanup(() => {
-			cleanUp();
-		});
-
 		const handleRename = async () => {
 			const result = await openRenameModal(artifact);
 			if (result) {
@@ -232,19 +187,7 @@ export const openArtifactPreviewModal = (
 
 				{/* Preview */}
 				<div class="preview">
-					<Switch>
-						<Match when={imgURL()}>
-							<img src={imgURL()!} alt="Artifact Preview" />
-						</Match>
-						<Match when={text()}>
-							<textarea
-								class="textarea"
-								readOnly
-								value={text()!}
-								rows="8"
-							></textarea>
-						</Match>
-					</Switch>
+					<ArtifactPreview meta={artifact} />
 				</div>
 
 				<div class="buttons mt-2">
