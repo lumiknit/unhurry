@@ -38,7 +38,8 @@ const addFunc = (tool: FunctionTool, fn: Impl) => {
 		const result = jsonValidator.validate(args, tool.parameters);
 		if (result.valid) return await fn(args);
 		return (
-			'Argument Error:\n' + result.errors.map((e) => e.stack).join('\n')
+			'Argument Error: Your arguments are invalid (missing arguments or wrong types). Please check again.\n' +
+			result.errors.map((e) => e.stack).join('\n')
 		);
 	};
 };
@@ -84,10 +85,6 @@ const uaChromeVersions = [
 	'134.0.0.0',
 	'133.0.0.0',
 	'132.0.0.0',
-	'131.0.0.0',
-	'130.0.0.0',
-	'129.0.0.0',
-	'128.0.0.0',
 ];
 const uaSafariVersions = ['605.1.15', '537.36', '537.35', '536'];
 const macVersions = ['10_15_7', '10_15_6', '10_14_3', '10_14_6'];
@@ -103,26 +100,34 @@ const userAgent = () => {
 
 const fetchDocFromURL = async (
 	url: string,
-	onHTML: (doc: Document) => string | Promise<string>
+	onHTML: (doc: Document) => string | Promise<string>,
+	body?: BodyInit
 ): Promise<string> => {
-	const tauriService = await getBEService();
-	if (!tauriService) {
+	const beService = await getBEService();
+	if (!beService) {
 		return 'HTTP fetch error: not available';
 	}
 
 	try {
-		const result = await tauriService.fetch('GET', url, [
+		let method = 'GET';
+		const headers: [string, string][] = [
 			['Accept', 'text/html'],
 			['User-Agent', userAgent()],
-		]);
-		let body: string = result.body;
-		const contentType = result.headers.find(
-			([k]) => k.toLowerCase() === 'content-type'
-		);
-		if (contentType && contentType[1].startsWith('text/html')) {
+		];
+		if (body) {
+			method = 'POST';
+		}
+		const result = await beService.rawFetch(url, {
+			method,
+			headers,
+			body,
+		});
+		let respBody: string = await result.text();
+		const contentType = result.headers.get('content-type') || 'text/plain';
+		if (contentType && contentType.startsWith('text/html')) {
 			try {
-				body = await onHTML(
-					new DOMParser().parseFromString(body, 'text/html')
+				respBody = await onHTML(
+					new DOMParser().parseFromString(respBody, 'text/html')
 				);
 			} catch (e) {
 				logr.error(e);
@@ -130,10 +135,10 @@ const fetchDocFromURL = async (
 		}
 
 		if (result.status >= 400) {
-			throw new Error(`Status ${result.status}, ${body}`);
+			throw new Error(`Status ${result.status}, ${respBody}`);
 		}
 
-		return body;
+		return respBody;
 	} catch (e) {
 		logr.error(e);
 		return 'HTTP fetch error: ' + e;
@@ -147,6 +152,7 @@ addFunc(
 			'Search the given query from web search engine.',
 			'If user request "search", "find", "invest", etc., you may used this function first.',
 			'When you rephrase the result, show source. you should show link as markdown grammar. (e.g. [link](url))',
+			'Default search engine is DuckDuckGo, but more options are available: DuckDuckGo, Brave Search, Bing.',
 		].join('\n'),
 		parameters: {
 			type: 'object',
@@ -160,7 +166,7 @@ addFunc(
 					type: 'string',
 					description:
 						'Search engine name. If not specified, default is DuckDuckGo.',
-					enum: ['duckduckgo', 'brave'],
+					enum: ['duckduckgo', 'ddg', 'brave', 'bravesearch', 'bing'],
 				},
 				page: {
 					type: 'number',
@@ -180,45 +186,61 @@ addFunc(
 		engine?: string;
 		page?: number;
 	}) => {
+		console.log('webSearch', query, engine, page);
 		if (!engine) engine = 'duckduckgo';
 		if (!page) page = 1;
 		if (page < 1) page = 1;
 
 		switch (engine.toLowerCase()) {
+			case 'ddg':
 			case 'duckduckgo': {
 				const onHTML = async (doc: Document) => {
 					doc.querySelectorAll(
 						'style, input, select, script'
 					).forEach((el) => el.remove());
-					const results = doc.querySelectorAll('div.filters');
-					const resultHTML =
-						results.length > 0
-							? results[0].innerHTML
-							: 'No results';
-					// Remove unusuful whitespaces
-					let md = turndownService.turndown(resultHTML);
-					md = md.replace(/---+\s*/gm, '');
-					md = md.replace(/\n\s+\n/g, '\n\n');
-					md = md.replace(
-						/\(\/\/duckduckgo\.com\/l\/\?uddg=([^&)]+)[^)]*\)/g,
-						(_m, p1) => {
-							return `(${decodeURIComponent(p1)})`;
-						}
-					);
-					return md;
+					console.log(doc);
+					const results = doc.querySelectorAll('.results_links');
+					if (results.length === 0) {
+						return 'No results';
+					}
+					return Array.from(results)
+						.map((node) => {
+							const nodeA = node.querySelector('.result__a');
+							const link = nodeA?.getAttribute('href') || '';
+							const title = nodeA?.textContent || '';
+							const abstract =
+								node.querySelector('.result__snippet')
+									?.textContent || '';
+							return `## [${title}](${link})\n${abstract}`;
+						})
+						.join('\n\n');
 				};
 				return await fetchDocFromURL(
-					`https://lite.duckduckgo.com/lite/?q=${encodeURIComponent(query)}&s=10&dc=${1 + 10 * (page - 1)}`,
-					onHTML
+					`https://html.duckduckgo.com/html/`,
+					onHTML,
+					new URLSearchParams({
+						q: query,
+						df: 'y',
+						s: '10',
+						dc: `${1 + 10 * (page - 1)}`,
+					})
 				);
 			}
+			case 'bravesearch':
 			case 'brave': {
 				const onHTML = async (doc: Document) => {
 					doc.querySelectorAll(
 						'noscript, style, script, link, meta, noscript, iframe, embed, object, svg'
 					).forEach((el) => el.remove());
-					// Remove unnecessary whitespaces
-					return doc.body.innerHTML.replace(/>\s+</g, '><');
+					const results = doc.querySelectorAll('#results > .snippet');
+					if (results.length === 0) {
+						return 'No results';
+					}
+					return Array.from(results)
+						.map((node) => {
+							return turndownService.turndown(node.innerHTML);
+						})
+						.join('\n\n');
 				};
 				const content = await fetchDocFromURL(
 					`https://search.brave.com/search?q=${encodeURI(query)}&offset=${page - 1}`,
@@ -227,6 +249,32 @@ addFunc(
 				const out = turndownService.turndown(content);
 				console.log(out);
 				return out;
+			}
+			case 'bing': {
+				const onHTML = async (doc: Document) => {
+					const results = doc.querySelectorAll(
+						'#b_results > li.b_algo'
+					);
+					if (results.length === 0) {
+						return 'No results';
+					}
+					return Array.from(results)
+						.slice(0, 10)
+						.map((node) => {
+							const nodeA = node.querySelector('h2 > a');
+							const link = nodeA?.getAttribute('href') || '';
+							const title = nodeA?.textContent || '';
+							const abstract =
+								node.querySelector('p[class^="b_lineclamp"]')
+									?.textContent || '';
+							return `## [${title}](${link})\n${abstract}`;
+						})
+						.join('\n\n');
+				};
+				return await fetchDocFromURL(
+					`https://www.bing.com/search?q=${encodeURIComponent(query)}&first=${1 + 10 * (page - 1)}`,
+					onHTML
+				);
 			}
 			default:
 				throw new Error(`Unsupported search engine: ${engine}`);
