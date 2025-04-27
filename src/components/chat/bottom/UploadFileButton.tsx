@@ -5,7 +5,14 @@ import {
 	BiRegularPaperclip,
 	BiSolidBox,
 } from 'solid-icons/bi';
-import { Component, createSignal, Show, onCleanup, onMount } from 'solid-js';
+import {
+	Component,
+	createSignal,
+	Show,
+	onCleanup,
+	onMount,
+	Setter,
+} from 'solid-js';
 import { toast } from 'solid-toast';
 
 import { openArtifactPickModal } from '@/components/artifact-list/ArtifactPickModal';
@@ -19,8 +26,28 @@ interface Props {
 }
 
 const UploadFileButton: Component<Props> = (props) => {
+	let rootRef: HTMLDivElement;
 	const isMobile = createIsMobile();
-	const [isOpen, setIsOpen] = createSignal(false);
+	const [isOpen, setIsOpen_] = createSignal(false);
+
+	const setIsOpen: Setter<boolean> = (v) => {
+		const x = setIsOpen_(v);
+		if (x) {
+			document.addEventListener('click', handleOutsideClick);
+		} else {
+			document.removeEventListener('click', handleOutsideClick);
+		}
+	};
+
+	const handleOutsideClick = (e: MouseEvent) => {
+		if (!rootRef!.contains(e.target as Node)) {
+			setIsOpen(false);
+		}
+	};
+
+	onCleanup(() => {
+		document.removeEventListener('click', handleOutsideClick);
+	});
 
 	const toggleDropdown = () => setIsOpen(!isOpen());
 
@@ -113,7 +140,10 @@ const UploadFileButton: Component<Props> = (props) => {
 	});
 
 	return (
-		<div class={`dropdown ${isOpen() ? 'is-active' : ''} is-up`}>
+		<div
+			ref={rootRef!}
+			class={`dropdown ${isOpen() ? 'is-active' : ''} is-up`}
+		>
 			<div class="dropdown-trigger">
 				<button
 					class="tag h-full"
