@@ -1,20 +1,14 @@
-import { Component, createSignal, Match, onMount, Switch } from 'solid-js';
+import { Component, createSignal, onMount, Show } from 'solid-js';
 
+import ArtifactPreview from '@/components/artifact-list/ArtifactPreview';
 import { openArtifactPreviewModal } from '@/components/artifact-list/ArtifactPreviewModal';
 import { ArtifactMeta } from '@/lib/artifact/structs';
-import {
-	getArtifactMeta,
-	getArtifactDataURL,
-	getArtifactData,
-} from '@/lib/idb/artifact_storage';
+import { getArtifactMeta } from '@/lib/idb/artifact_storage';
 
 import { ItemProps } from './message_types';
 
 const FileMessage: Component<ItemProps> = (props) => {
 	const [meta, setMeta] = createSignal<ArtifactMeta | null | undefined>();
-
-	const [imageDataURL, setImageDataURL] = createSignal('');
-	const [textPreview, setTextPreview] = createSignal('');
 
 	onMount(async () => {
 		const meta = await getArtifactMeta(props.content);
@@ -23,21 +17,6 @@ const FileMessage: Component<ItemProps> = (props) => {
 			return;
 		}
 		setMeta(meta);
-
-		if (meta.mimeType.startsWith('image/')) {
-			const data = await getArtifactDataURL(props.content);
-			setImageDataURL(data!);
-		} else {
-			const data = await getArtifactData(props.content);
-			if (data && data.data.length < 16 * 1024) {
-				if (typeof data.data === 'string') {
-					setTextPreview(data.data);
-				} else {
-					const decoder = new TextDecoder();
-					setTextPreview(decoder.decode(data.data));
-				}
-			}
-		}
 	});
 
 	const openPreview = () => {
@@ -54,23 +33,9 @@ const FileMessage: Component<ItemProps> = (props) => {
 				</span>
 			</header>
 			<div class="msg-code-body">
-				<Switch>
-					<Match when={meta() === null}>
-						<strong>
-							<i>File not found</i>
-						</strong>
-					</Match>
-					<Match when={meta() === undefined}>
-						<strong>
-							<i>Loading...</i>
-						</strong>
-					</Match>
-					<Match when={meta()?.mimeType.startsWith('image/')}>
-						<img src={imageDataURL()} alt={props.content} />
-					</Match>
-					<Match when={textPreview()}>{textPreview()}</Match>
-					<Match when>No preview available. Click to view.</Match>
-				</Switch>
+				<Show when={meta()}>
+					<ArtifactPreview meta={meta()!} />
+				</Show>
 			</div>
 		</div>
 	);

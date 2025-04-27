@@ -30,7 +30,7 @@ const StreamingInfo: Component = () => {
 				<div class="streaming-msg">{getStreamingRest()}</div>
 			</Show>
 			<Show when={getFocusedChatUphurryProgress()}>
-				<div class="message-body msg-user is-uphurry has-text-centered">
+				<div class="message-body msg-user theme-dark is-uphurry has-text-centered">
 					<span class="spinner" />
 				</div>
 			</Show>

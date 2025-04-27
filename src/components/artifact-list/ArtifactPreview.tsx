@@ -7,7 +7,7 @@ import {
 	onCleanup,
 } from 'solid-js';
 
-import { ArtifactData, ArtifactMeta } from '@/lib/artifact/structs';
+import { ArtifactMeta } from '@/lib/artifact/structs';
 import {
 	getArtifactBlob,
 	getArtifactDataString,
@@ -17,7 +17,6 @@ import hljs from '@lib/hljs';
 
 interface Props {
 	meta: ArtifactMeta;
-	data?: ArtifactData;
 }
 
 const ArtifactPreview: Component<Props> = (props) => {
@@ -30,6 +29,7 @@ const ArtifactPreview: Component<Props> = (props) => {
 	let cleanUp = () => {};
 
 	onMount(async () => {
+		console.log(props.meta);
 		if (props.meta.mimeType.startsWith('image/')) {
 			const blob = await getArtifactBlob(props.meta._id);
 			if (!blob) {
@@ -64,24 +64,17 @@ const ArtifactPreview: Component<Props> = (props) => {
 	});
 
 	return (
-		<div>
-			<Switch>
-				<Match when={imgURL()}>
-					<img src={imgURL()!} alt="Artifact Preview" />
-				</Match>
-				<Match when={highlightedText()}>
-					<div class="msg-code">
-						<div
-							class="msg-code-body"
-							innerHTML={highlightedText()!}
-						/>
-					</div>
-				</Match>
-				<Match when={text()}>
-					<div>{text()}</div>
-				</Match>
-			</Switch>
-		</div>
+		<Switch>
+			<Match when={imgURL()}>
+				<img src={imgURL()!} alt="Artifact Preview" />
+			</Match>
+			<Match when={highlightedText()}>
+				<div class="msg-code-body" innerHTML={highlightedText()!} />
+			</Match>
+			<Match when={text()}>
+				<div>{text()}</div>
+			</Match>
+		</Switch>
 	);
 };
 

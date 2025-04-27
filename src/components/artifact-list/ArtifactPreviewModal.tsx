@@ -179,6 +179,9 @@ export const openArtifactPreviewModal = (
 					<strong>ID:</strong> {artifact._id}
 				</p>
 				<p>
+					<strong>MIME:</strong> {artifact.mimeType}
+				</p>
+				<p>
 					<strong>URI:</strong> {artifact.uri}
 				</p>
 				<p>
@@ -186,7 +189,7 @@ export const openArtifactPreviewModal = (
 				</p>
 
 				{/* Preview */}
-				<div class="preview">
+				<div class="preview msg-code">
 					<ArtifactPreview meta={artifact} />
 				</div>
 
