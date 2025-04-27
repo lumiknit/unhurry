@@ -2,6 +2,8 @@ import { FetchResult, IBEService, VibrationPattern } from './interface';
 import { BrowserSpeechRecognizer, ISpeechRecognizer } from './interface_sr';
 import { getMimeTypeFromFileName } from '../artifact/mime';
 import { UploadedArtifact } from '../artifact/structs';
+import { logr } from '../logr';
+import { getFileName } from '../path';
 
 const vibePatterns = new Map<string, number[]>([
 	['light', [10]],
@@ -22,10 +24,6 @@ export class BrowserService implements IBEService {
 
 	name(): string {
 		return 'Browser';
-	}
-
-	async greet(name: string): Promise<string> {
-		return `Hello, ${name}`;
 	}
 
 	rawFetch = async (...args: Parameters<typeof fetch>) => {
@@ -103,17 +101,12 @@ export class BrowserService implements IBEService {
 		}
 		const artifacts = await Promise.all(
 			Array.from(e.dataTransfer.files).map(async (file) => {
-				const lastSliceIdx = Math.max(
-					file.name.lastIndexOf('\\'),
-					file.name.lastIndexOf('/')
-				);
-				const name =
-					lastSliceIdx >= 0
-						? file.name.slice(lastSliceIdx + 1)
-						: file.name;
+				const uri = 'file://' + file.name;
+				const name = getFileName(file.name);
 				const mimeType =
 					file.type || getMimeTypeFromFileName(file.name);
 				const artifact: UploadedArtifact = {
+					uri,
 					name,
 					mimeType,
 					data: new Uint8Array(await file.arrayBuffer()),
@@ -134,6 +127,66 @@ export class BrowserService implements IBEService {
 		window.removeEventListener('dragover', this.onDragOver);
 		window.removeEventListener('drop', this.onDropFiles);
 		this.onDrop = undefined;
+	}
+
+	/**
+	 * Upload file
+	 */
+	async uploadFiles(
+		mimeType: string,
+		capture?: 'user' | 'environment'
+	): Promise<UploadedArtifact[]> {
+		const files = await new Promise<File[]>((resolve, reject) => {
+			const input = document.createElement('input');
+			input.type = 'file';
+			input.accept = mimeType;
+			if (capture) {
+				input.setAttribute('capture', capture);
+			}
+			input.onchange = (e) => {
+				console.log('File selected:', e);
+				const files = (e.target as HTMLInputElement).files;
+				if (files && files.length > 0) {
+					resolve(Array.from(files));
+				}
+				input.remove();
+			};
+			input.onerror = (e) => {
+				logr.error('Failed to upload file:', e);
+				reject(new Error('Failed to upload file: ' + e));
+				input.remove();
+			};
+			input.click();
+		});
+		const artifacts = await Promise.all(
+			files.map(async (file) => {
+				const data = await new Promise<Uint8Array>(
+					(resolve, reject) => {
+						// Read file content as Uint8Array
+						const reader = new FileReader();
+						reader.onerror = (e) => {
+							logr.error('Failed to read file:', e);
+							reject(new Error('Failed to read file: ' + e));
+						};
+						reader.onload = (e) => {
+							// Data as Uint8Array
+							const data: Uint8Array = new Uint8Array(
+								e.target!.result as ArrayBuffer
+							);
+							resolve(data);
+						};
+						reader.readAsArrayBuffer(file);
+					}
+				);
+				return {
+					uri: 'file://' + file.name,
+					name: file.name,
+					mimeType: file.type || getMimeTypeFromFileName(file.name),
+					data,
+				};
+			})
+		);
+		return artifacts;
 	}
 
 	/**

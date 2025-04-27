@@ -58,10 +58,16 @@ const UploadFileButton: Component<Props> = (props) => {
 
 	const upload = async (mime: string, capture?: 'user' | 'environment') => {
 		try {
-			const meta = await openUploadArtifactDialog(mime, capture);
-			logr.info('[UploadFileButton] File selected:', meta._id);
-			toast.success('File uploaded: ' + meta._id);
-			props.onFile(meta.name, meta._id);
+			const metas = await openUploadArtifactDialog(mime, capture);
+			logr.info('[UploadFileButton] File selected: ', metas);
+			if (metas.length === 1) {
+				toast.success('File uploaded: ' + metas[0]._id);
+			} else {
+				toast.success('Files uploaded: ' + metas.length + ' files');
+			}
+			for (const meta of metas) {
+				props.onFile(meta.name, meta._id);
+			}
 		} catch (err) {
 			logr.error('[UploadFileButton] Failed to upload file:', err);
 			toast.error('Failed to upload file: ' + err);

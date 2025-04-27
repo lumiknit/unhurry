@@ -2,8 +2,8 @@ import { createSignal, onMount, Show } from 'solid-js';
 import { toast } from 'solid-toast';
 
 import Buttons from '@/components/utils/Buttons';
-import { ArtifactMeta } from '@/lib/artifact/structs';
-import { loadFileByInput, readFileData } from '@/lib/artifact/upload';
+import { ArtifactMeta, UploadedArtifact } from '@/lib/artifact/structs';
+import { uploadFiles } from '@/lib/artifact/upload';
 import { getBEService } from '@/lib/be';
 import { createArtifact } from '@/lib/idb/artifact_storage';
 
@@ -11,12 +11,6 @@ import { openModal } from './ModalContainer';
 
 type Options = {
 	initURL?: string;
-};
-
-type Uploaded = {
-	name: string;
-	type: string;
-	data: Uint8Array;
 };
 
 /**
@@ -27,19 +21,16 @@ export const openArtifactUploadModal = async (options: Options = {}) =>
 		let urlRef: HTMLInputElement;
 		let nameRef: HTMLInputElement;
 
-		const [a, setA] = createSignal<Uploaded | null>(null);
+		const [a, setA] = createSignal<UploadedArtifact | null>(null);
 
 		const uploadLocalFileInner = async (
 			mime: string,
 			capture?: 'user' | 'environment'
 		) => {
-			const file = await loadFileByInput(mime, capture);
-			const data = await readFileData(file);
-			setA({
-				name: file.name,
-				type: file.type,
-				data,
-			});
+			const f = await uploadFiles(mime, capture);
+			if (f.length > 0) {
+				setA(f[0]);
+			}
 		};
 
 		const uploadLocalFile = async (
@@ -68,8 +59,9 @@ export const openArtifactUploadModal = async (options: Options = {}) =>
 			const name = urlRef!.value.split('/').pop() || 'file';
 			const bytes = await resp.arrayBuffer();
 			setA({
+				uri: urlRef!.value,
 				name,
-				type: (resp.headers.get('Content-Type') || 'text/plain')
+				mimeType: (resp.headers.get('Content-Type') || 'text/plain')
 					.split(';')[0]
 					.trim(),
 				data: new Uint8Array(bytes),
@@ -88,7 +80,7 @@ export const openArtifactUploadModal = async (options: Options = {}) =>
 			const v = a();
 			if (!v) return;
 
-			const meta = await createArtifact(v.name, v.type, v.data);
+			const meta = await createArtifact(v.name, v.mimeType, v.data);
 			toast.success('File uploaded: ' + meta._id);
 			props.onClose(meta);
 		};
@@ -151,7 +143,7 @@ export const openArtifactUploadModal = async (options: Options = {}) =>
 
 					<ul>
 						<li>
-							<b>Type</b>: {a()!.type}
+							<b>Type</b>: {a()!.mimeType}
 						</li>
 						<li>
 							<b>Size</b>: {a()!.data.length} bytes

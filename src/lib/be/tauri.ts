@@ -1,7 +1,7 @@
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { scan, Format } from '@tauri-apps/plugin-barcode-scanner';
-import { save } from '@tauri-apps/plugin-dialog';
+import { save, open } from '@tauri-apps/plugin-dialog';
 import { readFile, writeFile } from '@tauri-apps/plugin-fs';
 import {
 	vibrate,
@@ -22,6 +22,7 @@ import {
 import { BrowserSpeechRecognizer, ISpeechRecognizer } from './interface_sr';
 import { getMimeTypeFromFileName } from '../artifact/mime';
 import { UploadedArtifact } from '../artifact/structs';
+import { getFileName } from '../path';
 
 type WithError = {
 	error?: string;
@@ -35,12 +36,6 @@ export class TauriService implements IBEService {
 
 	name(): string {
 		return 'Tauri';
-	}
-
-	async greet(name: string): Promise<string> {
-		return invoke('greet', {
-			name,
-		});
 	}
 
 	rawFetch: typeof fetch = async (req, init) => {
@@ -128,16 +123,10 @@ export class TauriService implements IBEService {
 					const artifacts = await Promise.all(
 						event.payload.paths.map(async (path) => {
 							const data = await readFile(path);
-							const lastSliceIdx = Math.max(
-								path.lastIndexOf('\\'),
-								path.lastIndexOf('/')
-							);
-							const name =
-								lastSliceIdx >= 0
-									? path.slice(lastSliceIdx + 1)
-									: path;
+							const name = getFileName(path);
 							const mimeType = getMimeTypeFromFileName(path);
 							return {
+								uri: 'file://' + path,
 								name,
 								mimeType,
 								data,
@@ -158,11 +147,38 @@ export class TauriService implements IBEService {
 		this.unlistens = [];
 	}
 
+	async uploadFiles(): Promise<UploadedArtifact[]> {
+		const filePaths = await open({
+			multiple: true,
+		});
+		if (filePaths === null) {
+			throw new Error('User canceled the file open dialog');
+		}
+
+		const artifacts = await Promise.all(
+			filePaths.map(async (path) => {
+				const data = await readFile(path);
+				const name = getFileName(path);
+				const mimeType = getMimeTypeFromFileName(path);
+				return {
+					uri: 'file://' + path,
+					name,
+					mimeType,
+					data,
+				};
+			})
+		);
+		return artifacts;
+	}
+
 	/**
 	 * Download File
 	 */
 	async downloadFile(name: string, blob: Blob): Promise<void> {
-		const filePath = await save({ defaultPath: name });
+		const filePath = await save({
+			defaultPath: name,
+			canCreateDirectories: true,
+		});
 		if (filePath === null) {
 			throw new Error('User canceled the file save dialog');
 		}

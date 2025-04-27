@@ -5,6 +5,7 @@ export * from './interface_sr';
 export * from './interface';
 
 let beService: IBEService | null = null;
+let browserBEService: IBEService | null = null;
 
 /**
  * Get an instance of the backend service.
@@ -24,5 +25,13 @@ export const getBEService = async (): Promise<IBEService> => {
 	}
 
 	beService = new BrowserService();
+	browserBEService = beService;
 	return beService;
+};
+
+export const getBrowserBEService = async (): Promise<IBEService> => {
+	if (browserBEService) return browserBEService;
+
+	browserBEService = new BrowserService();
+	return browserBEService;
 };

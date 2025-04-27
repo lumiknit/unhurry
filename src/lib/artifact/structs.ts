@@ -1,5 +1,6 @@
 export type UploadedArtifact = {
 	name: string;
+	uri: string;
 	mimeType: string;
 	data: Uint8Array;
 };
