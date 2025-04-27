@@ -2,9 +2,10 @@ import { createSignal, onMount, Show } from 'solid-js';
 import { toast } from 'solid-toast';
 
 import Buttons from '@/components/utils/Buttons';
+import { ArtifactMeta } from '@/lib/artifact/structs';
 import { loadFileByInput, readFileData } from '@/lib/artifact/upload';
 import { getBEService } from '@/lib/be';
-import { ArtifactMeta, createArtifact } from '@/lib/idb/artifact_storage';
+import { createArtifact } from '@/lib/idb/artifact_storage';
 
 import { openModal } from './ModalContainer';
 

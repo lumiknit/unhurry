@@ -1,4 +1,5 @@
-import { ArtifactMeta, createArtifact } from '../idb/artifact_storage';
+import { ArtifactMeta } from '../artifact/structs';
+import { createArtifact } from '../idb/artifact_storage';
 import { logr } from '../logr';
 
 export type UploadingFile = {

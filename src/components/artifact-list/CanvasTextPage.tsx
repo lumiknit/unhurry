@@ -4,11 +4,8 @@ import { Component, createSignal, onMount, Show } from 'solid-js';
 import { toast } from 'solid-toast';
 
 import { getMimeTypeFromFileName } from '@/lib/artifact/mime';
-import {
-	ArtifactMeta,
-	getArtifact,
-	createArtifact,
-} from '@/lib/idb/artifact_storage';
+import { ArtifactMeta } from '@/lib/artifact/structs';
+import { getArtifact, createArtifact } from '@/lib/idb/artifact_storage';
 import { logr } from '@/lib/logr';
 import { goto } from '@/store';
 

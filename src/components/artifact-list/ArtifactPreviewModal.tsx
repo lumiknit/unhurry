@@ -16,9 +16,9 @@ import { toast } from 'solid-toast';
 
 import { openModal } from '@/components/modal/ModalContainer';
 import { getMimeTypeFromFileName } from '@/lib/artifact/mime';
+import { ArtifactMeta } from '@/lib/artifact/structs';
 import { getBEService } from '@/lib/be';
 import {
-	ArtifactMeta,
 	deleteArtifact,
 	getArtifactBlob,
 	updateArtifactMeta,

@@ -1,28 +1,6 @@
+import { Artifact, ArtifactData, ArtifactMeta } from '../artifact/structs';
 import { uniqueID } from '../utils';
 import { SimpleIDB } from './client';
-
-/**
- * Artifact Meta
- */
-export interface ArtifactMeta {
-	_id: string;
-	name: string;
-	createdAt: number;
-	mimeType: string;
-}
-
-/**
- * Artifact Data
- */
-export interface ArtifactData {
-	_id: string;
-	data: string | Uint8Array;
-}
-
-export type Artifact = {
-	meta: ArtifactMeta;
-	data: ArtifactData;
-};
 
 /**
  * IDB for artifact storage
@@ -106,7 +84,7 @@ export const getArtifactData = async (
 
 export const getArtifact = async (
 	id: string
-): Promise<{ meta: ArtifactMeta; data: ArtifactData } | undefined> => {
+): Promise<Artifact | undefined> => {
 	const [meta, data] = await Promise.all([
 		getArtifactMeta(id),
 		getArtifactData(id),

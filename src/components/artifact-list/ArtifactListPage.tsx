@@ -9,9 +9,9 @@ import { Component, createSignal, For, Match, onMount, Switch } from 'solid-js';
 import { toast } from 'solid-toast';
 
 import { openConfirm } from '@/components/modal';
+import { ArtifactMeta } from '@/lib/artifact/structs';
 import {
 	deleteAllArtifacts,
-	ArtifactMeta,
 	listArtifacts,
 	deleteArtifact,
 	getArtifactMeta,

@@ -1,8 +1,8 @@
 import { Component, createSignal, Match, onMount, Switch } from 'solid-js';
 
 import { openArtifactPreviewModal } from '@/components/artifact-list/ArtifactPreviewModal';
+import { ArtifactMeta } from '@/lib/artifact/structs';
 import {
-	ArtifactMeta,
 	getArtifactMeta,
 	getArtifactDataURL,
 	getArtifactData,
