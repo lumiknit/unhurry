@@ -185,6 +185,8 @@ addFunc(
 		page?: number;
 	}) => {
 		console.log('webSearch', query, engine, page);
+		if (!page) page = 1;
+		if (page < 1) page = 1;
 		const search = async (engine: string): Promise<string> => {
 			switch (engine.toLowerCase()) {
 				case 'ddg':
@@ -278,8 +280,6 @@ addFunc(
 					throw new Error(`Unsupported search engine: ${engine}`);
 			}
 		};
-		if (!page) page = 1;
-		if (page < 1) page = 1;
 		if (engine) {
 			return await search(engine);
 		} else {
