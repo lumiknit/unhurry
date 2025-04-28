@@ -50,7 +50,7 @@ addFunc(
 		name: 'runJS',
 		description: [
 			'Execute the given JavaScript code in web worker.',
-			'The result is the output of the code (console.log).',
+			'The result is the output of the code (console.log). If no console.log, the output will be <EMPTY>.',
 			'Use it for precise calculation, date processing, random, string manipulation, etc',
 		].join('\n'),
 		parameters: {

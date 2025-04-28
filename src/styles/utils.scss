@@ -93,11 +93,6 @@
 	color: var(--bulma-text-strong);
 }
 
-// Override bulma items
-nav.panel {
-	overflow: hidden;
-}
-
 textarea.textarea {
 	padding: var(--bulma-control-padding-vertical)
 		var(--bulma-control-padding-horizontal);

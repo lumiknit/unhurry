@@ -246,13 +246,12 @@ export class OpenAIClient implements ILLMService {
 		history: LLMMessages,
 		stream?: boolean
 	): string {
-		const fnArgsKey = this.isMistral ? 'parameters' : 'arguments';
 		const strict = this.isMistral ? undefined : true;
 		const tools = this.functions.map((f) => ({
 			type: 'function',
 			function: {
 				name: f.name,
-				[fnArgsKey]: f.parameters,
+				parameters: f.parameters,
 			},
 			strict,
 		}));
