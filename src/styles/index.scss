@@ -215,6 +215,8 @@ div.message-body {
 .streaming-msg {
 	white-space: pre-wrap;
 	word-break: break-all;
+	font-size: var(--msg-font-size);
+	opacity: 0.9;
 
 	padding: 0 0.5rem;
 }
