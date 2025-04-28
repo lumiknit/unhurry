@@ -117,7 +117,7 @@ const fetchDocFromURL = async (
 		if (body) {
 			method = 'POST';
 		}
-		const result = await beService.rawFetch(url, {
+		const result = await beService.fetch(url, {
 			method,
 			headers,
 			body,

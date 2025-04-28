@@ -1,4 +1,4 @@
-import { FetchResult, IBEService, VibrationPattern } from './interface';
+import { IBEService, VibrationPattern } from './interface';
 import { BrowserSpeechRecognizer, ISpeechRecognizer } from './interface_sr';
 import { getMimeTypeFromFileName } from '../artifact/mime';
 import { UploadedArtifact } from '../artifact/structs';
@@ -26,36 +26,9 @@ export class BrowserService implements IBEService {
 		return 'Browser';
 	}
 
-	rawFetch = async (...args: Parameters<typeof fetch>) => {
+	fetch = async (...args: Parameters<typeof fetch>) => {
 		return await fetch(...args);
 	};
-
-	async fetch(
-		method: string,
-		url: string,
-		headers?: [string, string][],
-		body?: string
-	): Promise<FetchResult> {
-		try {
-			const result = await fetch(url, {
-				method,
-				headers: new Headers(headers),
-				body,
-			});
-			const respBody = await result.text();
-			return {
-				status: result.status,
-				headers: Array.from(result.headers.entries()),
-				body: respBody,
-			} as FetchResult;
-		} catch (e) {
-			return {
-				status: 500,
-				headers: [],
-				body: `Failed to fetch: ${e}`,
-			} as FetchResult;
-		}
-	}
 
 	async myIP(): Promise<string> {
 		throw new Error('IP address not supported in browser');

@@ -28,6 +28,9 @@
 		Pretendard, Inter, SF Pro, Segoe UI, Roboto, Oxygen, Ubuntu,
 		Helvetica Neue, Helvetica, Arial, sans-serif !important;
 	--serif-family: 'Source Han Serif', 'Noto Serif', 'Times New Roman', serif;
+	--monospace-family:
+		'Noto Sans Mono', 'SF Mono', 'Consolas', 'Menlo', 'Courier New',
+		'Fira Code', 'Fira Mono', monospace;
 
 	--bulma-family-primary: var(--sans-serif-family);
 
@@ -36,6 +39,9 @@
 
 	--uh-bottom-input-border: 1px solid hsl(0, 0%, 85%);
 	--uh-navbar-l: 100%;
+
+	--msg-font-size: 15px;
+	--msg-code-font-size: 13px;
 
 	tab-size: 4;
 }
@@ -63,6 +69,13 @@
 	--bulma-primary-h: var(--bulma-uphurry-h) !important;
 }
 
+// Common
+
+code,
+pre {
+	font-family: var(--monospace-family);
+}
+
 // Toast Item
 
 .toast-item {
@@ -76,9 +89,11 @@
 	}
 }
 
+.message-body > .content {
+	font-size: 0.9375rem;
+}
+
 .content {
-	//word-break: break-all;
-	//word-wrap: break-word;
 	overflow-wrap: break-word;
 	margin: 0.25rem 0;
 }
@@ -87,7 +102,6 @@
 	border-radius: 0.5rem;
 	background-color: #cccccc30;
 	padding: 0.75rem;
-	font-family: monospace;
 }
 
 .msg-raw {
@@ -95,8 +109,8 @@
 	white-space: pre-wrap;
 	word-wrap: break-word;
 	word-break: break-all;
-	font-family: monospace;
-	font-size: 0.875rem;
+	font-family: var(--monospace-family);
+	font-size: var(--msg-code-font-size);
 	line-height: 1.2;
 }
 
@@ -143,7 +157,8 @@ div.message-body {
 	border-radius: 0.5rem;
 	background-color: #cccccc30;
 	padding: 0.75rem;
-	font-family: monospace;
+	font-family: var(--monospace-family);
+	font-size: var(--msg-code-font-size);
 	margin: 0.25rem 0;
 
 	position: relative;
@@ -238,21 +253,27 @@ textarea::placeholder {
 	backdrop-filter: var(--uh-blur);
 	-webkit-backdrop-filter: var(--uh-blur);
 
+	outline-color: #00000000;
+	outline-width: 1px;
+	outline-offset: -1px;
+	outline-style: solid;
+
+	transition: outline-color 0.1s ease;
+
 	&:focus-within {
-		outline: 1px solid
-			hsl(
-				var(--bulma-primary-h),
-				var(--bulma-primary-s),
-				var(--bulma-primary-l)
-			);
+		outline-color: hsl(
+			var(--bulma-primary-h),
+			var(--bulma-primary-s),
+			var(--bulma-primary-l)
+		);
 	}
 
 	&:has(.mic-recording) {
-		outline: 1px solid var(--bulma-danger);
+		outline-color: var(--bulma-danger);
 	}
 
 	&:has(.uphurry) {
-		outline: 2px solid var(--bulma-uphurry);
+		outline-color: var(--bulma-uphurry);
 	}
 
 	& textarea {
@@ -303,5 +324,5 @@ textarea::placeholder {
 
 .log-container {
 	font-size: 10px;
-	font-family: monospace;
+	font-family: var(--monospace-family);
 }

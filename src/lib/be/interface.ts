@@ -2,12 +2,6 @@ import { UploadedArtifact } from '@/lib/artifact/structs';
 
 import { ISpeechRecognizer } from './interface_sr';
 
-export interface FetchResult {
-	status: number;
-	headers: [string, string][];
-	body: string;
-}
-
 export type NotiVibePattern = 'success' | 'warning' | 'error';
 export const notiVibes = new Set<string>(['success', 'warning', 'error']);
 
@@ -37,17 +31,7 @@ export interface IBEService {
 	/**
 	 * Fetch
 	 */
-	rawFetch: typeof globalThis.fetch;
-
-	/**
-	 * Fetch a URL.
-	 */
-	fetch(
-		method: string,
-		url: string,
-		headers?: [string, string][],
-		body?: string
-	): Promise<FetchResult>;
+	fetch: typeof globalThis.fetch;
 
 	/**
 	 * Get current device IP.

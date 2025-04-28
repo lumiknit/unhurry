@@ -24,7 +24,7 @@ import { logr } from '../logr';
 
 const fetch: typeof globalThis.fetch = async (...args) => {
 	const be = await getBEService();
-	return await be.rawFetch(...args);
+	return await be.fetch(...args);
 };
 
 // OpenAI Message

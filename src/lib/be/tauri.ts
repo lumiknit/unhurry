@@ -11,7 +11,6 @@ import {
 import { fetch } from '@tauri-apps/plugin-http';
 
 import {
-	FetchResult,
 	IBEService,
 	ImpactVibePattern,
 	impactVibes,
@@ -38,7 +37,7 @@ export class TauriService implements IBEService {
 		return 'Tauri';
 	}
 
-	rawFetch: typeof fetch = async (req, init) => {
+	fetch: typeof fetch = async (req, init) => {
 		if (init === undefined) {
 			init = {};
 		}
@@ -46,21 +45,6 @@ export class TauriService implements IBEService {
 		init.headers.set('Origin', '');
 		return await fetch(req, init);
 	};
-
-	async fetch(
-		method: string,
-		url: string,
-		headers?: [string, string][],
-		body?: string
-	): Promise<FetchResult> {
-		const result = await invoke('fetch_http', {
-			method,
-			url,
-			headers,
-			body,
-		});
-		return result as FetchResult;
-	}
 
 	async myIP(): Promise<string> {
 		const result = await invoke<WithError>('self_ip', { format: 'qr_svg' });
