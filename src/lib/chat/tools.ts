@@ -50,7 +50,7 @@ addFunc(
 		name: 'runJS',
 		description: [
 			'Execute the given JavaScript code in web worker.',
-			'The result is the output of the code (console.log).',
+			'The result is the output of the code (console.log). If no console.log, the output will be <EMPTY>.',
 			'Use it for precise calculation, date processing, random, string manipulation, etc',
 		].join('\n'),
 		parameters: {
@@ -117,7 +117,7 @@ const fetchDocFromURL = async (
 		if (body) {
 			method = 'POST';
 		}
-		const result = await beService.rawFetch(url, {
+		const result = await beService.fetch(url, {
 			method,
 			headers,
 			body,

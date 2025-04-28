@@ -47,7 +47,7 @@ export const openArtifactUploadModal = async (options: Options = {}) =>
 		const uploadRemoteFileInner = async () => {
 			// Fetch the file from the URL
 			const be = await getBEService();
-			const resp = await be.rawFetch(urlRef!.value);
+			const resp = await be.fetch(urlRef!.value);
 			if (!resp.ok) {
 				throw new Error(
 					'Failed to fetch file from URL: ' + resp.statusText

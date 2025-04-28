@@ -3,7 +3,6 @@ import {
 	BiRegularRightArrow,
 	BiRegularTrash,
 } from 'solid-icons/bi';
-import { TbPlus } from 'solid-icons/tb';
 import { Component, createSignal, Show } from 'solid-js';
 import { toast } from 'solid-toast';
 
@@ -220,13 +219,6 @@ const TagList: Component = () => {
 		<div>
 			<h2 class="title is-4">
 				Tag List ({getUserConfig()?.promptTags.length})
-				<button
-					class="button is-small is-primary is-gap-1 ml-1"
-					onClick={handleAddTag}
-				>
-					<TbPlus />
-					Add tag
-				</button>
 			</h2>
 
 			<p> Your preset prompts here. </p>

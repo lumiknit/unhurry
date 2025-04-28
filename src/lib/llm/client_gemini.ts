@@ -15,6 +15,7 @@ import {
 	TypedContent,
 } from './message';
 import { ModelConfig } from './model_config';
+import { getBEService } from '../be';
 import { JSONValue } from '../json';
 import { logr } from '../logr';
 
@@ -328,7 +329,8 @@ export class GeminiClient implements ILLMService {
 			'Content-Type': 'application/json',
 		};
 
-		const resp = await fetch(url, {
+		const be = await getBEService();
+		const resp = await be.fetch(url, {
 			method: 'POST',
 			headers,
 			body: this.chatCompletionBody(systemPrompt, history),
