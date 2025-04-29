@@ -23,3 +23,7 @@ $uphurry-color: #7f0b6b;
 		border: 1px solid var(--bulma-#{$name});
 	}
 }
+
+.dropdown-trigger > button {
+	display: block;
+}

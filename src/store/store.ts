@@ -4,6 +4,8 @@ import { createEffect, createSignal, Setter } from 'solid-js';
 
 import { chatManager } from '@/lib/chat-manager/manager';
 import { logr } from '@/lib/logr';
+import { emptyMemoryConfig, MemoryConfig } from '@/lib/memory/config';
+import { createPersistantSignal } from '@/lib/signal';
 
 import { ChatContext, MsgPart } from '../lib/chat';
 import { sanitizeConfig, UserConfig } from '../lib/config';
@@ -143,3 +145,6 @@ export const [getFocusedChatUphurryProgress, setFocusedChatUphurryProgress] =
 
 export const [getShowRawMessage, setShowRawMessage] =
 	createSignal<boolean>(false);
+
+export const [getMemoryConfig, setMemoryConfig] =
+	createPersistantSignal<MemoryConfig>('memory_cfg', '1', emptyMemoryConfig);
