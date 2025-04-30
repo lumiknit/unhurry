@@ -4,7 +4,7 @@ import { toast } from 'solid-toast';
 
 import { getBEService, VibrationPattern } from '@/lib/be';
 import { chatManager } from '@/lib/chat-manager/manager';
-import { scrollToLastUserMessage } from '@/lib/utils';
+import { scrollToLastUserMessage, scrollToTop } from '@/lib/utils';
 
 import {
 	getChatContext,
@@ -40,6 +40,7 @@ export const resetChatMessages = () => {
 		resetStreamingState();
 		setCurChatProcessing(false);
 	});
+	scrollToTop();
 };
 
 export const loadChatContext = async (id: string) => {
@@ -53,6 +54,7 @@ export const loadChatContext = async (id: string) => {
 		setFocusedChatUphurryProgress(progress.uphurry);
 	});
 	chatManager.checkChat(id);
+	scrollToLastUserMessage();
 };
 
 export const setTitle = (title: string) => {
