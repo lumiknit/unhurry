@@ -19,7 +19,7 @@ import {
 	setStreamingParts,
 	setStreamingRest,
 } from './store';
-import { MsgPartsParser, MSG_PART_TYPE_ARTIFACT } from '../lib/chat';
+import { MsgConverter, MSG_PART_TYPE_ARTIFACT } from '../lib/chat';
 
 /**
  * Vibration
@@ -106,7 +106,7 @@ export const chat = async (
 		throw new Error('No chat context');
 	}
 
-	const parts = MsgPartsParser.parse(text);
+	const parts = MsgConverter.parse(text);
 
 	if (artifactIDs) {
 		for (const id of artifactIDs) {

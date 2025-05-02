@@ -7,7 +7,7 @@ import {
 	extractChatMeta,
 	hasChatUpdate,
 } from '../chat/context';
-import { MsgPartsParser } from '../chat/parser';
+import { MsgConverter } from '../chat/converter';
 import { assistantMsg, MsgPair, MsgPart, userMsg } from '../chat/structs';
 import { chatListTx, chatTx, SimpleIDB } from '../idb';
 import {
@@ -587,7 +587,7 @@ export class ChatManager {
 							this.finishRequest(id);
 						} else {
 							await createAction().runWithUserMessage(
-								MsgPartsParser.parse(nextQuestion),
+								MsgConverter.parse(nextQuestion),
 								{ uphurry: true }
 							);
 						}

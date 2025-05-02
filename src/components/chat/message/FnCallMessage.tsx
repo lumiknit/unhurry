@@ -2,6 +2,7 @@ import { VsChevronDown, VsChevronUp } from 'solid-icons/vs';
 import { Component, createSignal, Match, Show, Switch } from 'solid-js';
 import * as YAML from 'yaml';
 
+import { parseJSO } from '@/lib/jso';
 import { FunctionCallContent } from '@/lib/llm';
 
 import { ItemProps } from './message_types';
@@ -13,7 +14,7 @@ const FnCallMessage: Component<ItemProps> = (props) => {
 	let args = fnCall.args;
 	let wrongFormat = false;
 	try {
-		const parsed = JSON.parse(args);
+		const parsed = parseJSO(args);
 		const pretty = YAML.stringify(parsed, {
 			indent: 2,
 		});

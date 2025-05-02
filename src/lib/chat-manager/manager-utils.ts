@@ -1,4 +1,5 @@
-import { ChatHistory, convertChatHistoryForLLM } from '../chat/structs';
+import { MsgConverter } from '../chat/converter';
+import { ChatHistory } from '../chat/structs';
 import { LLMMessage, LLMMessages, newClientFromConfig } from '../llm';
 import { ChatOptions } from './structs';
 
@@ -13,8 +14,13 @@ export const utilChat = async <Result>(
 	history: ChatHistory,
 	uopts: UtilChatOpts<Result>
 ): Promise<Result> => {
-	const llm = newClientFromConfig(opts.modelConfigs[0]);
-	let lh = await convertChatHistoryForLLM(history);
+	const modelConfig = opts.modelConfigs[0];
+	if (!modelConfig) {
+		throw new Error('No model config');
+	}
+	const llm = newClientFromConfig(modelConfig);
+	const parser = new MsgConverter(modelConfig);
+	let lh = await parser.format(history);
 	if (uopts.historyProcess) {
 		lh = await uopts.historyProcess(lh);
 	}

@@ -13,13 +13,14 @@ import {
 	Model,
 	ModelConfig,
 	newClientFromConfig,
+	ToolCallStyle,
 } from '@lib/llm';
 import { logr } from '@lib/logr';
 
 import CodeForm from './form/CodeForm';
-import SwitchForm from './form/SwitchForm';
 import TextForm from './form/TextForm';
 import { openQRModal } from '../modal/QRModal';
+import SelectForm from './form/SelectForm';
 import { getAIIconComponent } from '../utils/icons/AIIcons';
 
 interface Props {
@@ -161,7 +162,7 @@ const ModelEditor: Component<Props> = (props) => {
 			clientType: v.clientType,
 			name: v.name,
 			systemPrompt: v.systemPrompt,
-			useToolCall: v.useToolCall,
+			useToolCall: v.toolCallStyle,
 		}));
 	};
 
@@ -281,12 +282,25 @@ const ModelEditor: Component<Props> = (props) => {
 				</div>
 			</div>
 
-			<SwitchForm
+			<SelectForm
 				label="Use ToolCall"
 				desc="If model supports ToolCall, enable this"
-				get={() => !!props.model.useToolCall}
+				options={[
+					{
+						label: 'Built-In',
+						value: 'builtin',
+					},
+					{
+						label: 'Gemma',
+						value: 'gemma',
+					},
+				]}
+				get={() => props.model.toolCallStyle || 'builtin'}
 				set={(v) =>
-					props.updateModel((m) => ({ ...m, useToolCall: v }))
+					props.updateModel((m) => ({
+						...m,
+						toolCallStyle: v as ToolCallStyle,
+					}))
 				}
 			/>
 		</>

@@ -1,3 +1,4 @@
+import { ToolCallStyle } from '../llm';
 import { FunctionTool, functionToolToTS } from '../llm/function';
 
 /**
@@ -5,61 +6,34 @@ import { FunctionTool, functionToolToTS } from '../llm/function';
  */
 
 export const toolCallSystemPrompt = async (
-	useToolCall: boolean,
+	toolCallStyle: ToolCallStyle,
 	functions: FunctionTool[]
 ) => {
-	let toolDesc = '';
-
-	if (useToolCall) {
-		toolDesc =
-			'\n' +
-			`
+	switch (toolCallStyle) {
+		case 'gemma':
+			return (
+				'\n' +
+				`
 ## Tools
 
-- You can use tools by tool function callings.
-- You MUST fill all required arguments.
-  - Based on the history, you should guess the arguments.
-  - If you did not provide the arguments, you will see Argument Error.
-- Do not forget to use tools, and do not say it's impossible which can be done by tools.
-`.trim();
-	} else {
-		toolDesc =
-			'\n' +
-			`
-## Tools
+You can call a tool (which is a function) by markdown code block with language 'tool_code'
+System will call the tool then put result in 'tool_output' block in user's message.
+The block content is a tool name and arguments.
+Arguments should be a JSON object, but with slightly generous grammar like JSON5:
+- Trailing comma, omitting quotes and multiline strings are allowed.
+- Use multiple quotes (''' or """. Three or more quotes.) is available.
 
-The syntax of tool calling is similar to markdown code block.
-It MUST be:
+For example, to use 'myTool' with argument \`{"lang": "javascript", "val": 42, "code": "...(multiple lines)"}\`,
 
-\`\`\`\`*call:<TOOL_NAME>
-<ARGUMENTS_JSON>
-\`\`\`\`
-
-The detailed syntax is:
-
-- **Beginning of code block**: '\`\`\`\`*call:<TOOL_NAME>'.
-  - You should put '*call:<TOOL_NAME>' after backticks. NO NEWLINE between backticks and '*call:<TOOL_NAME>'.
-  - NOT 'tool_code' or 'plaintext'. MUST be '*call:<TOOL_NAME>'.
-  - System will automatically add call ID in parentheses. (e.g. '*call:print(id_123)')
-- **End of code block**: '\`\`\`\`', which is the end of the code block of markdown.
-- Between the first and last line, **you should provide the arguments in JSON format.**
-
-For example, to call 'runJS' tool with arguments 'value: "console.log(1)"', you can use:
-
-\`\`\`\`*call:runJS
-{
-  "code": "console.log(1);"
+\`\`\`tool_code
+myTool{
+	"lang": "javascript",
+	code: '''
+const resp = await fetch('test');
+console.log("Hello, world!");
+'''
 }
-\`\`\`\`
-
-- You can use multiple tools at once. Just put multiple code blocks.
-- You should stop answering after the calling the tool. Wait for the user to give you the response.
-- If you do not follow the syntax, YOU CANNOT CALL TOOL. Keep the syntax in your mind correctly.
-
-### Response
-
-- User will see the code blocks and give you the response, which starts with '*return:...'.
-  - DO NOT provide '*return:' in your answer. '*return:' is only for user message.
+\`\`\`
 
 ### Available Tools
 
@@ -69,9 +43,22 @@ Each interface name is a tool name, and the interface body is the arguments.
 \`\`\`typescript
 ${functions.map((f) => functionToolToTS(f)).join('\n\n')}
 \`\`\`
-`.trim();
+`.trim()
+			);
+		default:
+			return (
+				'\n' +
+				`
+## Tools
+
+- You can use tools by tool function callings.
+- You MUST fill all required arguments.
+  - Based on the history, you should guess the arguments.
+  - If you did not provide the arguments, you will see Argument Error.
+- Do not forget to use tools, and do not say it's impossible which can be done by tools.
+`.trim()
+			);
 	}
-	return toolDesc;
 };
 
 /**
@@ -82,7 +69,7 @@ ${functions.map((f) => functionToolToTS(f)).join('\n\n')}
  */
 export const systemPrompt = async (
 	additional: string,
-	useToolCall: boolean,
+	toolCallStyle: ToolCallStyle,
 	functions: FunctionTool[]
 ): Promise<string> => {
 	const role = "You are a helpful assistant 'Unhurry' (언허리).";
@@ -134,7 +121,7 @@ The list of language names and how they are displayed.
 
 NOTE: all other languages except above 'svg', 'mermaid', 'qr' just show the code. (No execution)
 
-${await toolCallSystemPrompt(useToolCall, functions)}
+${await toolCallSystemPrompt(toolCallStyle, functions)}
 
 # Additional info
 

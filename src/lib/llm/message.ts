@@ -1,15 +1,3 @@
-import { stringToMDCodeBlock } from '../md';
-
-/**
- * Prefix for code block language.
- */
-export const BLOCK_PREFIX_FN_CALL = '*call:';
-
-/**
- * Prefix for code block language.
- */
-export const BLOCK_PREFIX_FN_RETURN = '*return:';
-
 /**
  * Role of a message.
  * Based on OpenAI.
@@ -41,24 +29,6 @@ export interface FunctionCallContent {
 	args: string;
 	result?: string;
 }
-
-/**
- * Convert function call message part to markdown.
- * First one is about function call, and the second one is about return value.
- */
-export const fnCallMsgPartToMD = (
-	info: FunctionCallContent
-): [string, string] => {
-	const call = stringToMDCodeBlock(
-		`${BLOCK_PREFIX_FN_CALL}${info.name}(${info.id})`,
-		info.args
-	);
-	const ret = stringToMDCodeBlock(
-		`${BLOCK_PREFIX_FN_RETURN}${info.name}(${info.id})`,
-		info.result || '<NO RESULT>'
-	);
-	return [call, ret];
-};
 
 /**
  * Typed content.

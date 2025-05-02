@@ -1,16 +1,14 @@
-import * as YAML from 'yaml';
-
-import { MsgPartsParser } from './parser';
+import { MsgConverter } from './converter';
 import {
 	assistantMsg,
 	ChatHistory,
-	convertChatHistoryForLLM,
 	Msg,
 	MSG_PART_TYPE_FUNCTION_CALL,
 	MsgPart,
 } from './structs';
 import { fnImpls, getFnTools, normalizeToolName } from './tools';
 import { ToolConfigs } from '../config/tool';
+import { parseJSO } from '../jso';
 import {
 	FunctionCallContent,
 	LLMError,
@@ -155,18 +153,18 @@ export abstract class SingleLLMAction {
 		const sys = await this.systemPrompt(modelConfig, tools);
 
 		// Part parser
-		const parser = new MsgPartsParser();
+		const parser = new MsgConverter(modelConfig);
 
 		// History for LLM
-		const llmHistory = await convertChatHistoryForLLM(this.history);
+		const llmHistory = await parser.format(this.history);
 		logr.info('[chat/SingleChatAction/generate] Stream Start');
 		const result = await llm.chatStream(sys, llmHistory, {
 			onStart: () => {
 				this.onStart?.();
 			},
 			onText: (text) => {
-				parser.push(text);
-				this.onChunk?.(text, ...parser.state());
+				parser.inputToParse(text);
+				this.onChunk?.(text, ...parser.parseState());
 				return !this.cancelled;
 			},
 			isCancelled: () => this.cancelled,
@@ -174,7 +172,7 @@ export abstract class SingleLLMAction {
 		logr.info('[chat/SingleChatAction/generate] Stream End');
 
 		// Finish parser
-		const assistantParts = parser.finish();
+		const assistantParts = parser.finishParsing();
 		const functionCalls = result.functionCalls();
 
 		const fullAIParts = [
@@ -210,19 +208,12 @@ export abstract class SingleLLMAction {
 			await Promise.all(
 				calls.map(async (fc) => {
 					try {
-						const a = YAML.parse(fc.args);
+						const a = parseJSO(fc.args);
 						const result =
 							await fnImpls[normalizeToolName(fc.name)](a);
 						results.set(fc.id, result);
 					} catch (e) {
-						if (e instanceof YAML.YAMLError) {
-							results.set(
-								fc.id,
-								`Arguments are invalid YAML:\n${e}`
-							);
-						} else {
-							results.set(fc.id, `Tool Error:\n${e}`);
-						}
+						results.set(fc.id, `Tool Error:\n${e}`);
 					}
 				})
 			);

@@ -17,7 +17,7 @@ export class SingleChatAction extends SingleLLMAction {
 	): Promise<string> {
 		return await systemPrompt(
 			model.systemPrompt,
-			!!model.useToolCall,
+			model.toolCallStyle || 'builtin',
 			tools
 		);
 	}
