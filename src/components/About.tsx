@@ -9,13 +9,13 @@ import {
 } from 'solid-js';
 import { toast } from 'solid-toast';
 
+import logo from '@/assets/unhurry.svg';
 import { openConfirm } from '@/components/modal';
 import { logr } from '@/lib/logr';
 import { resetAllData } from '@/lib/reset';
 
 import { getBEService, IBEService } from '../lib/be';
 
-import logo from '@/assets/unhurry.svg';
 import './About.scss';
 
 /**
