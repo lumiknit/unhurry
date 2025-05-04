@@ -9,9 +9,9 @@ import {
 import { Dynamic } from 'solid-js/web';
 import { toast } from 'solid-toast';
 
+import { autoSendLaunchAt, getUserConfig } from '@/store/config';
 import { vibrate } from '@/store/global_actions';
-
-import { autoSendLaunchAt, getCurChatProcessing, getUserConfig } from '@store';
+import { getCurChatProcessing } from '@/store/store';
 
 import './send_button.scss';
 

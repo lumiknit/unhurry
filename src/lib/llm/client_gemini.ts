@@ -11,7 +11,6 @@ import {
 	LLMMessage,
 	LLMMsgContent,
 	Role,
-	fnCallMsgPartToMD,
 	TypedContent,
 } from './message';
 import { ModelConfig } from './model_config';
@@ -197,38 +196,24 @@ export class GeminiClient implements ILLMService {
 							}
 							break;
 						case 'function_call':
-							if (this.config.useToolCall) {
-								// If function call is supported,
-								// use functionCall and functionResponse parts.
-								last.parts.push({
-									functionCall: {
+							// If function call is supported,
+							// use functionCall and functionResponse parts.
+							last.parts.push({
+								functionCall: {
+									name: item.name,
+									args: JSON.parse(item.args),
+								},
+							});
+							if (item.result !== undefined) {
+								fnResults.push({
+									functionResponse: {
 										name: item.name,
-										args: JSON.parse(item.args),
+										response: {
+											name: item.name,
+											content: item.result,
+										},
 									},
 								});
-								if (item.result !== undefined) {
-									fnResults.push({
-										functionResponse: {
-											name: item.name,
-											response: {
-												name: item.name,
-												content: item.result,
-											},
-										},
-									});
-								}
-							} else {
-								// Otherwise push as text
-								const [callMD, resultMD] =
-									fnCallMsgPartToMD(item);
-								last.parts.push({
-									text: callMD,
-								});
-								if (resultMD) {
-									fnResults.push({
-										text: resultMD,
-									});
-								}
 							}
 							break;
 					}
@@ -264,7 +249,7 @@ export class GeminiClient implements ILLMService {
 
 	private chatCompletionBody(system: string, history: LLMMessages): string {
 		let tools = undefined;
-		if (this.config.useToolCall && this.functions.length > 0) {
+		if (this.config.toolCallStyle && this.functions.length > 0) {
 			tools = [{ function_declarations: this.functions }];
 		}
 		const convertedContents = this.convertMessagesForGemini(history);

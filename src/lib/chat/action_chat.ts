@@ -1,4 +1,7 @@
+import { untrack } from 'solid-js';
+
 import { systemPrompt } from '@/lib/prompts/system_prompts';
+import { getMemoryConfig } from '@/store/config';
 
 import { ModelConfig } from '../llm';
 import { SingleLLMAction } from './action';
@@ -17,8 +20,9 @@ export class SingleChatAction extends SingleLLMAction {
 	): Promise<string> {
 		return await systemPrompt(
 			model.systemPrompt,
-			!!model.useToolCall,
-			tools
+			model.toolCallStyle || 'builtin',
+			tools,
+			untrack(getMemoryConfig)
 		);
 	}
 }

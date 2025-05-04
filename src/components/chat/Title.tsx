@@ -4,8 +4,7 @@ import { toast } from 'solid-toast';
 
 import { logr } from '@/lib/logr';
 import { generateChatTitle, setTitle } from '@/store/global_actions';
-
-import { getChatContext } from '@store';
+import { getChatContext } from '@/store/store';
 
 interface EditProps {
 	originalTitle: string;

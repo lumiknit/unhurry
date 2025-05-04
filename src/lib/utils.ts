@@ -7,6 +7,13 @@ export const uniqueID = (): string => {
 	return now + rand;
 };
 
+export const scrollToTop = () => {
+	window.scrollTo({
+		top: 0,
+		behavior: 'smooth',
+	});
+};
+
 export const scrollToLastUserMessage = () => {
 	const elems = document.getElementsByClassName('msg-user');
 	if (elems.length > 0) {

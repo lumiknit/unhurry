@@ -18,7 +18,7 @@ import {
 	getArtifactMeta,
 } from '@/lib/idb/artifact_storage';
 import { shortRelativeDateFormat } from '@/lib/intl';
-import { goto } from '@/store';
+import { goto } from '@/store/nav';
 
 import { openArtifactPreviewModal } from './ArtifactPreviewModal';
 import { openArtifactUploadModal } from '../modal/ArtifactUploadModal';

@@ -1,7 +1,7 @@
 import { Component } from 'solid-js';
 
 import { UserConfig } from '@/lib/config';
-import { getUserConfig, setUserConfig } from '@/store';
+import { getUserConfig, setUserConfig } from '@/store/config';
 
 import SwitchForm from './SwitchForm';
 

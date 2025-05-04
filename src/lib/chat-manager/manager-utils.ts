@@ -1,6 +1,10 @@
-import { ChatHistory, convertChatHistoryForLLM } from '../chat/structs';
+import { getMemoryConfig, setMemoryConfig } from '@/store/config';
+
+import { MsgConverter } from '../chat/converter';
+import { ChatHistory } from '../chat/structs';
 import { LLMMessage, LLMMessages, newClientFromConfig } from '../llm';
 import { ChatOptions } from './structs';
+import { applyMemoryDiff } from '../memory/config';
 
 export type UtilChatOpts<Result> = {
 	systemPrompt: string;
@@ -13,8 +17,13 @@ export const utilChat = async <Result>(
 	history: ChatHistory,
 	uopts: UtilChatOpts<Result>
 ): Promise<Result> => {
-	const llm = newClientFromConfig(opts.modelConfigs[0]);
-	let lh = await convertChatHistoryForLLM(history);
+	const modelConfig = opts.modelConfigs[0];
+	if (!modelConfig) {
+		throw new Error('No model config');
+	}
+	const llm = newClientFromConfig(modelConfig);
+	const parser = new MsgConverter(modelConfig);
+	let lh = await parser.format(history);
 	if (uopts.historyProcess) {
 		lh = await uopts.historyProcess(lh);
 	}
@@ -141,4 +150,66 @@ When user give '[COMPACT]', then generate a note for you.
 			return h;
 		},
 		postProcess: async (msg: LLMMessage) => msg.extractText(),
+	});
+
+/**
+ * Extract memory diff
+ */
+export const extractMemoryDiff = async (
+	opts: ChatOptions,
+	history: ChatHistory
+): Promise<string> =>
+	utilChat(opts, history, {
+		systemPrompt: `
+You are a conversation helper.
+You will read a conversation and memory.
+You should generate changes of memory in diff format.
+
+- You should find facts to remember / forget.
+- Your answer should contain differences of memory.
+  - Lines starting with '+' will be added to the memory.
+  - Lines starting with '-' will be removed from the memory.
+- For example, if 'USER have a pen, not a paper', but the old memory is 'USER has a paper', then you should answer as
+
+\`\`\`example
+- USER has a paper.
++ USER has a pen.
+\`\`\`
+
+- System will apply changes to the memory based on your answer.
+- Each fact should be a short and clear single sentence.
+- Facts can bb in English, but it's recommended to use original language for keywords.
+- Use a word 'USER' to represent the user (counterpart), and 'AI' to represent YOU (AI Assistant, Unhurry).
+- If nothing to change, just say 'No changes.'
+- You do not need to keep all conversation to history. Find only important facts / personal information.
+- DO NOT USE relative time format (e.g. today, 10 minutes ago, etc.). Use absolute time format and durations.
+
+## Current Time
+
+Current time is '${new Date().toLocaleString()}'.
+
+For memory, you should use duration with absolute time format, instead of relative time format.
+
+## Memory
+
+The below is a memory you currently have.
+
+\`\`\`memory
+${getMemoryConfig()?.contents}
+\`\`\`
+`.trim(),
+		historyProcess: async (h: LLMMessages) => {
+			h.push(LLMMessage.assistant('[END OF CONVERSATION]'));
+			h.push(LLMMessage.user('[GIVE MEMORY DIFF]'));
+			console.log('History', h);
+			return h;
+		},
+		postProcess: async (msg: LLMMessage) => {
+			const oldC = getMemoryConfig();
+			if (!oldC) return '';
+			const newC = applyMemoryDiff(oldC, msg.extractText());
+			setMemoryConfig(newC);
+			console.log('Memory', oldC, msg, newC);
+			return 'a';
+		},
 	});

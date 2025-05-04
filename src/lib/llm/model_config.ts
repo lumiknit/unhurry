@@ -5,6 +5,10 @@ import { uniqueID } from '../utils';
  */
 export type LLMClientType = 'OpenAI' | 'Anthropic' | 'Gemini';
 
+export type ToolCallStyle =
+	| 'builtin' // Model's built-in tool call
+	| 'gemma'; // Gemma style (md block with tool call)
+
 /**
  * LLM Service Info
  */
@@ -25,11 +29,28 @@ export interface LLMServiceInfo {
 	models: string[];
 }
 
+export interface ModelOpts {
+	/** Max token count for the context. */
+	contextLength?: number;
+
+	/** Max output tokens. */
+	maxOutputTokens?: number;
+
+	/** Think open token in text */
+	thinkOpen?: string;
+
+	/** Think close token in text */
+	thinkClose?: string;
+
+	/** Tool Call is supported */
+	toolCallStyle?: ToolCallStyle;
+}
+
 /**
  * Model configuration.
  * This is used for user config.
  */
-export interface ModelConfig {
+export type ModelConfig = ModelOpts & {
 	/** ModelID */
 	id: string;
 
@@ -50,10 +71,7 @@ export interface ModelConfig {
 
 	/** Additional system prompt */
 	systemPrompt: string;
-
-	/** Tool Call is supported */
-	useToolCall?: boolean;
-}
+};
 
 /**
  * Create an empty model config.
@@ -66,7 +84,7 @@ export const emptyModelConfig = (): ModelConfig => ({
 	apiKey: '',
 	model: '',
 	systemPrompt: '',
-	useToolCall: true,
+	toolCallStyle: 'builtin',
 });
 
 /**
@@ -184,3 +202,128 @@ export const llmPresets: LLMServiceInfo[] = [
 		],
 	},
 ];
+
+/**
+ * Well-known model informations.
+ * [0] is a prefix of model name, and [1] is the information.
+ */
+const wellKnownModelInfo: [string[], ModelOpts][] = [
+	// OpenAI
+	[
+		['o4', 'o3', 'o2', 'o1'],
+		{
+			contextLength: 200000,
+			maxOutputTokens: 100000,
+			toolCallStyle: 'builtin',
+		},
+	],
+	[
+		['gpt-4.1'],
+		{
+			contextLength: 1047576,
+			maxOutputTokens: 32768,
+			toolCallStyle: 'builtin',
+		},
+	],
+	[
+		['gpt-4o'],
+		{
+			contextLength: 128000,
+			maxOutputTokens: 16384,
+			toolCallStyle: 'builtin',
+		},
+	],
+	// Google
+	[
+		['gemini-2.5'],
+		{
+			contextLength: 1048576,
+			maxOutputTokens: 65536,
+			toolCallStyle: 'builtin',
+		},
+	],
+	[
+		['gemini-2.0', 'gemini-1.5'],
+		{
+			contextLength: 1048576,
+			maxOutputTokens: 8192,
+			toolCallStyle: 'builtin',
+		},
+	],
+	[
+		['gemma3'],
+		{
+			contextLength: 128000,
+			maxOutputTokens: 8192,
+			toolCallStyle: 'gemma',
+		},
+	],
+	// Meta
+	[
+		['llama4-scout'],
+		{
+			contextLength: 1048576,
+			maxOutputTokens: 8192,
+			toolCallStyle: 'builtin',
+		},
+	],
+	[
+		['llama-3.3'],
+		{
+			contextLength: 128000,
+			toolCallStyle: 'builtin',
+		},
+	],
+	// DeepSeek
+	[
+		['deepseek-r1'],
+		{
+			contextLength: 128000,
+			toolCallStyle: 'builtin',
+		},
+	],
+	// Mixtral
+	[
+		['mixtral'],
+		{
+			contextLength: 32768,
+			toolCallStyle: 'builtin',
+		},
+	],
+	// Qwen
+	[
+		['qwen3'],
+		{
+			contextLength: 32768,
+			thinkOpen: '<think>',
+			thinkClose: '</think>',
+			toolCallStyle: 'builtin',
+		},
+	],
+	[
+		['qwen2.5'],
+		{
+			contextLength: 1000000,
+			thinkOpen: '<think>',
+			thinkClose: '</think>',
+			toolCallStyle: 'builtin',
+		},
+	],
+	// MS
+	[
+		['phi4'],
+		{
+			contextLength: 16384,
+			toolCallStyle: 'builtin',
+		},
+	],
+] as const;
+
+export const getWellKnownModelOpts = (model: string): ModelOpts | undefined => {
+	for (const [prefixes, opts] of wellKnownModelInfo) {
+		if (prefixes.some((prefix) => model.startsWith(prefix))) {
+			return opts;
+		}
+	}
+	return undefined;
+};

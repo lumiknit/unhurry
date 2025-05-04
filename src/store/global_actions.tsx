@@ -4,13 +4,13 @@ import { toast } from 'solid-toast';
 
 import { getBEService, VibrationPattern } from '@/lib/be';
 import { chatManager } from '@/lib/chat-manager/manager';
-import { scrollToLastUserMessage } from '@/lib/utils';
+import { scrollToLastUserMessage, scrollToTop } from '@/lib/utils';
+import { getUserConfig } from '@/store/config';
+import { goto } from '@/store/nav';
 
 import {
 	getChatContext,
 	getCurrentChatOpts,
-	getUserConfig,
-	goto,
 	resetStreamingState,
 	setChatContext,
 	setChatWarnings,
@@ -19,7 +19,7 @@ import {
 	setStreamingParts,
 	setStreamingRest,
 } from './store';
-import { MsgPartsParser, MSG_PART_TYPE_ARTIFACT } from '../lib/chat';
+import { MsgConverter, MSG_PART_TYPE_ARTIFACT } from '../lib/chat';
 
 /**
  * Vibration
@@ -40,6 +40,7 @@ export const resetChatMessages = () => {
 		resetStreamingState();
 		setCurChatProcessing(false);
 	});
+	scrollToTop();
 };
 
 export const loadChatContext = async (id: string) => {
@@ -53,6 +54,7 @@ export const loadChatContext = async (id: string) => {
 		setFocusedChatUphurryProgress(progress.uphurry);
 	});
 	chatManager.checkChat(id);
+	scrollToLastUserMessage();
 };
 
 export const setTitle = (title: string) => {
@@ -104,7 +106,7 @@ export const chat = async (
 		throw new Error('No chat context');
 	}
 
-	const parts = MsgPartsParser.parse(text);
+	const parts = MsgConverter.parse(text);
 
 	if (artifactIDs) {
 		for (const id of artifactIDs) {

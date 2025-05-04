@@ -14,11 +14,10 @@ import {
 import { toast } from 'solid-toast';
 
 import { openArtifactUploadModal } from '@/components/modal/ArtifactUploadModal';
+import { getUserConfig } from '@/store/config';
 import { vibrate } from '@/store/global_actions';
 
 import { PromptTag } from '@lib/config';
-
-import { getUserConfig } from '@store';
 
 type TagProps = JSX.HTMLAttributes<HTMLButtonElement> & {
 	class?: string;

@@ -16,16 +16,10 @@ import {
 	FunctionCallContent,
 	TypedContent,
 	LLMMsgContent,
-	fnCallMsgPartToMD,
 } from './message';
 import { ModelConfig } from './model_config';
 import { getBEService } from '../be';
 import { logr } from '../logr';
-
-const fetch: typeof globalThis.fetch = async (...args) => {
-	const be = await getBEService();
-	return await be.fetch(...args);
-};
 
 // OpenAI Message
 
@@ -168,41 +162,23 @@ export class OpenAIClient implements ILLMService {
 			let toolCalls: ToolCall[] | undefined;
 			const toolCallResult: Message[] = [];
 			if (msg.role === 'assistant' && fc.length > 0) {
-				if (this.config.useToolCall) {
-					toolCalls = fc.map((f) => {
-						if (f.result) {
-							toolCallResult.push({
-								role: 'tool',
-								tool_call_id: f.id,
-								content: f.result,
-							});
-						}
-						return {
-							type: 'function',
-							id: f.id,
-							function: {
-								name: f.name,
-								arguments: f.args,
-							},
-						};
-					});
-				} else {
-					const results: string[] = [];
-					// If tool call is not used, just append as text.
-					for (const f of fc) {
-						const [callMD, resultMD] = fnCallMsgPartToMD(f);
-						content.push({
-							type: 'text',
-							text: callMD,
+				toolCalls = fc.map((f) => {
+					if (f.result) {
+						toolCallResult.push({
+							role: 'tool',
+							tool_call_id: f.id,
+							content: f.result,
 						});
-						results.push(resultMD);
 					}
-
-					toolCallResult.push({
-						role: 'user',
-						content: results.join('\n\n'),
-					});
-				}
+					return {
+						type: 'function',
+						id: f.id,
+						function: {
+							name: f.name,
+							arguments: f.args,
+						},
+					};
+				});
 			}
 			let c: string | TypedContent[] = content;
 			if (content.length === 0) c = '';
@@ -265,7 +241,11 @@ export class OpenAIClient implements ILLMService {
 				...this.convertHistory(history),
 			],
 			tools:
-				this.config.useToolCall && tools.length > 0 ? tools : undefined,
+				(!this.config.toolCallStyle ||
+					this.config.toolCallStyle === 'builtin') &&
+				tools.length > 0
+					? tools
+					: undefined,
 			stream: stream,
 		});
 	}
@@ -282,7 +262,8 @@ export class OpenAIClient implements ILLMService {
 			Accept: 'application/json',
 		};
 
-		const resp = await fetch(url, {
+		const be = await getBEService();
+		const resp = await be.fetch(url, {
 			method: 'POST',
 			headers,
 			body: this.chatCompletionBody(systemPrompt, history),
@@ -325,7 +306,8 @@ export class OpenAIClient implements ILLMService {
 			Authorization: `Bearer ${this.config.apiKey}`,
 		};
 		// Use SSE
-		const resp = await fetch(url, {
+		const be = await getBEService();
+		const resp = await be.fetch(url, {
 			method: 'POST',
 			headers,
 			body: this.chatCompletionBody(systemPrompt, history, true),

@@ -7,7 +7,7 @@ import NavBar from '@/components/navbar/NavBar';
 import { handleKey } from '@/lib/command/command';
 import '@/lib/command/default';
 import { logr } from '@/lib/logr';
-import { getNextURL } from '@/store';
+import { getNextURL } from '@/store/nav';
 
 import PaletteContainer from './components/palette/PaletteContainer';
 import { rootPath } from './env';

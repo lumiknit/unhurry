@@ -20,8 +20,8 @@ import { openConfirm } from '@/components/modal';
 import { chatManager } from '@/lib/chat-manager/manager';
 import { OngoingChatSummary } from '@/lib/chat-manager/structs';
 import { shortRelativeDateFormat } from '@/lib/intl';
-import { getChatContext } from '@/store';
 import { gotoNewChat, openChat } from '@/store/global_actions';
+import { getChatContext } from '@/store/store';
 
 import { ChatMeta, hasChatUpdate } from '@lib/chat';
 import {

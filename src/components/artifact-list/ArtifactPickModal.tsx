@@ -14,7 +14,7 @@ import {
 	getArtifactBlob,
 	getArtifactData,
 } from '@/lib/idb/artifact_storage';
-import { goto } from '@/store';
+import { goto } from '@/store/nav';
 
 type CellProps = {
 	meta: ArtifactMeta;

@@ -7,15 +7,17 @@ import { Dynamic } from 'solid-js/web';
 import { toast } from 'solid-toast';
 
 import { getBEService } from '@/lib/be';
-import { getShowRawMessage } from '@/store';
+import { LLMMessages } from '@/lib/llm';
+import { getUserConfig } from '@/store/config';
+import { getShowRawMessage } from '@/store/store';
 
 import {
-	convertMsgForLLM,
 	Msg,
 	MSG_PART_TYPE_ARTIFACT,
 	MSG_PART_TYPE_FUNCTION_CALL,
 	MSG_PART_TYPE_TEXT,
 	MSG_PART_TYPE_THINK,
+	MsgConverter,
 } from '@lib/chat';
 import { copyToClipboard } from '@lib/clipboard';
 import hljs from '@lib/hljs';
@@ -243,8 +245,12 @@ const compMap = new Map([
 const RawMessage: Component<Props> = (props) => {
 	const [s, setS] = createSignal('');
 	onMount(async () => {
-		const v = await convertMsgForLLM(props.msg);
-		setS(v.extractText());
+		const modelConfig =
+			getUserConfig().models[getUserConfig().currentModelIdx];
+		const parser = new MsgConverter(modelConfig);
+		const msgs: LLMMessages = [];
+		parser.formatMsg(msgs, props.msg);
+		setS(msgs.map((x) => x.extractText()).join('\n\n'));
 	});
 	return <div class="msg-raw">{s()}</div>;
 };

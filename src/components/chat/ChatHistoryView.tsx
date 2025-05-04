@@ -10,7 +10,6 @@ import {
 
 import { assistantMsg, MsgPair } from '@/lib/chat';
 import { scrollToLastUserMessage } from '@/lib/utils';
-
 import {
 	getChatContext,
 	getChatWarnings,
@@ -18,10 +17,11 @@ import {
 	getFocusedChatUphurryProgress,
 	getStreamingParts,
 	getStreamingRest,
-} from '@store';
+} from '@/store/store';
 
 import { Message } from './message';
 import Title from './Title';
+import { openChatWarningsModal } from '../modal/ChatWarningsModal';
 
 type Props = {
 	isLast?: boolean;
@@ -50,12 +50,19 @@ const StreamingInfo: Component = () => {
 				</Match>
 			</Switch>
 			<Show when={getChatWarnings().length > 0}>
-				<div class="notification is-warning px-3 py-2">
-					<ul>
-						<For each={getChatWarnings()}>
-							{(w) => <li>{w}</li>}
-						</For>
-					</ul>
+				<div
+					class="notification is-warning px-3 py-2"
+					onClick={() => {
+						if (getChatWarnings().length > 1)
+							openChatWarningsModal(getChatWarnings());
+					}}
+				>
+					<b>{getChatWarnings().at(-1)}</b>
+					<Show when={getChatWarnings().length > 1}>
+						<span class="is-underlined">
+							({getChatWarnings().length} more warnings...)
+						</span>
+					</Show>
 				</div>
 			</Show>
 		</>
