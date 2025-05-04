@@ -8,6 +8,7 @@ import { toast } from 'solid-toast';
 
 import { getBEService } from '@lib/be';
 import {
+	getWellKnownModelOpts,
 	LLMClientType,
 	llmPresets,
 	Model,
@@ -20,6 +21,7 @@ import { logr } from '@lib/logr';
 import CodeForm from './form/CodeForm';
 import TextForm from './form/TextForm';
 import { openQRModal } from '../modal/QRModal';
+import NumForm from './form/NumForm';
 import SelectForm from './form/SelectForm';
 import { getAIIconComponent } from '../utils/icons/AIIcons';
 
@@ -96,10 +98,13 @@ const ModelEditor: Component<Props> = (props) => {
 
 	const handleModelChange = (id: string) => {
 		preset = llmPresets.find((p) => p.endpoint === props.model.endpoint);
+		const name = preset ? `${preset.name}/${id}` : id;
+		const opts = getWellKnownModelOpts(id) ?? {};
 		props.updateModel((m) => ({
 			...m,
+			...opts,
 			model: id,
-			name: `${preset?.name}/${id}`,
+			name: name,
 		}));
 	};
 
@@ -302,6 +307,46 @@ const ModelEditor: Component<Props> = (props) => {
 						toolCallStyle: v as ToolCallStyle,
 					}))
 				}
+			/>
+
+			<NumForm
+				label="Context Size"
+				desc="Model's max context size (in tokens)"
+				get={() => props.model.contextLength || 0}
+				set={(v) => {
+					props.updateModel((m) => ({
+						...m,
+						contextLength: v,
+					}));
+				}}
+			/>
+
+			<NumForm
+				label="Max Output"
+				desc="Model's max output (in tokens)"
+				get={() => props.model.maxOutputTokens || 0}
+				set={(v) => {
+					props.updateModel((m) => ({
+						...m,
+						maxOutputTokens: v,
+					}));
+				}}
+			/>
+
+			<TextForm
+				label="Think Start"
+				desc="Word to start thinking (reasoning)"
+				controlClass="flex-1 maxw-75"
+				get={() => props.model.thinkOpen || ''}
+				set={(v) => props.updateModel((m) => ({ ...m, thinkOpen: v }))}
+			/>
+
+			<TextForm
+				label="Think End"
+				desc="Word to start thinking (reasoning)"
+				controlClass="flex-1 maxw-75"
+				get={() => props.model.thinkClose || ''}
+				set={(v) => props.updateModel((m) => ({ ...m, thinkClose: v }))}
 			/>
 		</>
 	);

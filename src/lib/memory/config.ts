@@ -34,7 +34,7 @@ export const applyMemoryDiff = (
 	diff: string
 ): MemoryConfig => {
 	// Split diff to line by line
-	const lines = diff.split('\n');
+	const lines = diff.split('\n').filter((x) => x);
 	const adds: string[] = [];
 	const delSet = new Set<string>();
 	for (const line of lines) {

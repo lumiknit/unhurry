@@ -17,17 +17,14 @@ import {
 	registerCommand,
 	registerShortcut,
 } from '@/lib/command/command';
-import {
-	goto,
-	setShowRawMessage,
-	setUphurryMode,
-	setUserConfig,
-} from '@/store';
+import { setUserConfig } from '@/store/config';
 import {
 	compactChat,
 	generateChatTitle,
 	resetChatMessages,
 } from '@/store/global_actions';
+import { goto } from '@/store/nav';
+import { setShowRawMessage, setUphurryMode } from '@/store/store';
 
 import { Command, Shortcut } from './structs';
 

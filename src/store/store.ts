@@ -1,58 +1,13 @@
 /// Global store
 
-import { createEffect, createSignal, Setter } from 'solid-js';
+import { createEffect, createSignal } from 'solid-js';
 
 import { chatManager } from '@/lib/chat-manager/manager';
-import { logr } from '@/lib/logr';
-import { emptyMemoryConfig, MemoryConfig } from '@/lib/memory/config';
-import { createPersistantSignal } from '@/lib/signal';
 
+import { getUserConfig } from './config';
 import { ChatContext, MsgPart } from '../lib/chat';
-import { sanitizeConfig, UserConfig } from '../lib/config';
-import { loadUserConfig, saveUserConfig } from '../lib/idb';
 
 // Global store
-
-/**
- * Navigate Helper. This signal is used in the root component, to navigate to the next URL.
- */
-export const [getNextURL, goto] = createSignal<string | undefined>(undefined, {
-	equals: false,
-});
-
-/**
- * User Config Helper. This signal is used in the root component, to get the user config.
- */
-export const [getUserConfig, setUserConfig_] = createSignal<UserConfig>(
-	undefined!,
-	{
-		equals: false,
-	}
-);
-
-/**
- * Auto send launch timestamp
- */
-export const [autoSendLaunchAt, setAutoSendLaunchAt] = createSignal<
-	number | null
->(null, {
-	equals: false,
-});
-
-// Config
-
-(async () => {
-	const c = await loadUserConfig<UserConfig>();
-	const userConfig = sanitizeConfig(c);
-	setUserConfig_(userConfig);
-})();
-
-export const setUserConfig: Setter<UserConfig> = (setter) => {
-	logr.info('[store/config] User config updated, will save persistently');
-	const v = setUserConfig_(setter);
-	saveUserConfig(v);
-	return v;
-};
 
 createEffect(() => {
 	const c = getUserConfig();
@@ -145,6 +100,3 @@ export const [getFocusedChatUphurryProgress, setFocusedChatUphurryProgress] =
 
 export const [getShowRawMessage, setShowRawMessage] =
 	createSignal<boolean>(false);
-
-export const [getMemoryConfig, setMemoryConfig] =
-	createPersistantSignal<MemoryConfig>('memory_cfg', '1', emptyMemoryConfig);

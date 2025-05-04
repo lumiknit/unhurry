@@ -1,5 +1,6 @@
 import { ToolCallStyle } from '../llm';
 import { FunctionTool, functionToolToTS } from '../llm/function';
+import { MemoryConfig } from '../memory/config';
 
 /**
  * Generate sysmte prompt for tool call
@@ -18,6 +19,7 @@ export const toolCallSystemPrompt = async (
 
 You can call a tool (which is a function) by markdown code block with language 'tool_code'
 System will call the tool then put result in 'tool_output' block in user's message.
+DO NOT give 'tool_output' in yourself.
 The block content is a tool name and arguments.
 Arguments should be a JSON object, but with slightly generous grammar like JSON5:
 - Trailing comma, omitting quotes and multiline strings are allowed.
@@ -61,6 +63,23 @@ ${functions.map((f) => functionToolToTS(f)).join('\n\n')}
 	}
 };
 
+export const memoryPrompt = (mc?: MemoryConfig): string => {
+	if (!mc?.enabled) {
+		return '';
+	}
+
+	return `
+## Memory
+
+The belows are facts you already know from the previous conversations.
+It may includes user's personal information, or notes of last conversations.
+
+\`\`\`memory
+${mc.contents}
+\`\`\`
+`.trim();
+};
+
 /**
  * Generate system prompt.
  * @param additional Additional information.
@@ -70,7 +89,8 @@ ${functions.map((f) => functionToolToTS(f)).join('\n\n')}
 export const systemPrompt = async (
 	additional: string,
 	toolCallStyle: ToolCallStyle,
-	functions: FunctionTool[]
+	functions: FunctionTool[],
+	memory?: MemoryConfig
 ): Promise<string> => {
 	const role = "You are a helpful assistant 'Unhurry' (언허리).";
 	const importantGuidelines = [
@@ -122,6 +142,8 @@ The list of language names and how they are displayed.
 NOTE: all other languages except above 'svg', 'mermaid', 'qr' just show the code. (No execution)
 
 ${await toolCallSystemPrompt(toolCallStyle, functions)}
+
+${memoryPrompt(memory)}
 
 # Additional info
 

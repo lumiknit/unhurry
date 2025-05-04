@@ -8,7 +8,8 @@ import { toast } from 'solid-toast';
 
 import { getBEService } from '@/lib/be';
 import { LLMMessages } from '@/lib/llm';
-import { getShowRawMessage, getUserConfig } from '@/store';
+import { getUserConfig } from '@/store/config';
+import { getShowRawMessage } from '@/store/store';
 
 import {
 	Msg,

@@ -319,10 +319,10 @@ const wellKnownModelInfo: [string[], ModelOpts][] = [
 	],
 ] as const;
 
-export const getWellKnownModelInfo = (model: string): ModelOpts | undefined => {
-	for (const [prefixes, info] of wellKnownModelInfo) {
+export const getWellKnownModelOpts = (model: string): ModelOpts | undefined => {
+	for (const [prefixes, opts] of wellKnownModelInfo) {
 		if (prefixes.some((prefix) => model.startsWith(prefix))) {
-			return info;
+			return opts;
 		}
 	}
 	return undefined;

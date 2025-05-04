@@ -1,6 +1,6 @@
 import { Component } from 'solid-js';
 
-import { getMemoryConfig, setMemoryConfig } from '@/store';
+import { getMemoryConfig, setMemoryConfig } from '@/store/config';
 
 import NumForm from './form/NumForm';
 import SwitchForm from './form/SwitchForm';

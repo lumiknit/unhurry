@@ -16,7 +16,7 @@ import {
 	getArtifactBlob,
 	updateArtifactMeta,
 } from '@/lib/idb/artifact_storage';
-import { goto } from '@/store';
+import { goto } from '@/store/nav';
 
 import { openConfirm } from '../modal';
 import ArtifactPreview from './ArtifactPreview';

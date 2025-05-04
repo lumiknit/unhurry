@@ -3,14 +3,9 @@ import { toast } from 'solid-toast';
 
 import { getBEService, ISpeechRecognizer } from '@/lib/be';
 import { logr } from '@/lib/logr';
+import { getUserConfig, setAutoSendLaunchAt } from '@/store/config';
 import { cancelCurrentChat, chat } from '@/store/global_actions';
-
-import {
-	getCurChatProcessing,
-	getUphurryMode,
-	getUserConfig,
-	setAutoSendLaunchAt,
-} from '@store';
+import { getCurChatProcessing, getUphurryMode } from '@/store/store';
 
 import InputTags from './PromptTags';
 import SendButton from './SendButton';

@@ -1,5 +1,7 @@
 import { toast } from 'solid-toast';
 
+import { getMemoryConfig } from '@/store/config';
+
 import { SingleChatAction } from '../chat/action_chat';
 import {
 	ChatContext,
@@ -8,7 +10,13 @@ import {
 	hasChatUpdate,
 } from '../chat/context';
 import { MsgConverter } from '../chat/converter';
-import { assistantMsg, MsgPair, MsgPart, userMsg } from '../chat/structs';
+import {
+	assistantMsg,
+	ChatHistory,
+	MsgPair,
+	MsgPart,
+	userMsg,
+} from '../chat/structs';
 import { chatListTx, chatTx, SimpleIDB } from '../idb';
 import {
 	BadRequestError,
@@ -18,6 +26,7 @@ import {
 } from '../llm';
 import { logr } from '../logr';
 import {
+	extractMemoryDiff,
 	genChatTitle,
 	genCompactHistory,
 	genNextQuestion,
@@ -570,6 +579,21 @@ export class ChatManager {
 		try {
 			switch (req.type) {
 				case 'user-msg':
+					if (getMemoryConfig()?.enabled) {
+						const his: ChatHistory = {
+							msgPairs: [
+								...item.ctx.history.msgPairs,
+								{
+									user: {
+										role: 'user',
+										parts: req.message,
+										timestamp: Date.now(),
+									},
+								},
+							],
+						};
+						extractMemoryDiff(item.opts, his);
+					}
 					// Consume the message, then run the action
 					await createAction().runWithUserMessage(req.message);
 					this.finishRequest(id);

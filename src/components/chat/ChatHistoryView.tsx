@@ -10,7 +10,6 @@ import {
 
 import { assistantMsg, MsgPair } from '@/lib/chat';
 import { scrollToLastUserMessage } from '@/lib/utils';
-
 import {
 	getChatContext,
 	getChatWarnings,
@@ -18,7 +17,7 @@ import {
 	getFocusedChatUphurryProgress,
 	getStreamingParts,
 	getStreamingRest,
-} from '@store';
+} from '@/store/store';
 
 import { Message } from './message';
 import Title from './Title';

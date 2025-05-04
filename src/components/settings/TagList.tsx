@@ -7,6 +7,7 @@ import { Component, createSignal, Show } from 'solid-js';
 import { toast } from 'solid-toast';
 
 import { openConfirm } from '@/components/modal';
+import { getUserConfig, setUserConfig } from '@/store/config';
 
 import {
 	Color,
@@ -18,8 +19,6 @@ import {
 	PromptTagShowCondition,
 	promptTagShowConditions,
 } from '@lib/config';
-
-import { getUserConfig, setUserConfig } from '@store';
 
 import SelectForm from './form/SelectForm';
 import SwitchForm from './form/SwitchForm';

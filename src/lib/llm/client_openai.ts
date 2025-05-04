@@ -21,11 +21,6 @@ import { ModelConfig } from './model_config';
 import { getBEService } from '../be';
 import { logr } from '../logr';
 
-const fetch: typeof globalThis.fetch = async (...args) => {
-	const be = await getBEService();
-	return await be.fetch(...args);
-};
-
 // OpenAI Message
 
 interface SystemMessage {
@@ -267,7 +262,8 @@ export class OpenAIClient implements ILLMService {
 			Accept: 'application/json',
 		};
 
-		const resp = await fetch(url, {
+		const be = await getBEService();
+		const resp = await be.fetch(url, {
 			method: 'POST',
 			headers,
 			body: this.chatCompletionBody(systemPrompt, history),
@@ -310,7 +306,8 @@ export class OpenAIClient implements ILLMService {
 			Authorization: `Bearer ${this.config.apiKey}`,
 		};
 		// Use SSE
-		const resp = await fetch(url, {
+		const be = await getBEService();
+		const resp = await be.fetch(url, {
 			method: 'POST',
 			headers,
 			body: this.chatCompletionBody(systemPrompt, history, true),

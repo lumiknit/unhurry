@@ -2,8 +2,7 @@ import { Component, createEffect, createSignal, For } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 
 import { llmPresets } from '@/lib/llm';
-
-import { getUserConfig, setUserConfig } from '@store';
+import { getUserConfig, setUserConfig } from '@/store/config';
 
 import { getAIIconComponent } from '../utils/icons/AIIcons';
 

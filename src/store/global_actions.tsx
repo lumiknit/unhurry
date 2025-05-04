@@ -5,12 +5,12 @@ import { toast } from 'solid-toast';
 import { getBEService, VibrationPattern } from '@/lib/be';
 import { chatManager } from '@/lib/chat-manager/manager';
 import { scrollToLastUserMessage, scrollToTop } from '@/lib/utils';
+import { getUserConfig } from '@/store/config';
+import { goto } from '@/store/nav';
 
 import {
 	getChatContext,
 	getCurrentChatOpts,
-	getUserConfig,
-	goto,
 	resetStreamingState,
 	setChatContext,
 	setChatWarnings,
