@@ -40,6 +40,7 @@ const ModelEditor: Component<Props> = (props) => {
 	const [models, setModels] = createSignal<Model[] | undefined>();
 
 	let last_endpoint = '';
+
 	createEffect(() => {
 		if (props.model.endpoint !== last_endpoint) {
 			last_endpoint = props.model.endpoint;
@@ -53,7 +54,13 @@ const ModelEditor: Component<Props> = (props) => {
 			const cli = newClientFromConfig(props.model);
 			// Fetch the list of models
 			const ms = await cli.listModels();
-			setModels(ms);
+			setModels(
+				ms.sort((a, b) => {
+					if (a.id < b.id) return -1;
+					if (a.id > b.id) return 1;
+					return 0;
+				})
+			);
 		};
 		await toast.promise(
 			task(),
