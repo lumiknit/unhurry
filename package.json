@@ -45,7 +45,7 @@
 		"marked-katex-extension": "^5.1.4",
 		"mermaid": "^11.6.0",
 		"solid-icons": "^1.1.0",
-		"solid-js": "^1.9.5",
+		"solid-js": "^1.9.6",
 		"solid-toast": "^0.5.0",
 		"tauri-plugin-speech-recog": "file:tauri-plugins/speech-recog",
 		"thememirror": "^2.0.1",
@@ -53,12 +53,12 @@
 		"yaml": "^2.7.1"
 	},
 	"devDependencies": {
-		"@eslint/js": "^9.25.1",
+		"@eslint/js": "^9.26.0",
 		"@tauri-apps/cli": "^2.5.0",
 		"@types/node": "^22.15.3",
 		"@typescript-eslint/eslint-plugin": "^8.31.1",
 		"@typescript-eslint/parser": "^8.31.1",
-		"eslint": "^9.25.1",
+		"eslint": "^9.26.0",
 		"eslint-import-resolver-typescript": "^4.3.4",
 		"eslint-plugin-import-x": "^4.11.0",
 		"eslint-plugin-unused-imports": "^4.1.4",
@@ -67,7 +67,7 @@
 		"solid-devtools": "^0.34.0",
 		"typescript": "^5.8.3",
 		"typescript-eslint": "^8.31.1",
-		"vite": "^6.3.3",
+		"vite": "^6.3.4",
 		"vite-bundle-visualizer": "^1.2.1",
 		"vite-plugin-solid": "^2.11.6"
 	}
