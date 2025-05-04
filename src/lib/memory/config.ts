@@ -34,22 +34,22 @@ export const applyMemoryDiff = (
 	diff: string
 ): MemoryConfig => {
 	// Split diff to line by line
-	const lines = diff.split('\n').filter((x) => x);
-	const adds: string[] = [];
-	const delSet = new Set<string>();
-	for (const line of lines) {
+	const memSet = new Set<string>(cfg.contents);
+	for (const line of diff.split('\n')) {
 		if (line.startsWith('+')) {
-			adds.push(line.slice(1).trim());
+			memSet.add(line.slice(1).trim());
 		} else if (line.startsWith('-')) {
-			delSet.add(line.slice(1).trim());
+			memSet.delete(line.slice(1).trim());
 		}
 	}
 
-	const newContents = cfg.contents.filter((content) => !delSet.has(content));
-	newContents.push(...adds);
+	let contents = Array.from(memSet.values());
+	if (cfg.maxSize > 0) {
+		contents = contents.slice(0, cfg.maxSize);
+	}
 
 	return {
 		...cfg,
-		contents: newContents,
+		contents,
 	};
 };
