@@ -15,6 +15,7 @@ import { resetAllData } from '@/lib/reset';
 
 import { getBEService, IBEService } from '../lib/be';
 
+import logo from '@/assets/unhurry.svg';
 import './About.scss';
 
 /**
@@ -94,7 +95,7 @@ const About: Component = () => {
 		<div class="container">
 			<div class="has-text-centered">
 				<h1 class="title"> About Unhurry </h1>
-				<img class="unhurry-icon" src="/unhurry.svg" />
+				<img class="unhurry-icon" src={logo} />
 				<p>
 					<b>Unhurry</b> is a front-end only LLM Web UI for quick and
 					ease uses.
