@@ -674,7 +674,7 @@ export class ChatManager {
 			const chatDB = await chatTx<MsgPair>(chat._id);
 			const size = await chatDB.count();
 			console.log('Chat', chat._id, 'size', size);
-			if (size <= 0) {
+			if (size <= 1) {
 				// Empty chat, remove it
 				logr.info(`[ChatManager] Empty chat ${chat._id}, removing...`);
 				await deleteChatByID(chat._id);
