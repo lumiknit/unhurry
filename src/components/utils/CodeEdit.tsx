@@ -196,7 +196,7 @@ const CodeEdit = (props: Props) => {
 					'white-space': wrap() ? 'pre-wrap' : 'pre',
 					'overflow-wrap': wrap() ? 'break-word' : 'normal',
 					'text-indent': indentStyle().s,
-					tabSize: indentStyle().tabSize,
+					'tab-size': indentStyle().tabSize,
 				}}
 			/>
 		</>
