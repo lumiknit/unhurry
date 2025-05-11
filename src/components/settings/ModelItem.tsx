@@ -79,7 +79,6 @@ const ModelEditor: Component<Props> = (props) => {
 						({
 							label: m.id,
 							value: m.id,
-							icon: getAIIconComponent(m.id),
 							color: hasSuffix.has(m.id) ? undefined : 'warning',
 						}) as Option
 				)
