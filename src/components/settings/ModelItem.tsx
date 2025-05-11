@@ -37,7 +37,7 @@ interface Props {
 const ModelEditor: Component<Props> = (props) => {
 	let systemPromptRef: HTMLTextAreaElement | null;
 
-	const [models, setModels] = createSignal<Model[] | undefined>();
+	const [, setModels] = createSignal<Model[] | undefined>();
 	const [modelOptions, setModelOptions] = createSignal<Option[] | undefined>(
 		undefined
 	);
