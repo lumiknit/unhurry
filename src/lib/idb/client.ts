@@ -73,6 +73,18 @@ class SimpleTransaction<T> {
 			};
 		});
 	}
+
+	count(): Promise<number> {
+		return new Promise((resolve, reject) => {
+			const req = this.store.count();
+			req.onsuccess = () => {
+				resolve(req.result);
+			};
+			req.onerror = () => {
+				reject(req.error);
+			};
+		});
+	}
 }
 
 type UpgradeCallback = (db: IDBDatabase) => void;

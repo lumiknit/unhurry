@@ -9,6 +9,8 @@ import { getArtifact, createArtifact } from '@/lib/idb/artifact_storage';
 import { logr } from '@/lib/logr';
 import { goto } from '@/store/nav';
 
+import CodeEdit from '../utils/CodeEdit';
+
 const CanvasTextPage: Component = () => {
 	const params = useParams();
 	const id = () => params.artifactID as string;
@@ -16,7 +18,6 @@ const CanvasTextPage: Component = () => {
 	let uriRef: HTMLInputElement;
 	let nameRef: HTMLInputElement;
 	let mimeRef: HTMLInputElement;
-	let dataRef: HTMLTextAreaElement;
 
 	const [meta, setMeta] = createSignal<ArtifactMeta | undefined>();
 	const [data, setData] = createSignal<string | undefined>();
@@ -51,24 +52,6 @@ const CanvasTextPage: Component = () => {
 		}
 	});
 
-	const handleTAKeyDown = (e: KeyboardEvent) => {
-		switch (e.key) {
-			case 'Tab':
-				{
-					e.preventDefault();
-					const prev = dataRef!.value.slice(
-						0,
-						dataRef!.selectionStart
-					);
-					const next = dataRef!.value.slice(dataRef!.selectionEnd);
-					dataRef!.value = prev + '\t' + next;
-					dataRef!.selectionStart = dataRef!.selectionEnd =
-						prev.length + 1;
-				}
-				break;
-		}
-	};
-
 	const handleNameChange = () => {
 		const v = nameRef!.value;
 		const mime = getMimeTypeFromFileName(v);
@@ -82,12 +65,12 @@ const CanvasTextPage: Component = () => {
 		if (!mimeRef!.value || mimeRef!.value.split('/').length !== 2) {
 			toast.error('Invalid MIME type');
 		}
-		const id = await toast.promise(
+		const meta = await toast.promise(
 			createArtifact(
 				uriRef!.value,
 				nameRef!.value,
 				mimeRef!.value,
-				dataRef!.value
+				data()!
 			),
 			{
 				loading: 'Saving...',
@@ -99,7 +82,7 @@ const CanvasTextPage: Component = () => {
 			}
 		);
 
-		goto('/artifacts?q=' + id);
+		goto('/artifacts?q=' + meta._id);
 	};
 
 	return (
@@ -160,13 +143,7 @@ const CanvasTextPage: Component = () => {
 						<span>Save as</span>
 					</button>
 				</div>
-				<textarea
-					ref={dataRef!}
-					class="textarea is-family-monospace"
-					value={data()!}
-					rows={20}
-					onKeyDown={handleTAKeyDown}
-				/>
+				<CodeEdit initValue={data()!} onValue={setData} />
 			</Show>
 		</div>
 	);

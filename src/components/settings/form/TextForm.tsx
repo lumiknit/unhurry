@@ -9,10 +9,13 @@ import {
 } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 
+import { Color } from '@/lib/config';
+
 export interface Option {
 	label: string;
 	value: string;
 	icon?: Component;
+	color?: Color;
 }
 
 interface Props {
@@ -82,7 +85,9 @@ const TextForm: Component<Props> = (props) => {
 							<For each={props.options!}>
 								{(opt) => (
 									<button
-										class="tag mr-1"
+										class={
+											'tag mr-1 is-' + (opt.color || '')
+										}
 										onClick={() => handleOptionClick(opt)}
 									>
 										<Show when={opt.icon}>

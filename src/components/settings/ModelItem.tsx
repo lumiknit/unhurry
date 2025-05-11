@@ -19,7 +19,7 @@ import {
 import { logr } from '@lib/logr';
 
 import CodeForm from './form/CodeForm';
-import TextForm from './form/TextForm';
+import TextForm, { Option } from './form/TextForm';
 import { openQRModal } from '../modal/QRModal';
 import NumForm from './form/NumForm';
 import SelectForm from './form/SelectForm';
@@ -37,7 +37,10 @@ interface Props {
 const ModelEditor: Component<Props> = (props) => {
 	let systemPromptRef: HTMLTextAreaElement | null;
 
-	const [models, setModels] = createSignal<Model[] | undefined>();
+	const [, setModels] = createSignal<Model[] | undefined>();
+	const [modelOptions, setModelOptions] = createSignal<Option[] | undefined>(
+		undefined
+	);
 
 	let last_endpoint = '';
 
@@ -60,6 +63,25 @@ const ModelEditor: Component<Props> = (props) => {
 					if (a.id > b.id) return 1;
 					return 0;
 				})
+			);
+			const hasSuffix = new Set<string>();
+			for (const m1 of ms) {
+				for (const m2 of ms) {
+					if (m1.id === m2.id) continue;
+					if (m1.id !== m2.id && m1.id.startsWith(m2.id)) {
+						hasSuffix.add(m1.id);
+					}
+				}
+			}
+			setModelOptions(
+				ms.map(
+					(m) =>
+						({
+							label: m.id,
+							value: m.id,
+							color: hasSuffix.has(m.id) ? undefined : 'warning',
+						}) as Option
+				)
 			);
 		};
 		await toast.promise(
@@ -252,10 +274,7 @@ const ModelEditor: Component<Props> = (props) => {
 				label="Model"
 				desc="LLM"
 				controlClass="flex-1 maxw-75"
-				options={
-					models()?.map((m) => ({ label: m.id, value: m.id })) ||
-					false
-				}
+				options={modelOptions() || false}
 				onLoadOptions={updateModelList}
 				get={() => props.model.model}
 				set={(v) => handleModelChange(v)}
