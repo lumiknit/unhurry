@@ -6,8 +6,24 @@ $theme-color: #0b7f4e;
 $uphurry-color: #7f0b6b;
 
 @use 'bulma/sass' with (
-	$family-primary:
-		'Pretendard, Inter, SF Pro, Segoe UI, Roboto, Oxygen, Ubuntu, Helvetica Neue, Helvetica, Arial, sans-serif',
+	$family-primary: (
+		Pretendard,
+		Inter,
+		'SF Pro',
+		'Segoe UI',
+		Roboto,
+		Oxygen,
+		Ubuntu,
+		'Helvetica Neue',
+		Helvetica,
+		Arial,
+		sans-serif,
+	),
+	$family-monospace: (
+		'Jetbrains Mono',
+		'Noto Sans Mono',
+		monospace,
+	),
 	$primary: $theme-color
 );
 
