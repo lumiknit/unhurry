@@ -17,7 +17,7 @@ import {
 	MsgPart,
 	userMsg,
 } from '../chat/structs';
-import { chatListTx, chatTx, SimpleIDB } from '../idb';
+import { chatListTx, chatTx, deleteChatByID, SimpleIDB } from '../idb';
 import {
 	BadRequestError,
 	ModelConfig,
@@ -666,6 +666,22 @@ export class ChatManager {
 		}
 	}
 
+	private async onStart() {
+		// Check empty chats and reamove them.
+		const chatListDB = await chatListTx<ChatMeta>();
+		for (const chat of await chatListDB.getAll()) {
+			// Check size of chat
+			const chatDB = await chatTx<MsgPair>(chat._id);
+			const size = await chatDB.count();
+			console.log('Chat', chat._id, 'size', size);
+			if (size <= 0) {
+				// Empty chat, remove it
+				logr.info(`[ChatManager] Empty chat ${chat._id}, removing...`);
+				await deleteChatByID(chat._id);
+			}
+		}
+	}
+
 	/**
 	 * Check if the chat manager is working.
 	 * Return true if the check interval is set.
@@ -685,6 +701,8 @@ export class ChatManager {
 			() => this.checkAll(),
 			this.checkIntervalDelay
 		);
+		// Check start actions
+		this.onStart();
 	}
 
 	/**

@@ -206,6 +206,7 @@ const BottomInput: Component = () => {
 
 	const handleKeyDown = (e: KeyboardEvent) => {
 		updateInputTriple();
+		console.log(e);
 		if (e.isComposing) return;
 		switch (e.key) {
 			case 'Enter':
