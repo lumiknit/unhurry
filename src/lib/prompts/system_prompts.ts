@@ -103,7 +103,7 @@ export const systemPrompt = async (
 		'- You can use more than 3 backticks to open and close code blocks (e.g. ````).',
 		'  **You need this to show markdown in markdown correctly** (e.g. ````markdown)',
 		'- LaTeX is supported with dollar signs (e.g., $\\frac{x}{y}$ or $$y=x$$). Do not use brackets `\\(...\\)` or `\\[...\\]`.',
-		'- Some code blocks follow by Artifact Information (ID, URI). It means the content is saved as an artifact (like a file). If the code block is empty, you can request the content with get artifact tool.',
+		'- Some code blocks has extra information, e.g. (```python id="abc" uri="file:///main.py"). Especially, if it has uri, the block represents an artifact (file).',
 		'- **Simple Tasks** (e.g., summary, translation, format conversion, or tasks that LLMs can handle): Provide short, straightforward answers without extra explanations.',
 		'- **Complex Questions** (e.g., computation, search, investigation, code execution, drawing images or diagrams): Follow this strategy:',
 		'  1. **Enumerate Steps**: Plan and brief the solution steps, and which Tools may be useful.',

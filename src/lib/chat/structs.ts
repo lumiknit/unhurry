@@ -52,13 +52,10 @@ export const MSG_PART_TYPE_THINK = '*think';
  */
 export interface MsgPart {
 	type: string;
+	typeExtra?: string;
 	content: string;
 	indent?: string; // Indentation for the message
 }
-
-export const parseMessagePartType = (type: string): string[] => {
-	return type.split('|').map((x) => x.trim().toLowerCase());
-};
 
 /**
  * Chat message.

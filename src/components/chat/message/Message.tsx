@@ -184,7 +184,7 @@ const createPreviewMessage = (
 							<span>{raw() ? 'raw' : 'preview'}</span>
 						</span>
 					</header>
-					<div class="msg-code-body">
+					<div class="msg-code-body content">
 						<Switch>
 							<Match when={err()}>
 								<div class="notification is-danger">
@@ -249,7 +249,7 @@ const RawMessage: Component<Props> = (props) => {
 			getUserConfig().models[getUserConfig().currentModelIdx];
 		const parser = new MsgConverter(modelConfig);
 		const msgs: LLMMessages = [];
-		parser.formatMsg(msgs, props.msg);
+		await parser.formatMsg(msgs, props.msg);
 		setS(msgs.map((x) => x.extractText()).join('\n\n'));
 	});
 	return <div class="msg-raw">{s()}</div>;

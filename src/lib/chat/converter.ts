@@ -164,15 +164,23 @@ export class MsgConverter {
 				let blockType = line.slice(bt[0].length).trim();
 
 				if (lastPart.type === MSG_PART_TYPE_TEXT) {
+					let blockExtra: string | undefined;
 					// Open the block
 					if (!blockType) {
 						blockType = 'plaintext';
+					} else {
+						const idx = blockType.indexOf(' ');
+						if (idx > 0) {
+							blockExtra = blockType.slice(idx + 1);
+							blockType = blockType.slice(0, idx);
+						}
 					}
 					this.quotes = backticks;
 					lastPart.content = lastPart.content.trimEnd();
 					this.parts.push(lastPart);
 					lastPart = {
 						type: blockType,
+						typeExtra: blockExtra,
 						content: '',
 						indent,
 					};
@@ -275,12 +283,10 @@ export class MsgConverter {
 								);
 								push(msg.role, {
 									type: 'text',
-									text:
-										`(Below is an artifact; URI=${artifact.uri}; ID=${artifact._id})\n` +
-										stringToMDCodeBlock(
-											`${mdLang}`,
-											textContent
-										),
+									text: stringToMDCodeBlock(
+										`${mdLang} id=${JSON.stringify(artifact._id)} uri=${JSON.stringify(artifact.uri)}`,
+										textContent
+									),
 								});
 							}
 						}
@@ -324,10 +330,14 @@ export class MsgConverter {
 							text: part.content,
 						});
 					} else {
+						let t = part.type;
+						if (part.typeExtra) {
+							t += ' ' + part.typeExtra;
+						}
 						push(msg.role, {
 							type: 'text',
 							text: stringToMDCodeBlock(
-								part.type,
+								t,
 								part.content,
 								part.indent
 							),
