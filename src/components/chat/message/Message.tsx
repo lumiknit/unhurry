@@ -2,7 +2,15 @@ import { default as DOMPurify } from 'dompurify';
 import { marked } from 'marked';
 import markedKatex from 'marked-katex-extension';
 import { VsChevronDown, VsChevronUp, VsCopy } from 'solid-icons/vs';
-import { Component, createSignal, For, Match, onMount, Switch } from 'solid-js';
+import {
+	Component,
+	createEffect,
+	createSignal,
+	For,
+	Match,
+	onMount,
+	Switch,
+} from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 import { toast } from 'solid-toast';
 
@@ -244,7 +252,7 @@ const compMap = new Map([
 
 const RawMessage: Component<Props> = (props) => {
 	const [s, setS] = createSignal('');
-	onMount(async () => {
+	createEffect(async () => {
 		const modelConfig =
 			getUserConfig().models[getUserConfig().currentModelIdx];
 		const parser = new MsgConverter(modelConfig);
@@ -270,7 +278,7 @@ const Message: Component<Props> = (props) => {
 		<Switch>
 			<Match when={getShowRawMessage()}>
 				<div class={cls}>
-					<RawMessage msg={props.msg} />
+					<RawMessage {...props} />
 				</div>
 			</Match>
 			<Match when>

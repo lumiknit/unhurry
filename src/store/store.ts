@@ -70,7 +70,10 @@ export const [getChatWarnings, setChatWarnings] = createSignal<string[]>([], {
  * Streamed message part signal
  */
 export const [getStreamingParts, setStreamingParts] = createSignal<MsgPart[]>(
-	[]
+	[],
+	{
+		equals: false,
+	}
 );
 
 /**
