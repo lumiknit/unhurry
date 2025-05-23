@@ -16,6 +16,8 @@ export const impactVibes = new Set<string>([
 
 export type VibrationPattern = number | ImpactVibePattern | NotiVibePattern;
 
+export type PlatformString = 'web' | 'desktop' | 'android' | 'ios';
+
 /**
  * Backend service interface.
  * It'll help some actions which are not possible in the browser.
@@ -27,6 +29,11 @@ export interface IBEService {
 	 * Backend service name.
 	 */
 	name(): string;
+
+	/**
+	 * Platform
+	 */
+	platform(): Promise<PlatformString>;
 
 	/**
 	 * Fetch
