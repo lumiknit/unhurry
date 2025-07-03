@@ -132,7 +132,8 @@ export class ChatManager {
 	/**
 	 * Callback for the chat chunk is received.
 	 */
-	onChunk: (id: string, parts: MsgPart[], rest: string) => void = () => {};
+	onChunk: (id: string, parts: MsgPart[] | null, rest: string) => void =
+		() => {};
 
 	/**
 	 * Callback for the chat completed and the message is given.

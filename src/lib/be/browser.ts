@@ -1,4 +1,4 @@
-import { IBEService, VibrationPattern } from './interface';
+import { IBEService, PlatformString, VibrationPattern } from './interface';
 import { BrowserSpeechRecognizer, ISpeechRecognizer } from './interface_sr';
 import { getMimeTypeFromFileName } from '../artifact/mime';
 import { UploadedArtifact } from '../artifact/structs';
@@ -24,6 +24,10 @@ export class BrowserService implements IBEService {
 
 	name(): string {
 		return 'Browser';
+	}
+
+	async platform(): Promise<PlatformString> {
+		return 'web';
 	}
 
 	fetch = async (...args: Parameters<typeof fetch>) => {

@@ -1,3 +1,4 @@
+/// Wrap the input string into a QR code and return the SVG representation of it.
 #[tauri::command]
 async fn string_to_qr_svg(input: String) -> Result<String, String> {
     use qrcode::render::svg;
@@ -12,6 +13,8 @@ async fn string_to_qr_svg(input: String) -> Result<String, String> {
     Ok(image)
 }
 
+/// Get the local IP address of the device.
+/// This is only supported on desktop platforms (Windows, Linux, macOS).
 #[cfg(any(target_os = "windows", target_os = "linux", target_os = "macos"))]
 #[tauri::command]
 async fn self_ip() -> Result<String, String> {
@@ -21,12 +24,36 @@ async fn self_ip() -> Result<String, String> {
     }
 }
 
-// self_ip is only supported for desktop platforms
-
+/// Get the local IP address of the device.
+/// This is not supported on mobile platforms (Android, iOS).
 #[cfg(not(any(target_os = "windows", target_os = "linux", target_os = "macos")))]
 #[tauri::command]
 async fn self_ip() -> Result<String, String> {
     Err("self_ip is not supported on this platform".to_string())
+}
+
+/// Return the platform type.
+/// "desktop", "android", "ios", "web"
+#[cfg(any(target_os = "windows", target_os = "linux", target_os = "macos"))]
+#[tauri::command]
+async fn platform() -> Result<String, String> {
+    Ok("desktop".to_string())
+}
+
+/// Return the platform type.
+/// "desktop", "android", "ios", "web"
+#[cfg(target_os = "android")]
+#[tauri::command]
+async fn platform() -> Result<String, String> {
+    Ok("android".to_string())
+}
+
+/// Return the platform type.
+/// "desktop", "android", "ios", "web"
+#[cfg(target_os = "ios")]
+#[tauri::command]
+async fn platform() -> Result<String, String> {
+    Ok("ios".to_string())
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -51,7 +78,11 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_haptics::init())
         .plugin(tauri_plugin_speech_recog::init())
-        .invoke_handler(tauri::generate_handler![self_ip, string_to_qr_svg])
+        .invoke_handler(tauri::generate_handler![
+            platform,
+            self_ip,
+            string_to_qr_svg
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

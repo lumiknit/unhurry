@@ -15,6 +15,7 @@ import {
 	getChatWarnings,
 	getCurChatProcessing,
 	getFocusedChatUphurryProgress,
+	getShowRawMessage,
 	getStreamingParts,
 	getStreamingRest,
 } from '@/store/store';
@@ -35,7 +36,14 @@ const StreamingInfo: Component = () => {
 				<Message msg={assistantMsg(getStreamingParts())} />
 			</Show>
 			<Show when={getStreamingRest()}>
-				<div class="streaming-msg">{getStreamingRest()}</div>
+				<div
+					class={
+						'streaming-msg ' +
+						(getShowRawMessage() ? 'msg-raw' : '')
+					}
+				>
+					{getStreamingRest()}
+				</div>
 			</Show>
 			<Switch>
 				<Match when={getFocusedChatUphurryProgress()}>

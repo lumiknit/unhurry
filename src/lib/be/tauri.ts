@@ -16,6 +16,7 @@ import {
 	impactVibes,
 	NotiVibePattern,
 	notiVibes,
+	PlatformString,
 	VibrationPattern,
 } from './interface';
 import { BrowserSpeechRecognizer, ISpeechRecognizer } from './interface_sr';
@@ -35,6 +36,10 @@ export class TauriService implements IBEService {
 
 	name(): string {
 		return 'Tauri';
+	}
+
+	async platform(): Promise<PlatformString> {
+		return await invoke<PlatformString>('platform');
 	}
 
 	fetch: typeof fetch = async (req, init) => {

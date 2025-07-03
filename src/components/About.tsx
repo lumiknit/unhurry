@@ -1,12 +1,5 @@
 import { BiLogosGithub } from 'solid-icons/bi';
-import {
-	Component,
-	createSignal,
-	Match,
-	onMount,
-	Show,
-	Switch,
-} from 'solid-js';
+import { Component, createSignal, onMount, Show } from 'solid-js';
 import { toast } from 'solid-toast';
 
 import logo from '@/assets/unhurry.svg';
@@ -64,7 +57,8 @@ const getLatestRelease = async (): Promise<string | void> => {
  * About page. (/about)
  */
 const About: Component = () => {
-	const [be, setBE] = createSignal<IBEService | void>();
+	const [, setBE] = createSignal<IBEService | void>();
+	const [platform, setPlatform] = createSignal<string>('web');
 	const [latestRelease, setLatestRelease] = createSignal<
 		string | undefined
 	>();
@@ -77,11 +71,19 @@ const About: Component = () => {
 		setBE(be);
 		(window as { _be?: unknown })._be = be;
 		logr.info('[About] BE service loaded', be?.name());
+
+		if (be) {
+			const platform = await be.platform();
+			setPlatform(platform);
+		}
 	});
 
 	// Load latest release version
-	onMount(() => {
-		getLatestRelease().then(setLatestRelease);
+	onMount(async () => {
+		const r = await getLatestRelease();
+		if (r) {
+			setLatestRelease(r);
+		}
 	});
 
 	const handleReset = async () => {
@@ -117,18 +119,10 @@ const About: Component = () => {
 
 				<br />
 
-				<Switch>
-					<Match when={be() === undefined}>
-						<p>
-							<b>Platform</b>: Web Browser
-						</p>
-					</Match>
-					<Match when={be()?.name() === 'Tauri'}>
-						<p>
-							<b>Platform</b>: Desktop (with Tauri)
-						</p>
-					</Match>
-				</Switch>
+				<p>
+					<b>Platform</b>: {platform()}
+				</p>
+
 				<p>
 					<b>Version</b>: {PACKAGE_VERSION}
 				</p>

@@ -77,9 +77,9 @@ export class MsgConverter {
 	/**
 	 * Push the data into buffer.
 	 */
-	inputToParse(data: string) {
+	inputToParse(data: string): boolean {
 		this.buffer += data;
-		this.parseStep();
+		return this.parseStep();
 	}
 
 	/**
@@ -118,12 +118,13 @@ export class MsgConverter {
 	/**
 	 * Process.
 	 * If there are new lines, push as the new line.
+	 * Return true if there is some updates.
 	 */
-	private parseStep() {
+	private parseStep(): boolean {
 		// Early return if no new lines
 		let lineEnd = this.buffer.indexOf('\n', this.cursor);
 		if (lineEnd < 0) {
-			return;
+			return false;
 		}
 
 		let lastPart = this.parts.pop()!;
@@ -208,6 +209,8 @@ export class MsgConverter {
 		} while (this.cursor < this.buffer.length && lineEnd >= 0);
 
 		this.parts = [...this.parts, { ...lastPart }];
+
+		return true;
 	}
 
 	// Formatter: Msg -> LLM Messages

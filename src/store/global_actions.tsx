@@ -180,7 +180,9 @@ chatManager.onChunk = (id, parts, rest) => {
 	}
 	vibrate(4);
 	batch(() => {
-		setStreamingParts(parts);
+		if (parts !== null) {
+			setStreamingParts(parts);
+		}
 		setStreamingRest(rest);
 	});
 };

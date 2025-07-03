@@ -65,7 +65,7 @@ export abstract class SingleLLMAction {
 	/**
 	 * Called when LLM sends a chunk of the message.
 	 */
-	onChunk?: (chunk: string, parts: MsgPart[], rest: string) => void;
+	onChunk?: (chunk: string, parts: MsgPart[] | null, rest: string) => void;
 
 	/**
 	 * Called when the LLM history is updated.
@@ -163,8 +163,9 @@ export abstract class SingleLLMAction {
 				this.onStart?.();
 			},
 			onText: (text) => {
-				parser.inputToParse(text);
-				this.onChunk?.(text, ...parser.parseState());
+				const partsChanged = parser.inputToParse(text);
+				const [parts, rest] = parser.parseState();
+				this.onChunk?.(text, partsChanged ? parts : null, rest);
 				return !this.cancelled;
 			},
 			isCancelled: () => this.cancelled,

@@ -1,6 +1,6 @@
 [package]
 name = "unhurry"
-version = "0.8.2"
+version = "0.8.4"
 description = "Unhurry, be lazy. LLM-based chat app with various actions."
 authors = ["lumiknit <aasr4r4@gmail.com>"]
 edition = "2021"
@@ -27,7 +27,7 @@ strip = true    # Ensures debug symbols are removed.
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-tauri-plugin-http = {version = "2", features = ["unsafe-headers"] }
+tauri-plugin-http = { version = "2", features = ["unsafe-headers"] }
 qrcode = "0.14"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
