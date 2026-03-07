@@ -27,6 +27,7 @@ export interface Props extends Omit<
 	initText?: string;
 	hideLineNumbers?: boolean;
 	placeholderText?: string | HTMLElement;
+	fontFamily?: string;
 
 	fn: FnContainer;
 	onKeyModEnter?: () => void; // Enter with modifier
@@ -39,6 +40,7 @@ const CodeEdit: Component<Props> = (props) => {
 		'initText',
 		'hideLineNumbers',
 		'placeholderText',
+		'fontFamily',
 		'class',
 		'fn',
 		'onTextChange',
@@ -76,17 +78,21 @@ const CodeEdit: Component<Props> = (props) => {
 		)
 	);
 
-	const Theme = EditorView.theme({
-		'&': {
-			fontSize: '1rem',
-		},
-		'.cm-content': {
-			fontFamily: 'var(--cm-monospace)',
-		},
-		'.cm-scroller': {
-			overflow: 'auto',
-		},
-	});
+	const themeCompartment2 = new Compartment();
+	const updateThemeExt2 = updateCompartment(themeCompartment2);
+	const getCustomTheme = () =>
+		EditorView.theme({
+			'&': {
+				fontSize: '1rem',
+			},
+			'.cm-content': {
+				fontFamily: local.fontFamily || 'var(--cm-monospace)',
+			},
+			'.cm-scroller': {
+				overflow: 'auto',
+			},
+		});
+	createEffect(() => updateThemeExt2(getCustomTheme()));
 
 	onMount(() => {
 		// Basic setup extensions needed for a standard editor feel
@@ -140,7 +146,7 @@ const CodeEdit: Component<Props> = (props) => {
 			),
 			themeCompartment.of(getThemeExt()),
 			langCompartment.of([]),
-			Theme,
+			themeCompartment2.of(getCustomTheme()),
 			EditorView.domEventHandlers({
 				drop(event, view) {
 					if (!event.dataTransfer?.files.length) return false;

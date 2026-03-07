@@ -1,5 +1,7 @@
 import { useNavigate } from '@solidjs/router';
-import { Component, createSignal, Show } from 'solid-js';
+import { Component, createSignal } from 'solid-js';
+
+import NavModal from './NavModal';
 import './Nav.scss';
 
 const UnhurryIcon = () => (
@@ -54,44 +56,11 @@ const Nav: Component = () => {
 				<UnhurryIcon />
 			</div>
 
-			<Show when={isOpen()}>
-				<div class="nav-overlay">
-					<div class="nav-close" onClick={() => setIsOpen(false)}>
-						&times;
-					</div>
-					<div class="nav-content">
-						<h1 class="nav-title">Unhurry</h1>
-
-						<div class="nav-menu">
-							<button
-								class="nav-item"
-								onClick={() => handleNav('/')}
-							>
-								New Chat
-							</button>
-							<button
-								class="nav-item"
-								onClick={() => handleNav('/chats')}
-							>
-								Chat List
-							</button>
-							<button
-								class="nav-item"
-								onClick={() => handleNav('/settings')}
-							>
-								Settings
-							</button>
-						</div>
-
-						<div class="nav-footer">
-							<div class="host-status offline">
-								<span class="status-dot"></span>
-								Host disconnected
-							</div>
-						</div>
-					</div>
-				</div>
-			</Show>
+			<NavModal
+				isOpen={isOpen}
+				onClose={() => setIsOpen(false)}
+				onNavigate={handleNav}
+			/>
 		</>
 	);
 };

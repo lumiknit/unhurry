@@ -8,6 +8,7 @@ import 'solid-devtools';
 import './styles/index.scss';
 
 import Nav from './components/nav/Nav';
+import ChatList from './routes/ChatList';
 import Main from './routes/Main';
 import Settings from './routes/Settings';
 
@@ -27,6 +28,7 @@ render(
 	() => (
 		<HashRouter root={Layout}>
 			<Route path="/" component={Main} />
+			<Route path="/chats" component={ChatList} />
 			<Route path="/settings" component={Settings} />
 		</HashRouter>
 	),
