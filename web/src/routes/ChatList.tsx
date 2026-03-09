@@ -10,7 +10,7 @@ interface ChatItem {
 
 const ChatList: Component = () => {
 	const navigate = useNavigate();
-	const [chats, setChats] = createSignal<ChatItem[]>([]);
+	const [chats] = createSignal<ChatItem[]>([]);
 	const [loading, setLoading] = createSignal(true);
 
 	onMount(() => {

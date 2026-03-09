@@ -1,8 +1,9 @@
-import { copyToClipboard } from '@lib/clipboard';
 import { Component, createEffect } from 'solid-js';
 import { toast } from 'solid-toast';
 
-import { getUserConfig, setUserConfig } from '@/store/config';
+import { getUserConfig, setUserConfig } from '@/state/config';
+
+import { copyToClipboard } from '@lib/clipboard';
 
 const Xxport: Component = () => {
 	let urlRef: HTMLInputElement;

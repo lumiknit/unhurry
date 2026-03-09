@@ -2,7 +2,7 @@ import { Component, For } from 'solid-js';
 import { toast } from 'solid-toast';
 
 import { getFnTools } from '@/lib/chat/tools';
-import { getUserConfig, setUserConfig } from '@/store/config';
+import { getUserConfig, setUserConfig } from '@/state/config';
 
 import SwitchForm from './form/SwitchForm';
 

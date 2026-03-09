@@ -1,7 +1,7 @@
 import { Component } from 'solid-js';
 
 import { UserConfig } from '@/lib/config';
-import { getUserConfig, setUserConfig } from '@/store/config';
+import { getUserConfig, setUserConfig } from '@/state/config';
 
 import SelectForm from './SelectForm';
 

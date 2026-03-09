@@ -1,18 +1,29 @@
 .nav-trigger {
 	position: fixed;
-	top: 1rem;
-	left: 1rem;
+	top: 0;
+	left: 0;
+	width: 3rem;
+	height: 3rem;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 	z-index: 50;
 	cursor: pointer;
-	color: #333;
+	color: #888;
 	opacity: 0.5;
 	transition:
-		opacity 0.2s,
-		transform 0.2s;
+		color 0.15s ease-out,
+		opacity 0.15s ease-out,
+		transform 0.15s ease-out;
 
 	&:hover {
+		color: var(--bulma-primary);
 		opacity: 1;
 		transform: scale(1.1);
+	}
+
+	&:active {
+		transform: scale(0.95);
 	}
 }
 

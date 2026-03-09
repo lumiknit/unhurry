@@ -52,9 +52,9 @@ const Nav: Component = () => {
 
 	return (
 		<>
-			<div class="nav-trigger" onClick={() => setIsOpen(true)}>
+			<button class="nav-trigger" onClick={() => setIsOpen(true)}>
 				<UnhurryIcon />
-			</div>
+			</button>
 
 			<NavModal
 				isOpen={isOpen}

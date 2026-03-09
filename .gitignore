@@ -1,2 +1,5 @@
 *.exe
 /web/node_modules/
+/web/dist
+/.agent
+.DS_Store

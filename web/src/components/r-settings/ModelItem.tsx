@@ -1,381 +1,218 @@
-import { getBEService } from '@lib/be';
-import { logr } from '@lib/logr';
 import {
-	BiRegularLeftArrow,
-	BiRegularRightArrow,
+	BiRegularUpArrow,
+	BiRegularDownArrow,
 	BiRegularTrash,
 } from 'solid-icons/bi';
-import { Component, createEffect, createSignal, Setter } from 'solid-js';
-import { toast } from 'solid-toast';
+import { Component, For, Show } from 'solid-js';
 
-import {
-	getWellKnownModelOpts,
-	LLMClientType,
-	llmPresets,
-	Model,
-	ModelConfig,
-	newClientFromConfig,
-	ToolCallStyle,
-} from '@lib/llm';
+import { getUserConfig } from '@/state/config';
 
-import CodeForm from './form/CodeForm';
-import TextForm, { Option } from './form/TextForm';
-import { openQRModal } from '../modal/QRModal';
+import { ModelConfig, ToolCallStyle } from '@lib/config';
+import { getWellKnownModelOpts } from '@lib/llm';
+
 import NumForm from './form/NumForm';
 import SelectForm from './form/SelectForm';
-import { getAIIconComponent } from '../utils/icons/AIIcons';
+import TextForm from './form/TextForm';
 
 interface Props {
 	model: ModelConfig;
-	updateModel: Setter<ModelConfig>;
 	idx: number;
+	onUpdate: (m: ModelConfig) => void;
 	onMoveUp: () => void;
 	onMoveDown: () => void;
 	onDelete: () => void;
 }
 
-const ModelEditor: Component<Props> = (props) => {
-	let systemPromptRef: HTMLTextAreaElement | null;
+const ModelItem: Component<Props> = (props) => {
+	const providers = () => getUserConfig()?.providers || [];
 
-	const [, setModels] = createSignal<Model[] | undefined>();
-	const [modelOptions, setModelOptions] = createSignal<Option[] | undefined>(
-		undefined
-	);
+	const selectedProvider = () =>
+		providers().find((p) => p.id === props.model.providerId);
 
-	let last_endpoint = '';
-
-	createEffect(() => {
-		if (props.model.endpoint !== last_endpoint) {
-			last_endpoint = props.model.endpoint;
-			setModels(undefined);
-		}
-	});
-
-	const updateModelList = async () => {
-		const task = async () => {
-			// Create a new client
-			const cli = newClientFromConfig(props.model);
-			// Fetch the list of models
-			const ms = await cli.listModels();
-			setModels(
-				ms.sort((a, b) => {
-					if (a.id < b.id) return -1;
-					if (a.id > b.id) return 1;
-					return 0;
-				})
-			);
-			const hasSuffix = new Set<string>();
-			for (const m1 of ms) {
-				for (const m2 of ms) {
-					if (m1.id === m2.id) continue;
-					if (m1.id !== m2.id && m1.id.startsWith(m2.id)) {
-						hasSuffix.add(m1.id);
-					}
-				}
-			}
-			setModelOptions(
-				ms.map(
-					(m) =>
-						({
-							label: m.id,
-							value: m.id,
-							color: hasSuffix.has(m.id) ? undefined : 'warning',
-						}) as Option
-				)
-			);
-		};
-		await toast.promise(
-			task(),
-			{
-				loading: `Loading models of ${props.model.endpoint}...`,
-				success: `Models of ${props.model.endpoint} loaded`,
-				error: (e) => {
-					logr.error(e);
-					return 'Failed to load models';
-				},
-			},
-			{
-				duration: 1000,
-			}
-		);
+	const handleModelChange = (model: string) => {
+		const opts = getWellKnownModelOpts(model) ?? {};
+		props.onUpdate({ ...props.model, ...opts, model });
 	};
 
-	let preset = llmPresets.find((p) => p.endpoint === props.model.endpoint);
-	const [apiKeyURL, setApiKeyURL] = createSignal<string | undefined>(
-		preset?.apiKeyURL
-	);
-
-	const handleEndpointChange = (url: string) => {
-		const preset = llmPresets.find((p) => p.endpoint === url);
-		if (preset !== undefined) {
-			props.updateModel((m) => ({
-				...m,
-				endpoint: preset.endpoint,
-				apiKey: '',
-				model: preset.models[0],
-				clientType: preset.clientType,
-				name: `${preset.name}/${preset.models[0]}`,
-			}));
-			setApiKeyURL(preset.apiKeyURL);
-		} else {
-			props.updateModel((m) => ({
-				...m,
-				endpoint: url,
-			}));
-		}
-	};
-
-	const handleModelChange = (id: string) => {
-		preset = llmPresets.find((p) => p.endpoint === props.model.endpoint);
-		const name = preset ? `${preset.name}/${id}` : id;
-		const opts = getWellKnownModelOpts(id) ?? {};
-		props.updateModel((m) => ({
-			...m,
-			...opts,
-			model: id,
-			name: name,
-		}));
-	};
-
-	const clientTypes: LLMClientType[] = ['OpenAI', 'Gemini', 'Anthropic'];
-	const handleClientTypeClick = (t: LLMClientType) => {
-		props.updateModel((m) => ({
-			...m,
-			clientType: t,
-		}));
-	};
-
-	// Handle general inputs change
-	const handleInputChange = () => {
-		props.updateModel((m) => ({
-			...m,
-			systemPrompt: systemPromptRef!.value,
-		}));
-	};
-
-	/**
-	 * Show QR code modal, to connect to local model
-	 */
-	const showLocalModelQR = async () => {
-		const be = await getBEService();
-		// Replace localhost from the endpoint
-		const model = {
-			...props.model,
-		};
-		try {
-			const ip = '://' + (await be.myIP());
-			model.endpoint = model.endpoint
-				.replace('://127.0.0.1', ip)
-				.replace('://localhost', ip);
-		} catch {
-			toast.error('Local IP is unavailable');
-		}
-		const v = JSON.stringify(model);
-		openQRModal(v);
-	};
-
-	/**
-	 * Load model config from the QR code
-	 */
-	const loadFromQR = async () => {
-		const be = await getBEService();
-		let v: ModelConfig;
-		try {
-			const s = await be.scanQRCode();
-			v = JSON.parse(s);
-		} catch (e) {
-			logr.error(`Failed to scan QR code: ${e}`);
-			toast.error('Failed to load QR code');
-			return;
-		}
-		props.updateModel((m) => ({
-			...m,
-			endpoint: v.endpoint,
-			apiKey: v.apiKey,
-			model: v.model,
-			clientType: v.clientType,
-			name: v.name,
-			systemPrompt: v.systemPrompt,
-			useToolCall: v.toolCallStyle,
-		}));
-	};
+	const displayName = () =>
+		props.model.name ||
+		(selectedProvider()
+			? `${selectedProvider()!.name} / ${props.model.model}`
+			: props.model.model || '(unnamed)');
 
 	return (
 		<>
 			<div class="mb-4" />
 
 			<h4 class="title is-4">
-				{props.idx + 1}. {props.model.name}
+				{props.idx + 1}. {displayName()}
 			</h4>
 
 			<div class="has-text-right mb-4">
-				<button class="button is-small mr-1" onClick={loadFromQR}>
-					Load QR
-				</button>
-
-				<button class="button is-small mr-1" onClick={showLocalModelQR}>
-					Show QR
-				</button>
-
 				<button
 					class="button is-small is-primary mr-1"
 					onClick={props.onMoveUp}
 				>
-					<BiRegularLeftArrow />
-					&nbsp;
+					<span class="icon">
+						<BiRegularUpArrow />
+					</span>
 				</button>
 				<button
 					class="button is-small is-primary mr-1"
 					onClick={props.onMoveDown}
 				>
-					<BiRegularRightArrow />
-					&nbsp;
+					<span class="icon">
+						<BiRegularDownArrow />
+					</span>
 				</button>
 				<button
 					class="button is-small is-danger"
 					onClick={props.onDelete}
 				>
-					<BiRegularTrash />
-					Delete
+					<span class="icon">
+						<BiRegularTrash />
+					</span>
+					<span>Delete</span>
 				</button>
 			</div>
 
-			<CodeForm label="ID" value={props.model.id} />
-
-			<TextForm
-				label="Endpoint"
-				desc="API Endpoint"
-				options={llmPresets.map((p) => ({
-					label: p.name,
-					value: p.endpoint,
-					icon: getAIIconComponent(p.name),
-				}))}
-				controlClass="flex-1 maxw-75"
-				get={() => props.model.endpoint}
-				set={(url) => handleEndpointChange(url)}
-			/>
-
-			<TextForm
-				label="API Key"
-				desc=""
-				controlClass="flex-1 maxw-75"
-				get={() => props.model.apiKey}
-				set={(v) => props.updateModel((m) => ({ ...m, apiKey: v }))}
-			/>
-
-			<div class="mb-4">
-				API Key URL:
-				<a target="_blank" href={apiKeyURL()}>
-					{apiKeyURL()}
-				</a>
+			<div class="field mb-4">
+				<label class="label mb-1">Provider</label>
+				<Show
+					when={providers().length > 0}
+					fallback={
+						<p class="help has-text-warning">
+							No providers configured. Add one in the Providers
+							tab.
+						</p>
+					}
+				>
+					<div class="flex flex-wrap">
+						<For each={providers()}>
+							{(p) => (
+								<button
+									class={
+										'button is-small mr-1 mb-1' +
+										(props.model.providerId === p.id
+											? ' is-primary'
+											: '')
+									}
+									onClick={() =>
+										props.onUpdate({
+											...props.model,
+											providerId: p.id,
+										})
+									}
+								>
+									{p.name}
+								</button>
+							)}
+						</For>
+					</div>
+				</Show>
 			</div>
 
 			<TextForm
 				label="Model"
-				desc="LLM"
+				desc="Model name string (e.g. gpt-4o, claude-3-7-sonnet-latest)"
 				controlClass="flex-1 maxw-75"
-				options={modelOptions() || false}
-				onLoadOptions={updateModelList}
 				get={() => props.model.model}
 				set={(v) => handleModelChange(v)}
 			/>
 
 			<TextForm
-				label="Client Type"
-				desc="Client"
-				options={clientTypes.map((t) => ({
-					label: t,
-					value: t,
-					icon: getAIIconComponent(t),
-				}))}
-				controlClass="flex-1 maxw-75"
-				get={() => props.model.clientType}
-				set={(v) => handleClientTypeClick(v as LLMClientType)}
-			/>
-
-			<TextForm
 				label="Display Name"
-				desc="Display"
+				desc="Optional display name (defaults to provider/model)"
 				controlClass="flex-1 maxw-75"
-				get={() => props.model.name}
-				set={(v) => props.updateModel((m) => ({ ...m, name: v }))}
+				get={() => props.model.name || ''}
+				set={(v) =>
+					props.onUpdate({ ...props.model, name: v || undefined })
+				}
 			/>
 
 			<div class="field">
 				<label class="label">Additional System Prompt</label>
 				<div class="control">
 					<textarea
-						ref={systemPromptRef!}
 						class="textarea"
-						value={props.model.systemPrompt}
-						onChange={handleInputChange}
+						value={props.model.systemPrompt || ''}
+						onChange={(e) =>
+							props.onUpdate({
+								...props.model,
+								systemPrompt: e.currentTarget.value,
+							})
+						}
 					/>
 				</div>
 			</div>
 
 			<SelectForm
-				label="Use ToolCall"
-				desc="If model supports ToolCall, enable this"
+				label="ToolCall Style"
+				desc="How tool calls are formatted"
 				options={[
-					{
-						label: 'Built-In',
-						value: 'builtin',
-					},
-					{
-						label: 'Gemma',
-						value: 'gemma',
-					},
+					{ label: 'Built-In', value: 'builtin' },
+					{ label: 'Gemma', value: 'gemma' },
 				]}
 				get={() => props.model.toolCallStyle || 'builtin'}
 				set={(v) =>
-					props.updateModel((m) => ({
-						...m,
+					props.onUpdate({
+						...props.model,
 						toolCallStyle: v as ToolCallStyle,
-					}))
+					})
 				}
 			/>
 
 			<NumForm
 				label="Context Size"
-				desc="Model's max context size (in tokens)"
+				desc="Max context tokens (0 = default)"
 				get={() => props.model.contextLength || 0}
-				set={(v) => {
-					props.updateModel((m) => ({
-						...m,
-						contextLength: v,
-					}));
-				}}
+				set={(v) =>
+					props.onUpdate({
+						...props.model,
+						contextLength: v || undefined,
+					})
+				}
 			/>
 
 			<NumForm
 				label="Max Output"
-				desc="Model's max output (in tokens)"
+				desc="Max output tokens (0 = default)"
 				get={() => props.model.maxOutputTokens || 0}
-				set={(v) => {
-					props.updateModel((m) => ({
-						...m,
-						maxOutputTokens: v,
-					}));
-				}}
+				set={(v) =>
+					props.onUpdate({
+						...props.model,
+						maxOutputTokens: v || undefined,
+					})
+				}
 			/>
 
 			<TextForm
 				label="Think Start"
-				desc="Word to start thinking (reasoning)"
+				desc="Token that opens a reasoning block"
 				controlClass="flex-1 maxw-75"
 				get={() => props.model.thinkOpen || ''}
-				set={(v) => props.updateModel((m) => ({ ...m, thinkOpen: v }))}
+				set={(v) =>
+					props.onUpdate({
+						...props.model,
+						thinkOpen: v || undefined,
+					})
+				}
 			/>
 
 			<TextForm
 				label="Think End"
-				desc="Word to start thinking (reasoning)"
+				desc="Token that closes a reasoning block"
 				controlClass="flex-1 maxw-75"
 				get={() => props.model.thinkClose || ''}
-				set={(v) => props.updateModel((m) => ({ ...m, thinkClose: v }))}
+				set={(v) =>
+					props.onUpdate({
+						...props.model,
+						thinkClose: v || undefined,
+					})
+				}
 			/>
 		</>
 	);
 };
 
-export default ModelEditor;
+export default ModelItem;

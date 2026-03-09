@@ -26,9 +26,11 @@ const Item: Component<ItemProps> = (props) => {
 			onClick={props.onClick}
 		>
 			<Show when={props.icon}>
-				<Dynamic component={props.icon} />
+				<span class="icon">
+					<Dynamic component={props.icon} />
+				</span>
 			</Show>
-			{props.label}
+			<span>{props.label}</span>
 		</button>
 	);
 };

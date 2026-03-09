@@ -2,19 +2,13 @@ import { Component, createSignal, For } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 
 import GeneralSettings from './GeneralSettings';
-import MemorySettings from './MemorySettings';
 import ModelList from './ModelList';
-import TagList from './TagList';
+import ProviderList from './ProviderList';
 import ToolsSettings from './ToolsSettings';
 import Xxport from './Xxport';
 
-type TabID =
-	| 'general'
-	| 'models'
-	| 'prompt-tags'
-	| 'tools'
-	| 'memory'
-	| 'im-export';
+type TabID = 'general' | 'providers' | 'models' | 'tools' | 'im-export';
+
 type TabItem = {
 	id: TabID;
 	label: string;
@@ -22,19 +16,17 @@ type TabItem = {
 
 const tabs: TabItem[] = [
 	{ id: 'general', label: 'General' },
+	{ id: 'providers', label: 'Providers' },
 	{ id: 'models', label: 'Models' },
-	{ id: 'prompt-tags', label: 'Tags' },
 	{ id: 'tools', label: 'Tools' },
-	{ id: 'memory', label: 'Memory' },
 	{ id: 'im-export', label: 'Im/Export' },
 ];
 
 const tabComponents = new Map<TabID, Component>([
 	['general', GeneralSettings],
+	['providers', ProviderList],
 	['models', ModelList],
-	['prompt-tags', TagList],
 	['tools', ToolsSettings],
-	['memory', MemorySettings],
 	['im-export', Xxport],
 ]);
 

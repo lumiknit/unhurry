@@ -1,7 +1,6 @@
 import { Component } from 'solid-js';
 import { toast } from 'solid-toast';
 
-import NumConfig from './form/NumConfig';
 import SelectConfig from './form/SelectConfig';
 import SwitchConfig from './form/SwitchConfig';
 
@@ -20,18 +19,6 @@ const GeneralSettings: Component = () => {
 	return (
 		<>
 			<h4 class="title is-4">Chatting Options</h4>
-
-			<NumConfig
-				key="autoSendMillis"
-				label="Auto Send After (ms)"
-				desc="When send the typed text to the server automatically"
-			/>
-
-			<SwitchConfig
-				key="enterKeyToSend"
-				label="Enter Key to Send"
-				desc="When enabled, 'Enter' to send and 'Shift-Enter' to newline. If false, 'Enter' to newline, 'Shift-Enter' to send"
-			/>
 
 			<SwitchConfig
 				key="blurOnSendButton"

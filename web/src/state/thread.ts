@@ -27,6 +27,9 @@ export class ThreadState {
 	}
 }
 
+/**
+ * ThreadListState
+ */
 export class ThreadListState {
 	activeThreads: Accessor<Thread[]>;
 	setActiveThreads: Setter<Thread[]>;
