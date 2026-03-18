@@ -7,10 +7,11 @@ import 'solid-devtools';
 
 import './styles/index.scss';
 
-import Nav from './components/nav/Nav';
-import ChatList from './routes/ChatList';
-import Main from './routes/Main';
-import Settings from './routes/Settings';
+import Nav from './shared/nav/Nav';
+import ChatPage from './features/chat/Page';
+import ChatListPage from './features/chat-list/ChatList';
+import HomePage from './features/home/Home';
+import SettingsPage from './routes/Settings';
 
 const root = document.getElementById('root');
 
@@ -27,9 +28,10 @@ const Layout: Component<RouteSectionProps> = (props) => {
 render(
 	() => (
 		<HashRouter root={Layout}>
-			<Route path="/" component={Main} />
-			<Route path="/chats" component={ChatList} />
-			<Route path="/settings" component={Settings} />
+			<Route path="/" component={HomePage} />
+			<Route path="/chats" component={ChatListPage} />
+			<Route path="/chats/:id" component={ChatPage} />
+			<Route path="/settings" component={SettingsPage} />
 		</HashRouter>
 	),
 	root!

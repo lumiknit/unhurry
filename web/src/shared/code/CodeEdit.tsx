@@ -14,10 +14,19 @@ import type { Component, JSX } from 'solid-js';
 import { defaultDark, defaultLight } from './cm_thm_default';
 import { cmLangExt } from './lang_ext';
 
-export type FnContainer = {
-	getter?: () => string;
-	setter?: (text: string) => void;
+type UninitedFnContainer = { initialized: false };
+type InitedFnContainer = {
+	initialized: true;
+	getContent: () => string;
+	setContent: (text: string) => void;
 };
+
+/**
+ * FnContainer is used to share codemirror methods
+ */
+export type FnContainer = UninitedFnContainer | InitedFnContainer;
+
+export const defaultFnContainer = (): FnContainer => ({ initialized: false });
 
 export interface Props extends Omit<
 	JSX.HTMLAttributes<HTMLDivElement>,
@@ -34,6 +43,12 @@ export interface Props extends Omit<
 	onTextChange?: (text: string) => void;
 }
 
+/**
+ * CodeEdit is a SolidJS wrapper of CodeMirror6.
+ *
+ * @param props
+ * @returns
+ */
 const CodeEdit: Component<Props> = (props) => {
 	const [local, rest] = splitProps(props, [
 		'language',
@@ -78,12 +93,15 @@ const CodeEdit: Component<Props> = (props) => {
 		)
 	);
 
-	const themeCompartment2 = new Compartment();
-	const updateThemeExt2 = updateCompartment(themeCompartment2);
+	const domThemeCompartment = new Compartment();
+	const updateDOMThemeExt = updateCompartment(domThemeCompartment);
 	const getCustomTheme = () =>
 		EditorView.theme({
 			'&': {
 				fontSize: '1rem',
+			},
+			'&.cm-focused': {
+				outline: 'none',
 			},
 			'.cm-content': {
 				fontFamily: local.fontFamily || 'var(--cm-monospace)',
@@ -92,7 +110,7 @@ const CodeEdit: Component<Props> = (props) => {
 				overflow: 'auto',
 			},
 		});
-	createEffect(() => updateThemeExt2(getCustomTheme()));
+	createEffect(() => updateDOMThemeExt(getCustomTheme()));
 
 	onMount(() => {
 		// Basic setup extensions needed for a standard editor feel
@@ -146,7 +164,7 @@ const CodeEdit: Component<Props> = (props) => {
 			),
 			themeCompartment.of(getThemeExt()),
 			langCompartment.of([]),
-			themeCompartment2.of(getCustomTheme()),
+			domThemeCompartment.of(getCustomTheme()),
 			EditorView.domEventHandlers({
 				drop(event, view) {
 					if (!event.dataTransfer?.files.length) return false;
@@ -192,8 +210,10 @@ const CodeEdit: Component<Props> = (props) => {
 			parent: containerRef,
 		});
 
-		local.fn.getter = () => editorView?.state.doc.toString() || '';
-		local.fn.setter = (text: string) => {
+		(local.fn as any).initialized = true;
+		(local.fn as any).getContent = () =>
+			editorView?.state.doc.toString() || '';
+		(local.fn as any).setContent = (text: string) => {
 			if (!editorView) {
 				console.warn('EditorView not initialized yet');
 				return;

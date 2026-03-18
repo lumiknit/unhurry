@@ -1,9 +1,9 @@
 import { SimpleIDB } from './client';
 
+// --- User Config
+
 const userConfigIDB = new SimpleIDB('local-user-config', 'configs', 1);
 const userConfigKey = 'current';
-
-// User Config
 
 interface UserConfigType {
 	config: string;
@@ -32,7 +32,7 @@ export const loadUserConfig = async <T>() => {
 	}
 };
 
-// Chat list
+// --- Chat list
 
 const chatListIDB = new SimpleIDB('chat-list', 'chats', 1);
 

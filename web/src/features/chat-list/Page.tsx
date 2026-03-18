@@ -1,6 +1,6 @@
 import { useNavigate } from '@solidjs/router';
 import { Component, createSignal, For, onMount } from 'solid-js';
-import './ChatList.scss';
+import './style.scss';
 
 interface ChatItem {
 	id: string;
@@ -8,7 +8,8 @@ interface ChatItem {
 	createdAt: string;
 }
 
-const ChatList: Component = () => {
+/** Chat list root page component */
+const Page: Component = () => {
 	const navigate = useNavigate();
 	const [chats] = createSignal<ChatItem[]>([]);
 	const [loading, setLoading] = createSignal(true);
@@ -73,4 +74,4 @@ const ChatList: Component = () => {
 	);
 };
 
-export default ChatList;
+export default Page;
