@@ -1,6 +1,6 @@
 import { Component, Match, Switch } from 'solid-js';
 
-import type { ThreadMessage } from '../../lib/thread/types';
+import type { ThreadMessage } from '../../../lib/thread/types';
 
 interface MessageProps {
 	message: ThreadMessage;

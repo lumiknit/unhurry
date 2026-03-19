@@ -1,10 +1,10 @@
 import { BiRegularSend } from 'solid-icons/bi';
 import { Component } from 'solid-js';
 
-import CodeEdit, { defaultFnContainer } from '../code/CodeEdit';
+import CodeEdit, { defaultFnContainer } from '../../../shared/code/CodeEdit';
 
 interface UserInputProps {
-	onSubmit: (text: string) => boolean;
+	onSubmit: (text: string) => boolean | Promise<boolean>;
 	loading: () => boolean;
 }
 

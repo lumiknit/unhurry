@@ -1,6 +1,6 @@
-import { createSignal, type Accessor, type Setter } from 'solid-js';
+import { createStore } from 'solid-js/store';
 
-import type { Thread } from '../lib/thread/types';
+import type { Thread } from '../../lib/thread/types';
 
 /**
  * Whole store for the chat pages
@@ -27,7 +27,7 @@ export type ThreadStore = {
 	submittedMessage: string | null;
 };
 
-export const [chatPageStore, setChatPageStore] = createSignal<ChatPageStore>({
+export const [chatPageStore, setChatPageStore] = createStore<ChatPageStore>({
 	activeID: '',
 	threads: {},
 });

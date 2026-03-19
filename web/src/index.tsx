@@ -9,9 +9,9 @@ import './styles/index.scss';
 
 import Nav from './shared/nav/Nav';
 import ChatPage from './features/chat/Page';
-import ChatListPage from './features/chat-list/ChatList';
-import HomePage from './features/home/Home';
-import SettingsPage from './routes/Settings';
+import ChatListPage from './features/chat-list/Page';
+import HomePage from './features/home/Page';
+import SettingsPage from './features/settings/Page';
 
 const root = document.getElementById('root');
 
