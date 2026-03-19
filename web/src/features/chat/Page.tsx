@@ -2,26 +2,14 @@ import { Component, createMemo, For, onMount, Show } from 'solid-js';
 import { produce } from 'solid-js/store';
 
 import { configStore } from '@/features/settings/store';
-import type { Thread, ThreadMessage } from '@/lib/thread/types';
+import type { ThreadMessage } from '@/lib/thread/types';
 
+import { openNewThread } from './action';
 import Message from './components/Message';
 import UserInput from './components/UserInput';
 import { streamLLMResponse } from './llm';
-import { chatPageStore, setChatPageStore } from './store';
+import { chatPageStore } from './store';
 import './style.scss';
-
-const newThread = (): Thread => ({
-	id: crypto.randomUUID(),
-	title: 'New Chat',
-	permissions: [],
-	sections: [
-		{
-			id: crypto.randomUUID(),
-			label: 'main',
-			messages: [],
-		},
-	],
-});
 
 /** Chat page root component */
 const Page: Component = () => {
@@ -30,18 +18,7 @@ const Page: Component = () => {
 			!chatPageStore.activeID ||
 			!chatPageStore.threads[chatPageStore.activeID]
 		) {
-			const thread = newThread();
-			setChatPageStore(
-				produce((s) => {
-					s.threads[thread.id] = {
-						thread,
-						isLLMWorking: false,
-						streamingMessage: null,
-						submittedMessage: null,
-					};
-					s.activeID = thread.id;
-				})
-			);
+			openNewThread();
 		}
 	});
 
@@ -114,9 +91,9 @@ const Page: Component = () => {
 		);
 
 		// Snapshot all messages for LLM context after user message is added
-		const allMessages = chatPageStore.threads[threadId].thread.sections.flatMap(
-			(s) => s.messages
-		);
+		const allMessages = chatPageStore.threads[
+			threadId
+		].thread.sections.flatMap((s) => s.messages);
 
 		try {
 			const fullText = await streamLLMResponse(

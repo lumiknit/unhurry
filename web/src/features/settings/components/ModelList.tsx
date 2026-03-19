@@ -25,7 +25,10 @@ const ModelList: Component = () => {
 	};
 
 	const addModel = () => {
-		setConfigStore('models', [...(configStore.models || []), defaultModelConfig()]);
+		setConfigStore('models', [
+			...(configStore.models || []),
+			defaultModelConfig(),
+		]);
 		setEditingIdx(models().length - 1);
 		toast.success('Model added');
 	};

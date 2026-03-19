@@ -11,7 +11,7 @@ import ChatPage from './features/chat/Page';
 import ChatListPage from './features/chat-list/Page';
 import HomePage from './features/home/Page';
 import SettingsPage from './features/settings/Page';
-import Nav from './shared/nav/Nav';
+import NavContainer from './shared/nav/Nav';
 
 const root = document.getElementById('root');
 
@@ -19,8 +19,7 @@ const Layout: Component<RouteSectionProps> = (props) => {
 	return (
 		<>
 			<Toaster position="top-center" />
-			<Nav />
-			{props.children}
+			<NavContainer>{props.children}</NavContainer>
 		</>
 	);
 };
