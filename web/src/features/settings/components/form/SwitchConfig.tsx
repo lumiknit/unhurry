@@ -1,7 +1,7 @@
 import { Component } from 'solid-js';
 
 import { UserConfig } from '@/lib/config';
-import { getUserConfig, setUserConfig } from '@/state/config';
+import { configStore, setConfigStore } from '@/features/settings/store';
 
 import SwitchForm from './SwitchForm';
 
@@ -15,8 +15,8 @@ const SwitchConfig: Component<Props> = (props) => {
 	return (
 		<SwitchForm
 			{...props}
-			get={() => !!getUserConfig()?.[props.key]}
-			set={(v) => setUserConfig((s) => ({ ...s, [props.key]: v }))}
+			get={() => !!configStore[props.key]}
+			set={(v) => setConfigStore(props.key as any, v as any)}
 		/>
 	);
 };

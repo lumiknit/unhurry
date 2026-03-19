@@ -1,8 +1,8 @@
 import { Component, createSignal, Show } from 'solid-js';
 import { toast } from 'solid-toast';
 
-import { openConfirm } from '@/components/modal';
-import { getUserConfig, setUserConfig } from '@/state/config';
+import { openConfirm } from '@/shared/modal';
+import { configStore, setConfigStore } from '@/features/settings/store';
 
 import {
 	defaultProviderConfig,
@@ -20,7 +20,7 @@ const sortByName = (arr: ProviderConfig[]) =>
 const ProviderList: Component = () => {
 	const [selectedId, setSelectedId] = createSignal('');
 
-	const providers = () => sortByName(getUserConfig()?.providers || []);
+	const providers = () => sortByName(configStore.providers || []);
 
 	const editingIdx = () => {
 		const idx = providers().findIndex((p) => p.id === selectedId());
@@ -28,40 +28,34 @@ const ProviderList: Component = () => {
 	};
 
 	const addProvider = (kind: ProviderKind) => {
-		const existing = (getUserConfig()?.providers || []).filter(
+		const existing = (configStore.providers || []).filter(
 			(p) => p.kind === kind
 		);
 		const base = providerKindLabel(kind);
 		const name =
 			existing.length === 0 ? base : `${base} (${existing.length + 1})`;
 		const newProvider = { ...defaultProviderConfig(kind), name };
-		setUserConfig((c) => ({
-			...c,
-			providers: sortByName([...(c.providers || []), newProvider]),
-		}));
+		setConfigStore('providers', sortByName([...(configStore.providers || []), newProvider]));
 		setSelectedId(newProvider.id);
 		toast.success(`Provider ${name} added`);
 	};
 
 	const updateProvider = (id: string) => (p: ProviderConfig) => {
-		setUserConfig((c) => ({
-			...c,
-			providers: sortByName(
-				c.providers.map((existing) =>
+		setConfigStore(
+			'providers',
+			sortByName(
+				configStore.providers.map((existing) =>
 					existing.id === id ? p : existing
 				)
-			),
-		}));
+			)
+		);
 	};
 
 	const deleteProvider = async (id: string) => {
 		const provider = providers().find((p) => p.id === id);
 		if (!provider) return;
 		if (!(await openConfirm(`Delete provider "${provider.name}"?`))) return;
-		setUserConfig((c) => ({
-			...c,
-			providers: c.providers.filter((p) => p.id !== id),
-		}));
+		setConfigStore('providers', configStore.providers.filter((p) => p.id !== id));
 		toast.success(`Provider deleted`);
 	};
 

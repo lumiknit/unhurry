@@ -1,8 +1,9 @@
 import { Component, createEffect } from 'solid-js';
+import { reconcile, unwrap } from 'solid-js/store';
 import { toast } from 'solid-toast';
 
-import { getUserConfig, setUserConfig } from '@/state/config';
-
+import { configStore, setConfigStore } from '@/features/settings/store';
+import { defaultUserConfig } from '@lib/config';
 import { copyToClipboard } from '@lib/clipboard';
 
 const Xxport: Component = () => {
@@ -12,7 +13,7 @@ const Xxport: Component = () => {
 	const importText = (text: string) => {
 		try {
 			const c = JSON.parse(text);
-			setUserConfig(c);
+			setConfigStore(reconcile({ ...defaultUserConfig(), ...c }));
 			toast.success('Config imported');
 		} catch (e) {
 			console.error('failed to import config', e);
@@ -42,10 +43,7 @@ const Xxport: Component = () => {
 	};
 
 	createEffect(() => {
-		const c = getUserConfig();
-		if (c) {
-			taRef!.value = JSON.stringify(c, null, 2);
-		}
+		taRef!.value = JSON.stringify(unwrap(configStore), null, 2);
 	});
 
 	return (

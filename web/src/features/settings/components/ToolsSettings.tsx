@@ -2,7 +2,7 @@ import { Component, For } from 'solid-js';
 import { toast } from 'solid-toast';
 
 import { getFnTools } from '@/lib/chat/tools';
-import { getUserConfig, setUserConfig } from '@/state/config';
+import { configStore, setConfigStore } from '@/features/settings/store';
 
 import SwitchForm from './form/SwitchForm';
 
@@ -10,22 +10,13 @@ const ToolsSettings: Component = () => {
 	const fnTools = getFnTools({});
 
 	const toolEnabled = (toolName: string) => {
-		const v = !getUserConfig()?.tools[toolName]?.disabled;
-		return v;
+		return !configStore.tools[toolName]?.disabled;
 	};
 
 	const setToolEnabled = (toolName: string, enabled: boolean) => {
-		setUserConfig((c) => {
-			const tools = c.tools || {};
-			const toolConfig = tools[toolName] || {};
-			tools[toolName] = {
-				...toolConfig,
-				disabled: !enabled,
-			};
-			return {
-				...c,
-				tools,
-			};
+		setConfigStore('tools', toolName, {
+			...configStore.tools[toolName],
+			disabled: !enabled,
 		});
 	};
 

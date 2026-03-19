@@ -1,8 +1,8 @@
 import { batch, Component, Show } from 'solid-js';
 import { toast } from 'solid-toast';
 
-import { openConfirm } from '@/components/modal';
-import { getUserConfig, setUserConfig } from '@/state/config';
+import { openConfirm } from '@/shared/modal';
+import { configStore, setConfigStore } from '@/features/settings/store';
 
 import { defaultModelConfig, ModelConfig } from '@lib/config';
 
@@ -10,14 +10,13 @@ import ItemList from './ItemList';
 import ModelItem from './ModelItem';
 
 const ModelList: Component = () => {
-	const models = () => getUserConfig()?.models || [];
+	const models = () => configStore.models || [];
 
-	const editingIdx = () => getUserConfig()?.currentModelIdx || 0;
-	const setEditingIdx = (v: number) =>
-		setUserConfig((c) => ({ ...c, currentModelIdx: v }));
+	const editingIdx = () => configStore.currentModelIdx || 0;
+	const setEditingIdx = (v: number) => setConfigStore('currentModelIdx', v);
 
 	const modelLabel = (m: ModelConfig) => {
-		const provider = getUserConfig()?.providers.find(
+		const provider = configStore.providers.find(
 			(p) => p.id === m.providerId
 		);
 		if (m.name) return m.name;
@@ -26,30 +25,23 @@ const ModelList: Component = () => {
 	};
 
 	const addModel = () => {
-		setUserConfig((c) => ({
-			...c,
-			models: [...(c?.models || []), defaultModelConfig()],
-		}));
+		setConfigStore('models', [...(configStore.models || []), defaultModelConfig()]);
 		setEditingIdx(models().length - 1);
 		toast.success('Model added');
 	};
 
 	const updateModel = (idx: number) => (m: ModelConfig) => {
-		setUserConfig((c) => {
-			const next = [...c.models];
-			next[idx] = m;
-			return { ...c, models: next };
-		});
+		const next = [...configStore.models];
+		next[idx] = m;
+		setConfigStore('models', next);
 	};
 
 	const deleteModel = async (idx: number) => {
 		const label = modelLabel(models()[idx]);
 		if (!(await openConfirm(`Delete model "${label}"?`))) return;
-		setUserConfig((c) => {
-			const next = [...c.models];
-			next.splice(idx, 1);
-			return { ...c, models: next };
-		});
+		const next = [...configStore.models];
+		next.splice(idx, 1);
+		setConfigStore('models', next);
 		toast.success(`Model deleted`);
 	};
 
@@ -57,12 +49,10 @@ const ModelList: Component = () => {
 		const tgt = idx + delta;
 		if (tgt < 0 || tgt >= models().length) return;
 		batch(() => {
-			setUserConfig((c) => {
-				const next = [...c.models];
-				const [removed] = next.splice(idx, 1);
-				next.splice(tgt, 0, removed);
-				return { ...c, models: next };
-			});
+			const next = [...configStore.models];
+			const [removed] = next.splice(idx, 1);
+			next.splice(tgt, 0, removed);
+			setConfigStore('models', next);
 			setEditingIdx(tgt);
 		});
 	};

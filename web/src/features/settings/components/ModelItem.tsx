@@ -5,7 +5,7 @@ import {
 } from 'solid-icons/bi';
 import { Component, For, Show } from 'solid-js';
 
-import { getUserConfig } from '@/state/config';
+import { configStore } from '@/features/settings/store';
 
 import { ModelConfig, ToolCallStyle } from '@lib/config';
 import { getWellKnownModelOpts } from '@lib/llm';
@@ -24,7 +24,7 @@ interface Props {
 }
 
 const ModelItem: Component<Props> = (props) => {
-	const providers = () => getUserConfig()?.providers || [];
+	const providers = () => configStore.providers || [];
 
 	const selectedProvider = () =>
 		providers().find((p) => p.id === props.model.providerId);

@@ -1,7 +1,7 @@
 import { Component } from 'solid-js';
 
 import { UserConfig } from '@/lib/config';
-import { getUserConfig, setUserConfig } from '@/state/config';
+import { configStore, setConfigStore } from '@/features/settings/store';
 
 import TextForm, { Option } from './TextForm';
 
@@ -17,12 +17,9 @@ const TextConfig: Component<Props> = (props) => {
 	return (
 		<TextForm
 			{...props}
-			get={() => String(getUserConfig()?.[props.key] || '')}
+			get={() => String(configStore[props.key] || '')}
 			set={(v) => {
-				setUserConfig((c) => ({
-					...c,
-					[props.key]: v,
-				}));
+				setConfigStore(props.key as any, v as any);
 			}}
 		/>
 	);

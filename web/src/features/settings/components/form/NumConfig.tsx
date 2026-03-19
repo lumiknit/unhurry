@@ -1,7 +1,7 @@
 import { Component, createEffect } from 'solid-js';
 
 import { UserConfig } from '@/lib/config';
-import { getUserConfig, setUserConfig } from '@/state/config';
+import { configStore, setConfigStore } from '@/features/settings/store';
 
 interface NumConfigProps {
 	key: keyof UserConfig;
@@ -13,19 +13,13 @@ const NumConfig: Component<NumConfigProps> = (props) => {
 	let inputRef: HTMLInputElement;
 	const handleChange = () => {
 		const value = Number(inputRef!.value);
-		setUserConfig((c) => ({
-			...c,
-			[props.key]: value,
-		}));
+		setConfigStore(props.key as any, value as any);
 	};
 
 	createEffect(() => {
-		const c = getUserConfig();
-		if (c) {
-			const v = Number(c[props.key]);
-			if (isNaN(v)) return;
-			inputRef!.value = String(v);
-		}
+		const v = Number(configStore[props.key]);
+		if (isNaN(v)) return;
+		inputRef!.value = String(v);
 	});
 
 	return (
