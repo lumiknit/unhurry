@@ -1,8 +1,8 @@
 import { batch, Component, Show } from 'solid-js';
 import { toast } from 'solid-toast';
 
-import { openConfirm } from '@/shared/modal';
 import { configStore, setConfigStore } from '@/features/settings/store';
+import { openConfirm } from '@/shared/modal';
 
 import { defaultModelConfig, ModelConfig } from '@lib/config';
 

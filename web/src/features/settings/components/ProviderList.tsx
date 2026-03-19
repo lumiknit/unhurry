@@ -1,8 +1,8 @@
 import { Component, createSignal, Show } from 'solid-js';
 import { toast } from 'solid-toast';
 
-import { openConfirm } from '@/shared/modal';
 import { configStore, setConfigStore } from '@/features/settings/store';
+import { openConfirm } from '@/shared/modal';
 
 import {
 	defaultProviderConfig,
@@ -35,7 +35,10 @@ const ProviderList: Component = () => {
 		const name =
 			existing.length === 0 ? base : `${base} (${existing.length + 1})`;
 		const newProvider = { ...defaultProviderConfig(kind), name };
-		setConfigStore('providers', sortByName([...(configStore.providers || []), newProvider]));
+		setConfigStore(
+			'providers',
+			sortByName([...(configStore.providers || []), newProvider])
+		);
 		setSelectedId(newProvider.id);
 		toast.success(`Provider ${name} added`);
 	};
@@ -55,7 +58,10 @@ const ProviderList: Component = () => {
 		const provider = providers().find((p) => p.id === id);
 		if (!provider) return;
 		if (!(await openConfirm(`Delete provider "${provider.name}"?`))) return;
-		setConfigStore('providers', configStore.providers.filter((p) => p.id !== id));
+		setConfigStore(
+			'providers',
+			configStore.providers.filter((p) => p.id !== id)
+		);
 		toast.success(`Provider deleted`);
 	};
 

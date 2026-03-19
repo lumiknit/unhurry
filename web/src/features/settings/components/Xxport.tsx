@@ -1,10 +1,11 @@
+import { writeClipboard } from '@solid-primitives/clipboard';
 import { Component, createEffect } from 'solid-js';
 import { reconcile, unwrap } from 'solid-js/store';
 import { toast } from 'solid-toast';
 
 import { configStore, setConfigStore } from '@/features/settings/store';
+
 import { defaultUserConfig } from '@lib/config';
-import { copyToClipboard } from '@lib/clipboard';
 
 const Xxport: Component = () => {
 	let urlRef: HTMLInputElement;
@@ -39,7 +40,7 @@ const Xxport: Component = () => {
 	};
 
 	const handleCopy = () => {
-		copyToClipboard(taRef!.value);
+		writeClipboard(taRef!.value);
 	};
 
 	createEffect(() => {

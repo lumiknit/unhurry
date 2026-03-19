@@ -7,11 +7,11 @@ import 'solid-devtools';
 
 import './styles/index.scss';
 
-import Nav from './shared/nav/Nav';
 import ChatPage from './features/chat/Page';
 import ChatListPage from './features/chat-list/Page';
 import HomePage from './features/home/Page';
 import SettingsPage from './features/settings/Page';
+import Nav from './shared/nav/Nav';
 
 const root = document.getElementById('root');
 

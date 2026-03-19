@@ -8,10 +8,7 @@ interface NavModalProps {
 
 const NavModal: Component<NavModalProps> = (props) => {
 	return (
-		<div
-			class={`modal ${props.isOpen() ? 'is-active' : ''}`}
-			classList={{ animated: props.isOpen() }}
-		>
+		<div class={`modal ${props.isOpen() ? 'is-active' : ''}`}>
 			<div class="modal-background" onClick={() => props.onClose()} />
 			<div class="modal-card nav-modal-card">
 				<header class="modal-card-head is-justify-content-center">

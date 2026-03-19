@@ -1,8 +1,8 @@
 import { Component, For } from 'solid-js';
 import { toast } from 'solid-toast';
 
-import { getFnTools } from '@/lib/chat/tools';
 import { configStore, setConfigStore } from '@/features/settings/store';
+import { getFnTools } from '@/lib/chat/tools';
 
 import SwitchForm from './form/SwitchForm';
 

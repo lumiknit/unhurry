@@ -1,7 +1,7 @@
 import { Component, createEffect } from 'solid-js';
 
-import { UserConfig } from '@/lib/config';
 import { configStore, setConfigStore } from '@/features/settings/store';
+import { UserConfig } from '@/lib/config';
 
 interface NumConfigProps {
 	key: keyof UserConfig;

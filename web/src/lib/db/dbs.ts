@@ -1,37 +1,5 @@
 import { SimpleIDB } from './client';
 
-// --- User Config
-
-const userConfigIDB = new SimpleIDB('local-user-config', 'configs', 1);
-const userConfigKey = 'current';
-
-interface UserConfigType {
-	config: string;
-	_id: string;
-}
-
-export const userConfigTx = async () => {
-	return await userConfigIDB.transaction<UserConfigType>('readwrite');
-};
-
-export const saveUserConfig = async <T>(config: T) => {
-	const tx = await userConfigTx();
-	await tx.put({
-		config: JSON.stringify(config),
-		_id: userConfigKey,
-	});
-};
-
-export const loadUserConfig = async <T>() => {
-	const tx = await userConfigTx();
-	try {
-		const c = await tx.get(userConfigKey);
-		return JSON.parse(c.config) as T;
-	} catch {
-		return {} as T;
-	}
-};
-
 // --- Chat list
 
 const chatListIDB = new SimpleIDB('chat-list', 'chats', 1);

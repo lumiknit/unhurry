@@ -26,24 +26,7 @@
 		transform: scale(0.95);
 	}
 }
-
-.modal.animated {
-	animation: slideUp 0.3s ease-out;
-}
-
 .nav-modal-card {
 	max-width: 400px;
 	width: 90%;
-}
-
-@keyframes slideUp {
-	from {
-		opacity: 0;
-		transform: translateY(20px);
-	}
-
-	to {
-		opacity: 1;
-		transform: translateY(0);
-	}
 }
